@@ -626,8 +626,9 @@
   </audio>
 
   <script>
-    let introComplete = false;
-    let musicEnabled  = true;
+    let introComplete  = false;
+    let musicEnabled   = true;
+    let musicUnlocked  = false;  // true once browser has allowed audio
 
     const music       = document.getElementById('bg-music');
     const introScreen = document.getElementById('intro-screen');
@@ -635,6 +636,23 @@
     const introVideo  = document.getElementById('intro-video');
     const fallback    = document.getElementById('video-fallback');
     const skipBtn     = document.getElementById('skip-btn');
+
+    /* ── Unlock audio on first user gesture anywhere ── */
+    function unlockAudio() {
+      if (musicUnlocked) return;
+      musicUnlocked = true;
+      // Only actually play if the main UI is already showing
+      if (introComplete && musicEnabled) {
+        music.volume = 0;
+        music.play().then(() => fadeInAudio(music, 0.42, 80)).catch(() => {});
+      }
+      document.removeEventListener('click',     unlockAudio);
+      document.removeEventListener('keydown',   unlockAudio);
+      document.removeEventListener('touchstart', unlockAudio);
+    }
+    document.addEventListener('click',      unlockAudio, { passive: true });
+    document.addEventListener('keydown',    unlockAudio, { passive: true });
+    document.addEventListener('touchstart', unlockAudio, { passive: true });
 
     /* ── Video setup ── */
     const hasSrc = introVideo.getAttribute('src') && introVideo.getAttribute('src').trim() !== '';
@@ -664,9 +682,12 @@
       introScreen.classList.add('fade-out');
       mainUI.classList.add('visible');
 
-      music.volume = 0;
-      music.play().catch(() => {});
-      fadeInAudio(music, 0.42, 80);
+      // If the browser already unlocked audio (user clicked Skip or interacted),
+      // start music now. Otherwise unlockAudio() will pick it up on next gesture.
+      if (musicUnlocked && musicEnabled) {
+        music.volume = 0;
+        music.play().then(() => fadeInAudio(music, 0.42, 80)).catch(() => {});
+      }
 
       setTimeout(() => { introScreen.style.display = 'none'; }, 2000);
     }
@@ -682,8 +703,16 @@
     function toggleSound() {
       musicEnabled = !musicEnabled;
       const btn = document.getElementById('sound-toggle');
-      if (musicEnabled) { music.play(); btn.textContent = '♪ Music: On'; }
-      else              { music.pause(); btn.textContent = '♪ Music: Off'; }
+      if (musicEnabled) {
+        musicUnlocked = true; // toggle click counts as a gesture
+        music.play().then(() => {
+          if (music.volume === 0) fadeInAudio(music, 0.42, 80);
+        }).catch(() => {});
+        btn.textContent = '♪ Music: On';
+      } else {
+        music.pause();
+        btn.textContent = '♪ Music: Off';
+      }
     }
 
     /* ── Save check ── */
