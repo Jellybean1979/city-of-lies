@@ -218,14 +218,18 @@ function renderSuspects() {
   c.suspects.forEach(s => {
     const div = document.createElement('div');
     div.className = 'suspect-summary-card';
+    const hasPortrait = s.portrait && s.portrait.includes('/');
     div.innerHTML = `
-      <div>
-        <div class="ssc-name">${s.name} ${s.powerful ? '<span class="tag tag-red" style="font-size:7px;margin-left:6px">HIGH PROFILE</span>' : ''}</div>
-        <div class="ssc-role">${s.role}</div>
-        <div class="ssc-alibi">"${s.alibi}"</div>
-        <div class="ssc-support">${s.alibiSupport}</div>
+      <div style="display:flex;gap:12px;align-items:flex-start">
+        ${hasPortrait ? `<div style="width:52px;height:52px;overflow:hidden;flex-shrink:0;border:1px solid var(--border)"><img src="${s.portrait.replace('../','')}" style="width:100%;height:100%;object-fit:cover;object-position:top"></div>` : ''}
+        <div>
+          <div class="ssc-name">${s.name} ${s.powerful ? '<span class="tag tag-red" style="font-size:7px;margin-left:6px">HIGH PROFILE</span>' : ''}</div>
+          <div class="ssc-role">${s.role}</div>
+          <div class="ssc-alibi">"${s.alibi}"</div>
+          <div class="ssc-support">${s.alibiSupport}</div>
+        </div>
       </div>
-      <div style="text-align:right">
+      <div style="text-align:right;flex-shrink:0">
         <span class="tag tag-${s.powerLevel === 'VERY HIGH' ? 'red' : s.powerLevel === 'HIGH' ? 'amber' : 'blue'}">${s.powerLevel}</span>
         <div style="margin-top:8px">
           <button class="btn btn-ghost" style="font-size:9px;padding:4px 10px" onclick="goInterrogate('${s.id}')">INTERROGATE</button>
