@@ -1,0 +1,1035 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>City of Lies — Investigation Hub</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;600;700&family=Special+Elite&family=Courier+Prime:ital,wght@0,400;0,700;1,400&family=Playfair+Display:ital,wght@0,700;1,400&family=Permanent+Marker&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --cork:       #8b6914;
+      --ink:        #12090200;
+      --amber:      #c47c1a;
+      --gold:       #a8832e;
+      --blood:      #8b1a1a;
+      --string:     #c0392b;
+      --cream:      #f5ead0;
+      --paper-y:    #f0e68a;
+      --paper-w:    #f2ede0;
+      --paper-aged: #ddd0a8;
+      --shadow:     rgba(0,0,0,0.55);
+    }
+
+    *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+
+    html, body {
+      width: 100%; height: 100%;
+      overflow: hidden;
+      background: #1a1008;
+      font-family: 'Special Elite', cursive;
+      cursor: default;
+    }
+
+    /* ── PAGE LOAD FADE IN ── */
+    body { animation: pageIn 1.2s ease forwards; }
+    @keyframes pageIn {
+      from { opacity: 0; }
+      to   { opacity: 1; }
+    }
+
+    /* ════════════════════════════
+       BACKGROUND — CORKBOARD ART
+    ════════════════════════════ */
+    #board-bg {
+      position: fixed;
+      inset: 0;
+      background-image: url('background-mainUI.jpg');
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      /* Slight warm grade to unify with desk lamp mood */
+      filter: brightness(0.88) saturate(0.9) sepia(0.1);
+    }
+
+    /* Warm lamp radial glow from upper-center */
+    #lamp-glow {
+      position: fixed;
+      inset: 0;
+      background: radial-gradient(
+        ellipse 65% 55% at 52% 20%,
+        rgba(220,160,60,0.13) 0%,
+        rgba(180,110,30,0.06) 40%,
+        transparent 70%
+      );
+      pointer-events: none;
+    }
+
+    /* Vignette */
+    #vignette {
+      position: fixed;
+      inset: 0;
+      box-shadow:
+        inset 0 0 120px rgba(5,2,0,0.85),
+        inset 0 0 40px  rgba(5,2,0,0.4);
+      pointer-events: none;
+      z-index: 2;
+    }
+
+    /* Grain */
+    #grain {
+      position: fixed;
+      inset: 0;
+      z-index: 3;
+      pointer-events: none;
+      opacity: 0.032;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='250' height='250'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.78' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='250' height='250' filter='url(%23n)'/%3E%3C/svg%3E");
+      background-size: 200px;
+    }
+
+    /* Scanlines */
+    #scanlines {
+      position: fixed;
+      inset: 0;
+      z-index: 3;
+      pointer-events: none;
+      background: repeating-linear-gradient(
+        to bottom,
+        transparent 0, transparent 3px,
+        rgba(0,0,0,0.025) 3px, rgba(0,0,0,0.025) 4px
+      );
+    }
+
+    /* ════════════════════════════
+       SVG STRING LAYER
+    ════════════════════════════ */
+    #string-layer {
+      position: fixed;
+      inset: 0;
+      z-index: 4;
+      pointer-events: none;
+    }
+
+    /* ════════════════════════════
+       NOTES LAYER
+    ════════════════════════════ */
+    #notes-layer {
+      position: fixed;
+      inset: 0;
+      z-index: 5;
+    }
+
+    /* ── BASE NOTE ── */
+    .note {
+      position: absolute;
+      cursor: pointer;
+      transition: transform 0.22s cubic-bezier(0.34,1.56,0.64,1), filter 0.2s ease, z-index 0s;
+      transform-origin: center center;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+    .note:hover {
+      z-index: 20 !important;
+      filter: brightness(1.08) drop-shadow(0 8px 20px rgba(0,0,0,0.7));
+    }
+
+    /* ── PUSHPIN ── */
+    .pin {
+      position: absolute;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      top: -9px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 10;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.7), inset 0 -2px 3px rgba(0,0,0,0.3), inset 0 2px 4px rgba(255,255,255,0.25);
+    }
+    .pin::after {
+      content: '';
+      position: absolute;
+      width: 6px; height: 14px;
+      background: rgba(0,0,0,0.4);
+      border-radius: 0 0 3px 3px;
+      top: 14px;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+    .pin.red    { background: radial-gradient(circle at 35% 35%, #f55, #8b1a1a); }
+    .pin.blue   { background: radial-gradient(circle at 35% 35%, #6af, #1a3a8b); }
+    .pin.yellow { background: radial-gradient(circle at 35% 35%, #ff8, #a87c00); }
+    .pin.green  { background: radial-gradient(circle at 35% 35%, #4d8, #1a6b2a); }
+    .pin.orange { background: radial-gradient(circle at 35% 35%, #fa6, #8b3a00); }
+    .pin.white  { background: radial-gradient(circle at 35% 35%, #fff, #b0a090); }
+    .pin.teal   { background: radial-gradient(circle at 35% 35%, #4de, #0a5a6b); }
+
+    /* Note shadow cast by pin */
+    .note-inner {
+      position: relative;
+      box-shadow: 2px 4px 14px rgba(0,0,0,0.55), 0 1px 3px rgba(0,0,0,0.3);
+    }
+
+    /* Label shown on hover */
+    .note-label {
+      position: absolute;
+      bottom: -26px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-family: 'Courier Prime', monospace;
+      font-size: 9px;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: var(--amber);
+      white-space: nowrap;
+      opacity: 0;
+      transition: opacity 0.2s;
+      pointer-events: none;
+      text-shadow: 0 1px 4px rgba(0,0,0,0.9);
+    }
+    .note:hover .note-label { opacity: 1; }
+
+    /* ════════════════════════════════════════
+       1. CASE FILES — Manila folder tab
+    ════════════════════════════════════════ */
+    #note-casefiles {
+      left: 3%;
+      top: 10%;
+      transform: rotate(-4deg);
+      width: clamp(130px, 13vw, 190px);
+    }
+    #note-casefiles:hover { transform: rotate(-1deg) scale(1.07); }
+    #note-casefiles .note-inner {
+      background: #c8a85a;
+      border: 1px solid #9a7830;
+      padding: 0;
+      position: relative;
+    }
+    .folder-tab {
+      background: #b8962e;
+      height: 22px;
+      border-radius: 6px 6px 0 0;
+      display: flex;
+      align-items: center;
+      padding: 0 10px;
+      border-bottom: 1px solid #8a6a10;
+    }
+    .folder-tab span {
+      font-family: 'Courier Prime', monospace;
+      font-size: clamp(7px, 0.9vw, 9px);
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: #3a2000;
+      font-weight: 700;
+    }
+    .folder-body {
+      padding: clamp(8px, 1.2vw, 14px);
+      background: #d4b870;
+    }
+    .folder-lines {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+    .folder-line {
+      height: 1px;
+      background: rgba(80,50,0,0.25);
+    }
+    .folder-stamp {
+      font-family: 'Special Elite', cursive;
+      font-size: clamp(11px, 1.4vw, 16px);
+      color: #3a2000;
+      margin-bottom: 6px;
+      display: block;
+    }
+    .folder-sub {
+      font-family: 'Courier Prime', monospace;
+      font-size: clamp(6px, 0.75vw, 8px);
+      letter-spacing: 0.15em;
+      color: rgba(60,30,0,0.6);
+      text-transform: uppercase;
+      display: block;
+      margin-top: 5px;
+    }
+    .folder-stamp-mark {
+      position: absolute;
+      bottom: 10px;
+      right: 10px;
+      width: 36px; height: 36px;
+      border: 2px solid rgba(139,26,26,0.4);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: rgba(139,26,26,0.45);
+      font-family: 'Courier Prime', monospace;
+      font-size: 7px;
+      letter-spacing: 0.05em;
+      text-align: center;
+      line-height: 1.2;
+      transform: rotate(-12deg);
+    }
+
+    /* ════════════════════════════════════════
+       2. EVIDENCE LOCKER — Printed form
+    ════════════════════════════════════════ */
+    #note-evidence {
+      left: 6%;
+      top: 52%;
+      transform: rotate(2.5deg);
+      width: clamp(120px, 12vw, 175px);
+    }
+    #note-evidence:hover { transform: rotate(0deg) scale(1.07); }
+    #note-evidence .note-inner {
+      background: var(--paper-w);
+      border: 1px solid #c0b090;
+      padding: clamp(8px, 1.2vw, 14px);
+    }
+    .form-header {
+      border-bottom: 2px solid #333;
+      padding-bottom: 4px;
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .form-header-badge {
+      font-size: 14px;
+    }
+    .form-header-text {
+      font-family: 'Courier Prime', monospace;
+      font-size: clamp(6px, 0.7vw, 8px);
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: #1a1208;
+      font-weight: 700;
+      line-height: 1.3;
+    }
+    .form-title {
+      font-family: 'Special Elite', cursive;
+      font-size: clamp(12px, 1.5vw, 17px);
+      color: #1a1208;
+      display: block;
+      margin-bottom: 6px;
+    }
+    .form-field {
+      border-bottom: 1px solid #666;
+      margin-bottom: 5px;
+      padding-bottom: 2px;
+    }
+    .form-field-label {
+      font-family: 'Courier Prime', monospace;
+      font-size: clamp(5px, 0.65vw, 7px);
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: #666;
+      display: block;
+    }
+    .form-field-val {
+      font-family: 'Courier Prime', monospace;
+      font-size: clamp(6px, 0.8vw, 9px);
+      color: #1a1208;
+      display: block;
+    }
+    .form-stamp {
+      margin-top: 6px;
+      font-family: 'Special Elite', cursive;
+      font-size: clamp(10px, 1.3vw, 15px);
+      color: rgba(139,26,26,0.55);
+      border: 2px solid rgba(139,26,26,0.4);
+      display: inline-block;
+      padding: 1px 6px;
+      transform: rotate(-8deg);
+      letter-spacing: 0.1em;
+    }
+
+    /* ════════════════════════════════════════
+       3. SUSPECTS — Polaroid photo
+    ════════════════════════════════════════ */
+    #note-suspects {
+      left: 20%;
+      top: 6%;
+      transform: rotate(3deg);
+      width: clamp(110px, 11vw, 160px);
+    }
+    #note-suspects:hover { transform: rotate(0.5deg) scale(1.08); }
+    #note-suspects .note-inner {
+      background: #f0ece0;
+      padding: clamp(6px, 0.8vw, 10px) clamp(6px, 0.8vw, 10px) clamp(18px, 2.5vw, 30px);
+      border: 1px solid #d0c8b0;
+    }
+    .polaroid-img {
+      width: 100%;
+      aspect-ratio: 1;
+      background:
+        linear-gradient(135deg, #2a1a0a 0%, #1a1008 40%, #3a2510 60%, #1a1008 100%);
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .polaroid-img::before {
+      content: '?';
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(28px, 4vw, 50px);
+      color: rgba(255,255,255,0.08);
+      font-style: italic;
+    }
+    /* silhouette figure */
+    .polaroid-img::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 45%;
+      height: 75%;
+      background: rgba(0,0,0,0.5);
+      clip-path: polygon(30% 0%, 70% 0%, 85% 20%, 90% 100%, 10% 100%, 15% 20%);
+    }
+    .polaroid-caption {
+      font-family: 'Caveat', cursive;
+      font-size: clamp(10px, 1.3vw, 15px);
+      color: #2a1a0a;
+      text-align: center;
+      margin-top: 5px;
+      display: block;
+      line-height: 1.2;
+    }
+    .polaroid-sub {
+      font-family: 'Courier Prime', monospace;
+      font-size: clamp(5px, 0.65vw, 7px);
+      letter-spacing: 0.2em;
+      color: #888;
+      text-align: center;
+      display: block;
+      text-transform: uppercase;
+    }
+
+    /* ════════════════════════════════════════
+       4. INVESTIGATION BOARD — Sticky note
+    ════════════════════════════════════════ */
+    #note-board {
+      left: 38%;
+      top: 5%;
+      transform: rotate(-2deg);
+      width: clamp(120px, 12vw, 170px);
+    }
+    #note-board:hover { transform: rotate(0deg) scale(1.07); }
+    #note-board .note-inner {
+      background: var(--paper-y);
+      padding: clamp(10px, 1.4vw, 18px) clamp(8px, 1.1vw, 14px);
+      /* sticky note fold */
+      clip-path: polygon(0 0, calc(100% - 16px) 0, 100% 16px, 100% 100%, 0 100%);
+      position: relative;
+    }
+    #note-board .note-inner::before {
+      content: '';
+      position: absolute;
+      top: 0; right: 0;
+      width: 16px; height: 16px;
+      background: linear-gradient(225deg, #b8a800 50%, #f0e68a 50%);
+    }
+    .sticky-title {
+      font-family: 'Permanent Marker', cursive;
+      font-size: clamp(11px, 1.5vw, 18px);
+      color: #1a1208;
+      line-height: 1.2;
+      display: block;
+      margin-bottom: 6px;
+    }
+    .sticky-lines {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .sticky-line {
+      font-family: 'Caveat', cursive;
+      font-size: clamp(8px, 1vw, 12px);
+      color: #3a2c00;
+      border-bottom: 1px solid rgba(100,80,0,0.2);
+      padding-bottom: 3px;
+      line-height: 1.3;
+    }
+    .sticky-arrow {
+      margin-top: 6px;
+      font-family: 'Caveat', cursive;
+      font-size: clamp(14px, 1.8vw, 22px);
+      color: var(--blood);
+      display: block;
+      text-align: right;
+    }
+
+    /* ════════════════════════════════════════
+       5. JOURNAL / NOTES — Torn notebook paper
+    ════════════════════════════════════════ */
+    #note-journal {
+      right: 22%;
+      top: 8%;
+      transform: rotate(1.5deg);
+      width: clamp(115px, 11.5vw, 165px);
+    }
+    #note-journal:hover { transform: rotate(-0.5deg) scale(1.07); }
+    #note-journal .note-inner {
+      background: var(--paper-w);
+      border-left: 3px solid #d4a0a0;
+      padding: clamp(8px, 1.1vw, 14px) clamp(8px, 1.1vw, 12px) clamp(8px, 1.1vw, 14px) clamp(14px, 1.8vw, 22px);
+      position: relative;
+    }
+    /* Torn top edge */
+    #note-journal .note-inner::before {
+      content: '';
+      position: absolute;
+      top: -6px; left: 0; right: 0;
+      height: 8px;
+      background: var(--paper-w);
+      clip-path: polygon(0% 100%, 3% 20%, 6% 80%, 10% 10%, 14% 70%, 18% 0%, 22% 60%, 27% 20%, 32% 80%, 37% 10%, 42% 70%, 47% 30%, 52% 80%, 57% 20%, 62% 70%, 67% 10%, 72% 60%, 77% 20%, 82% 80%, 87% 10%, 92% 70%, 96% 20%, 100% 80%, 100% 100%);
+    }
+    .notebook-title {
+      font-family: 'Caveat', cursive;
+      font-weight: 700;
+      font-size: clamp(11px, 1.4vw, 17px);
+      color: #1a1208;
+      display: block;
+      margin-bottom: 4px;
+      border-bottom: 1px solid #c0b090;
+      padding-bottom: 3px;
+    }
+    .notebook-entry {
+      font-family: 'Caveat', cursive;
+      font-size: clamp(8px, 1vw, 12px);
+      color: #2a2010;
+      line-height: 1.7;
+      display: block;
+    }
+    /* ruled lines behind text */
+    #note-journal .note-inner {
+      background-image: repeating-linear-gradient(
+        to bottom,
+        transparent 0px, transparent 21px,
+        rgba(100,140,200,0.15) 21px, rgba(100,140,200,0.15) 22px
+      );
+    }
+    .notebook-date {
+      font-family: 'Courier Prime', monospace;
+      font-size: clamp(6px, 0.7vw, 8px);
+      color: #888;
+      display: block;
+      margin-top: 5px;
+      letter-spacing: 0.1em;
+    }
+
+    /* ════════════════════════════════════════
+       6. AUDIO LAB — Torn paper with waveform
+    ════════════════════════════════════════ */
+    #note-audio {
+      right: 5%;
+      top: 42%;
+      transform: rotate(-3deg);
+      width: clamp(120px, 12vw, 175px);
+    }
+    #note-audio:hover { transform: rotate(-0.5deg) scale(1.07); }
+    #note-audio .note-inner {
+      background: #1a2030;
+      border: 1px solid #2a3050;
+      padding: clamp(8px, 1.2vw, 14px);
+      position: relative;
+      overflow: hidden;
+    }
+    #note-audio .note-inner::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: repeating-linear-gradient(
+        to bottom,
+        transparent 0, transparent 4px,
+        rgba(0,200,150,0.03) 4px, rgba(0,200,150,0.03) 5px
+      );
+    }
+    .audio-title {
+      font-family: 'Courier Prime', monospace;
+      font-size: clamp(8px, 1vw, 11px);
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: #4de0b0;
+      display: block;
+      margin-bottom: 2px;
+    }
+    .audio-sub {
+      font-family: 'Courier Prime', monospace;
+      font-size: clamp(5px, 0.65vw, 7px);
+      letter-spacing: 0.2em;
+      color: rgba(77,224,176,0.45);
+      text-transform: uppercase;
+      display: block;
+      margin-bottom: 8px;
+    }
+    .waveform {
+      display: flex;
+      align-items: center;
+      gap: 2px;
+      height: 28px;
+      margin-bottom: 6px;
+    }
+    .waveform-bar {
+      flex: 1;
+      background: #4de0b0;
+      border-radius: 1px;
+      opacity: 0.7;
+      animation: waveAnim 1.4s ease-in-out infinite alternate;
+    }
+    @keyframes waveAnim {
+      from { transform: scaleY(0.3); opacity: 0.4; }
+      to   { transform: scaleY(1);   opacity: 0.85; }
+    }
+    .audio-status {
+      font-family: 'Courier Prime', monospace;
+      font-size: clamp(5px, 0.65vw, 7px);
+      color: rgba(77,224,176,0.5);
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      display: block;
+    }
+    .audio-dot {
+      display: inline-block;
+      width: 5px; height: 5px;
+      background: #4de0b0;
+      border-radius: 50%;
+      margin-right: 4px;
+      animation: blink 1.2s ease infinite;
+    }
+    @keyframes blink {
+      0%,100% { opacity: 1; }
+      50%      { opacity: 0.1; }
+    }
+
+    /* ════════════════════════════════════════
+       7. FINAL REPORT — Stamped official doc
+    ════════════════════════════════════════ */
+    #note-report {
+      right: 4%;
+      top: 8%;
+      transform: rotate(2deg);
+      width: clamp(125px, 12.5vw, 180px);
+    }
+    #note-report:hover { transform: rotate(0deg) scale(1.07); }
+    #note-report .note-inner {
+      background: var(--paper-aged);
+      border: 1px solid #b0a070;
+      padding: clamp(8px, 1.2vw, 14px);
+      position: relative;
+    }
+    .report-header {
+      text-align: center;
+      border-bottom: 2px solid #8a7030;
+      padding-bottom: 5px;
+      margin-bottom: 6px;
+    }
+    .report-dept {
+      font-family: 'Courier Prime', monospace;
+      font-size: clamp(5px, 0.65vw, 7px);
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: #5a4010;
+      display: block;
+    }
+    .report-title {
+      font-family: 'Special Elite', cursive;
+      font-size: clamp(12px, 1.5vw, 18px);
+      color: #2a1800;
+      display: block;
+      margin: 2px 0;
+    }
+    .report-case {
+      font-family: 'Courier Prime', monospace;
+      font-size: clamp(5px, 0.65vw, 7px);
+      letter-spacing: 0.2em;
+      color: #7a5a20;
+      display: block;
+    }
+    .report-body {
+      font-family: 'Courier Prime', monospace;
+      font-size: clamp(6px, 0.75vw, 8px);
+      color: #3a2800;
+      line-height: 1.6;
+      margin-bottom: 8px;
+    }
+    .report-body em {
+      font-style: normal;
+      text-decoration: underline;
+      text-decoration-color: rgba(58,40,0,0.4);
+    }
+    .report-stamp-wrap {
+      display: flex;
+      justify-content: flex-end;
+    }
+    .report-stamp {
+      font-family: 'Special Elite', cursive;
+      font-size: clamp(9px, 1.1vw, 13px);
+      color: rgba(139,26,26,0.5);
+      border: 2px solid rgba(139,26,26,0.4);
+      padding: 2px 8px;
+      transform: rotate(-15deg);
+      letter-spacing: 0.1em;
+      display: inline-block;
+    }
+    .report-sig {
+      position: absolute;
+      bottom: 8px;
+      left: 10px;
+      font-family: 'Caveat', cursive;
+      font-size: clamp(9px, 1.1vw, 13px);
+      color: rgba(30,20,0,0.45);
+      transform: rotate(-3deg);
+    }
+
+    /* ════════════════════════════
+       BOTTOM HUD BAR
+    ════════════════════════════ */
+    #hud {
+      position: fixed;
+      bottom: 0;
+      left: 0; right: 0;
+      z-index: 10;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px clamp(14px, 3vw, 32px);
+      background: linear-gradient(to top, rgba(5,2,0,0.92) 0%, transparent 100%);
+    }
+    .hud-left {
+      display: flex;
+      align-items: center;
+      gap: clamp(12px, 2vw, 24px);
+    }
+    .hud-btn {
+      font-family: 'Courier Prime', monospace;
+      font-size: clamp(8px, 0.9vw, 10px);
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: #4a3820;
+      background: none;
+      border: none;
+      cursor: pointer;
+      transition: color 0.2s;
+      padding: 4px 0;
+    }
+    .hud-btn:hover { color: var(--amber); }
+    .hud-center {
+      font-family: 'Courier Prime', monospace;
+      font-size: clamp(7px, 0.8vw, 9px);
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: #2e2010;
+      text-align: center;
+    }
+    .hud-case {
+      color: var(--gold);
+      opacity: 0.6;
+      display: block;
+    }
+    #versionTag {
+      font-family: 'Courier Prime', monospace;
+      font-size: 9px;
+      letter-spacing: 0.2em;
+      color: #2e2010;
+      text-transform: uppercase;
+    }
+
+    /* ════════════════════════════
+       TOOLTIP on hover
+    ════════════════════════════ */
+    #tooltip {
+      position: fixed;
+      z-index: 50;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.15s;
+      background: rgba(10,6,2,0.92);
+      border: 1px solid rgba(168,131,46,0.3);
+      padding: 6px 14px;
+      transform: translateX(-50%);
+    }
+    #tooltip.visible { opacity: 1; }
+    #tooltip span {
+      font-family: 'Courier Prime', monospace;
+      font-size: 10px;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: var(--amber);
+      white-space: nowrap;
+    }
+
+    /* ════════════════════════════
+       RESPONSIVE SCALE
+    ════════════════════════════ */
+    @media (max-width: 600px) {
+      .note { transform: scale(0.85) !important; }
+      .note:hover { transform: scale(0.92) !important; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Board layers -->
+  <div id="board-bg"></div>
+  <div id="lamp-glow"></div>
+  <div id="grain"></div>
+  <div id="scanlines"></div>
+
+  <!-- Red string SVG connections -->
+  <svg id="string-layer" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <filter id="string-blur">
+        <feGaussianBlur stdDeviation="0.4"/>
+      </filter>
+    </defs>
+    <!-- Strings are drawn JS-side after layout is known -->
+  </svg>
+
+  <!-- Notes layer -->
+  <div id="notes-layer">
+
+    <!-- 1. CASE FILES — Manila folder -->
+    <div class="note" id="note-casefiles" onclick="navigate('codex.html')" title="Case Files & Codex">
+      <div class="pin red"></div>
+      <div class="note-inner">
+        <div class="folder-tab"><span>Case Files</span></div>
+        <div class="folder-body">
+          <span class="folder-stamp">Codex</span>
+          <div class="folder-lines">
+            <div class="folder-line"></div>
+            <div class="folder-line"></div>
+            <div class="folder-line"></div>
+          </div>
+          <span class="folder-sub">Evidence &amp; Lore</span>
+          <div class="folder-stamp-mark">CASE<br/>001</div>
+        </div>
+      </div>
+      <div class="note-label">Case Files & Codex</div>
+    </div>
+
+    <!-- 2. EVIDENCE LOCKER — Printed form -->
+    <div class="note" id="note-evidence" onclick="navigate('evidence.html')" title="Evidence Locker">
+      <div class="pin blue"></div>
+      <div class="note-inner">
+        <div class="form-header">
+          <span class="form-header-badge">🔒</span>
+          <span class="form-header-text">CITY P.D.<br/>EVIDENCE</span>
+        </div>
+        <span class="form-title">Locker</span>
+        <div class="form-field">
+          <span class="form-field-label">Case No.</span>
+          <span class="form-field-val">COL-001</span>
+        </div>
+        <div class="form-field">
+          <span class="form-field-label">Items</span>
+          <span class="form-field-val">— — —</span>
+        </div>
+        <div class="form-field">
+          <span class="form-field-label">Status</span>
+          <span class="form-field-val">OPEN</span>
+        </div>
+        <span class="form-stamp">SEALED</span>
+      </div>
+      <div class="note-label">Evidence Locker</div>
+    </div>
+
+    <!-- 3. SUSPECTS — Polaroid -->
+    <div class="note" id="note-suspects" onclick="navigate('suspects.html')" title="Suspects">
+      <div class="pin yellow"></div>
+      <div class="note-inner">
+        <div class="polaroid-img"></div>
+        <span class="polaroid-caption">Suspects</span>
+        <span class="polaroid-sub">Persons of Interest</span>
+      </div>
+      <div class="note-label">Suspects</div>
+    </div>
+
+    <!-- 4. INVESTIGATION BOARD — Sticky note -->
+    <div class="note" id="note-board" onclick="navigate('board.html')" title="Investigation Board">
+      <div class="pin green"></div>
+      <div class="note-inner">
+        <span class="sticky-title">Investigation Board</span>
+        <div class="sticky-lines">
+          <span class="sticky-line">Connect the dots</span>
+          <span class="sticky-line">Follow the string</span>
+          <span class="sticky-line">Trust no one</span>
+        </div>
+        <span class="sticky-arrow">→</span>
+      </div>
+      <div class="note-label">Investigation Board</div>
+    </div>
+
+    <!-- 5. JOURNAL / NOTES — Torn notebook -->
+    <div class="note" id="note-journal" onclick="navigate('journal.html')" title="Journal">
+      <div class="pin orange"></div>
+      <div class="note-inner">
+        <span class="notebook-title">Field Notes</span>
+        <span class="notebook-entry">Journal &amp;<br/>Observations<br/>— see within —</span>
+        <span class="notebook-date">Date: _ _ / _ _ / _ _</span>
+      </div>
+      <div class="note-label">Journal / Notes</div>
+    </div>
+
+    <!-- 6. AUDIO LAB — Dark panel -->
+    <div class="note" id="note-audio" onclick="navigate('audiolab.html')" title="Audio Lab">
+      <div class="pin teal"></div>
+      <div class="note-inner">
+        <span class="audio-title">Audio Lab</span>
+        <span class="audio-sub">Signal Analysis</span>
+        <div class="waveform" id="waveform"></div>
+        <span class="audio-status">
+          <span class="audio-dot"></span>Recording available
+        </span>
+      </div>
+      <div class="note-label">Audio Lab</div>
+    </div>
+
+    <!-- 7. FINAL REPORT — Official stamped doc -->
+    <div class="note" id="note-report" onclick="navigate('report.html')" title="Final Report">
+      <div class="pin white"></div>
+      <div class="note-inner">
+        <div class="report-header">
+          <span class="report-dept">City of Lies P.D.</span>
+          <span class="report-title">Final Report</span>
+          <span class="report-case">Case No. COL-001</span>
+        </div>
+        <div class="report-body">
+          Submit your conclusions.<br/>
+          Name the <em>perpetrator</em>.<br/>
+          Close the case.
+        </div>
+        <div class="report-stamp-wrap">
+          <span class="report-stamp">PENDING</span>
+        </div>
+        <span class="report-sig">Det. ___________</span>
+      </div>
+      <div class="note-label">Final Report</div>
+    </div>
+
+  </div>
+
+  <!-- Vignette (above notes) -->
+  <div id="vignette"></div>
+
+  <!-- Tooltip -->
+  <div id="tooltip"><span id="tooltip-text"></span></div>
+
+  <!-- HUD bar -->
+  <div id="hud">
+    <div class="hud-left">
+      <button class="hud-btn" onclick="goBack()">← Menu</button>
+      <button class="hud-btn" onclick="navigate('settings.html')">Settings</button>
+    </div>
+    <div class="hud-center">
+      <span class="hud-case">Case No. COL-001</span>
+      City of Lies
+    </div>
+    <span id="versionTag">v0.1.0 · local</span>
+  </div>
+
+  <script>
+    /* ── Waveform bars ── */
+    const wf = document.getElementById('waveform');
+    const heights = [0.3,0.6,0.9,0.5,1.0,0.4,0.7,0.85,0.3,0.65,0.9,0.45,0.75,0.5,0.35];
+    heights.forEach((h, i) => {
+      const bar = document.createElement('div');
+      bar.className = 'waveform-bar';
+      bar.style.height = (h * 28) + 'px';
+      bar.style.animationDelay = (i * 0.09) + 's';
+      bar.style.animationDuration = (1.1 + Math.random() * 0.6) + 's';
+      wf.appendChild(bar);
+    });
+
+    /* ── Draw red strings between notes ── */
+    function drawStrings() {
+      const svg = document.getElementById('string-layer');
+      svg.innerHTML = `<defs><filter id="sf"><feGaussianBlur stdDeviation="0.5"/></filter></defs>`;
+
+      const pairs = [
+        ['note-casefiles',  'note-suspects'],
+        ['note-suspects',   'note-board'],
+        ['note-board',      'note-journal'],
+        ['note-journal',    'note-report'],
+        ['note-evidence',   'note-board'],
+        ['note-audio',      'note-report'],
+        ['note-casefiles',  'note-evidence'],
+      ];
+
+      pairs.forEach(([a, b]) => {
+        const elA = document.getElementById(a);
+        const elB = document.getElementById(b);
+        if (!elA || !elB) return;
+
+        const rA = elA.getBoundingClientRect();
+        const rB = elB.getBoundingClientRect();
+        const x1 = rA.left + rA.width / 2;
+        const y1 = rA.top  + rA.height / 2;
+        const x2 = rB.left + rB.width / 2;
+        const y2 = rB.top  + rB.height / 2;
+
+        // Slight sag on the string
+        const cx = (x1 + x2) / 2 + (Math.random() - 0.5) * 30;
+        const cy = (y1 + y2) / 2 + Math.abs(x2 - x1) * 0.08 + 10;
+
+        const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        path.setAttribute('d', `M${x1},${y1} Q${cx},${cy} ${x2},${y2}`);
+        path.setAttribute('stroke', '#8b1a1a');
+        path.setAttribute('stroke-width', '1.2');
+        path.setAttribute('fill', 'none');
+        path.setAttribute('opacity', '0.55');
+        path.setAttribute('filter', 'url(#sf)');
+        svg.appendChild(path);
+      });
+    }
+
+    window.addEventListener('load', drawStrings);
+    window.addEventListener('resize', drawStrings);
+
+    /* ── Navigation ── */
+    function navigate(page) {
+      // Uncomment when pages exist:
+      // window.location.href = page;
+      console.log('[City of Lies] → Navigate to', page);
+    }
+    function goBack() {
+      // window.location.href = 'index.html';
+      console.log('[City of Lies] → Back to menu');
+    }
+
+    /* ── Tooltip ── */
+    const tooltip    = document.getElementById('tooltip');
+    const tooltipTxt = document.getElementById('tooltip-text');
+    document.querySelectorAll('.note').forEach(note => {
+      note.addEventListener('mouseenter', e => {
+        tooltipTxt.textContent = note.getAttribute('title') || '';
+        tooltip.classList.add('visible');
+      });
+      note.addEventListener('mousemove', e => {
+        tooltip.style.left = e.clientX + 'px';
+        tooltip.style.top  = (e.clientY - 48) + 'px';
+      });
+      note.addEventListener('mouseleave', () => {
+        tooltip.classList.remove('visible');
+      });
+    });
+
+    /* ── Version / commit hash ── */
+    async function updateCommitHash() {
+      try {
+        const res  = await fetch('https://api.github.com/repos/jellybean1979/CityOfLies/commits?per_page=1');
+        if (!res.ok) throw new Error();
+        const data = await res.json();
+        const sha  = data[0]?.sha?.substring(0, 7) ?? '-------';
+        document.getElementById('versionTag').textContent = `v0.1.0 · ${sha}`;
+      } catch {
+        document.getElementById('versionTag').textContent = 'v0.1.0 · local';
+      }
+    }
+    updateCommitHash();
+  </script>
+</body>
+</html>
+
