@@ -193,8 +193,8 @@
        1. CASE FILES — Manila folder tab
     ════════════════════════════════════════ */
     #note-casefiles {
-      left: 3%;
-      top: 10%;
+      left: 2%;
+      top: 5%;
       transform: rotate(-4deg);
       width: clamp(130px, 13vw, 190px);
     }
@@ -274,8 +274,8 @@
        2. EVIDENCE LOCKER — Printed form
     ════════════════════════════════════════ */
     #note-evidence {
-      left: 6%;
-      top: 52%;
+      left: 3%;
+      top: 44%;
       transform: rotate(2.5deg);
       width: clamp(120px, 12vw, 175px);
     }
@@ -347,8 +347,8 @@
        3. SUSPECTS — Polaroid photo
     ════════════════════════════════════════ */
     #note-suspects {
-      left: 20%;
-      top: 6%;
+      left: 28%;
+      top: 4%;
       transform: rotate(3deg);
       width: clamp(110px, 11vw, 160px);
     }
@@ -411,12 +411,12 @@
        4. INVESTIGATION BOARD — Sticky note
     ════════════════════════════════════════ */
     #note-board {
-      left: 38%;
-      top: 5%;
-      transform: rotate(-2deg);
+      left: 50%;
+      top: 38%;
+      transform: translateX(-50%) rotate(-2deg);
       width: clamp(120px, 12vw, 170px);
     }
-    #note-board:hover { transform: rotate(0deg) scale(1.07); }
+    #note-board:hover { transform: translateX(-50%) rotate(0deg) scale(1.07); }
     #note-board .note-inner {
       background: var(--paper-y);
       padding: clamp(10px, 1.4vw, 18px) clamp(8px, 1.1vw, 14px);
@@ -465,8 +465,8 @@
        5. JOURNAL / NOTES — Torn notebook paper
     ════════════════════════════════════════ */
     #note-journal {
-      right: 22%;
-      top: 8%;
+      left: 28%;
+      top: 68%;
       transform: rotate(1.5deg);
       width: clamp(115px, 11.5vw, 165px);
     }
@@ -524,8 +524,8 @@
        6. AUDIO LAB — Torn paper with waveform
     ════════════════════════════════════════ */
     #note-audio {
-      right: 5%;
-      top: 42%;
+      right: 3%;
+      top: 58%;
       transform: rotate(-3deg);
       width: clamp(120px, 12vw, 175px);
     }
@@ -608,8 +608,8 @@
        7. FINAL REPORT — Stamped official doc
     ════════════════════════════════════════ */
     #note-report {
-      right: 4%;
-      top: 8%;
+      right: 2%;
+      top: 6%;
       transform: rotate(2deg);
       width: clamp(125px, 12.5vw, 180px);
     }
@@ -761,12 +761,16 @@
       white-space: nowrap;
     }
 
-    /* ════════════════════════════
-       RESPONSIVE SCALE
-    ════════════════════════════ */
+    /* ═══ RESPONSIVE ═══ */
     @media (max-width: 600px) {
-      .note { transform: scale(0.85) !important; }
-      .note:hover { transform: scale(0.92) !important; }
+      /* On mobile use vw-based widths so notes fill the board naturally */
+      #note-casefiles  { width: 38vw; }
+      #note-evidence   { width: 38vw; }
+      #note-suspects   { width: 34vw; }
+      #note-board      { width: 38vw; }
+      #note-journal    { width: 36vw; }
+      #note-audio      { width: 38vw; }
+      #note-report     { width: 38vw; }
     }
   </style>
 </head>
