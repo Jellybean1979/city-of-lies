@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CCTV Viewer — City of Lies</title>
+<link rel="stylesheet" href="../css/style.css">
+<style>
+body { background: #080810; }
+.cctv-layout { display: grid; grid-template-columns: 260px 1fr; height: calc(100vh - 53px); }
+
+/* SIDEBAR */
+.cctv-sidebar { background: var(--noir-panel); border-right: 1px solid var(--border); overflow-y: auto; padding: 16px; }
+.sidebar-title { font-family: var(--font-sans); font-size: 8px; letter-spacing: 3px; color: var(--text-dim); text-transform: uppercase; margin-bottom: 12px; }
+.footage-item { padding: 12px; border: 1px solid var(--border); margin-bottom: 8px; cursor: pointer; transition: all 0.15s; }
+.footage-item:hover { border-color: var(--blue-accent); background: rgba(58,90,140,0.1); }
+.footage-item.active { border-color: var(--amber); background: rgba(200,145,42,0.08); }
+.footage-item-title { font-family: var(--font-sans); font-size: 10px; letter-spacing: 1px; color: var(--cream); margin-bottom: 4px; }
+.footage-item-sub { font-family: var(--font-mono); font-size: 9px; color: var(--text-dim); line-height: 1.5; }
+.footage-item .tag { margin-top: 6px; }
+
+/* MAIN VIEWER */
+.cctv-main { display: flex; flex-direction: column; overflow: hidden; }
+.screen-display { flex: 0 0 auto; background: #000; position: relative; }
+.cctv-screen {
+  width: 100%;
+  aspect-ratio: 16/9;
+  max-height: 55vh;
+  background: linear-gradient(135deg, #030308, #0a0a18);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+}
+/* CRT scanlines on CCTV */
+.cctv-screen::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,255,0,0.012) 2px, rgba(0,255,0,0.012) 4px);
+  pointer-events: none;
+  z-index: 5;
+}
+.cctv-screen::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at center, transparent 50%, rgba(0,0,0,0.7) 100%);
+  pointer-events: none;
+  z-index: 4;
+}
+.cctv-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  z-index: 3;
+  position: relative;
+}
+.cctv-placeholder-icon { font-size: 48px; opacity: 0.3; }
+.cctv-placeholder-text { font-family: var(--font-mono); font-size: 10px; color: rgba(255,255,255,0.2); letter-spacing: 2px; text-transform: uppercase; }
+
+/* CCTV overlays */
+.cctv-hud { position: absolute; inset: 0; z-index: 6; pointer-events: none; }
+.cctv-timestamp { position: absolute; top: 10px; left: 12px; font-family: var(--font-mono); font-size: 11px; color: rgba(255,80,80,0.9); letter-spacing: 1px; }
+.cctv-rec { position: absolute; top: 10px; right: 12px; display: flex; align-items: center; gap: 6px; }
+.rec-dot { width: 8px; height: 8px; border-radius: 50%; background: #ff3333; animation: rec-blink 1s infinite; }
+@keyframes rec-blink { 0%,100%{opacity:1} 50%{opacity:0.2} }
+.rec-text { font-family: var(--font-mono); font-size: 10px; color: rgba(255,80,80,0.8); letter-spacing: 2px; }
+.cctv-location-hud { position: absolute; bottom: 10px; left: 12px; font-family: var(--font-mono); font-size: 9px; color: rgba(200,200,255,0.6); letter-spacing: 1px; }
+.cctv-quality-hud { position: absolute; bottom: 10px; right: 12px; }
+
+/* Corruption effect */
+.corruption-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 7;
+  pointer-events: none;
+  display: none;
+}
+.corruption-overlay.active { display: block; }
+.corruption-bar {
+  position: absolute;
+  left: 0; right: 0;
+  height: 4px;
+  background: rgba(255,255,255,0.8);
+  animation: glitch-bar 0.15s steps(1) infinite;
+}
+@keyframes glitch-bar {
+  0% { top: 20%; opacity: 0.8; }
+  25% { top: 60%; opacity: 0.4; }
+  50% { top: 35%; opacity: 0.9; }
+  75% { top: 80%; opacity: 0.3; }
+  100% { top: 45%; opacity: 0.7; }
+}
+.corruption-text {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-family: var(--font-mono);
+  font-size: 14px;
+  color: rgba(255,50,50,0.9);
+  letter-spacing: 3px;
+  animation: glitch-text 0.2s steps(1) infinite;
+  background: rgba(0,0,0,0.6);
+  padding: 8px 16px;
+}
+@keyframes glitch-text { 0%{transform:translate(-50%,-50%) skewX(0)} 50%{transform:translate(-48%,-50%) skewX(5deg)} 100%{transform:translate(-52%,-50%) skewX(-3deg)} }
+
+/* Timeline scrubber */
+.cctv-controls { background: #0a0a14; border-top: 1px solid var(--border); padding: 12px 16px; }
+.timeline { position: relative; height: 8px; background: var(--border); margin: 8px 0; cursor: pointer; border-radius: 2px; }
+.timeline-fill { height: 100%; background: var(--blue-accent); border-radius: 2px; transition: width 0.3s; }
+.timeline-thumb { position: absolute; top: 50%; width: 14px; height: 14px; background: var(--amber); border-radius: 50%; transform: translateY(-50%); cursor: grab; box-shadow: 0 0 8px rgba(200,145,42,0.5); }
+.timeline-anomaly { position: absolute; top: 0; height: 100%; background: rgba(255,50,50,0.4); border: 1px solid rgba(255,50,50,0.6); cursor: pointer; }
+.timeline-anomaly-label { position: absolute; bottom: 14px; left: 50%; transform: translateX(-50%); font-family: var(--font-mono); font-size: 7px; color: var(--red); white-space: nowrap; }
+.controls-row { display: flex; align-items: center; justify-content: space-between; margin-top: 6px; }
+.ctrl-btn { background: none; border: 1px solid var(--border); color: var(--text-dim); padding: 5px 12px; cursor: pointer; font-family: var(--font-mono); font-size: 10px; letter-spacing: 1px; transition: all 0.15s; }
+.ctrl-btn:hover { border-color: var(--blue-accent); color: var(--cream); }
+.ctrl-btn.playing { border-color: var(--amber); color: var(--amber); }
+.time-display { font-family: var(--font-mono); font-size: 11px; color: var(--text-dim); }
+
+/* Analysis panel */
+.analysis-panel { flex: 1; overflow-y: auto; padding: 16px; background: var(--noir-dark); }
+.analysis-section { margin-bottom: 20px; }
+.analysis-label { font-family: var(--font-sans); font-size: 8px; letter-spacing: 3px; color: var(--amber); text-transform: uppercase; margin-bottom: 8px; }
+.analysis-text { font-family: var(--font-mono); font-size: 11px; color: var(--text); line-height: 1.8; }
+.anomaly-box { background: rgba(140,42,42,0.15); border: 1px solid var(--red-dark); padding: 10px 12px; margin-top: 8px; }
+.anomaly-label { font-family: var(--font-sans); font-size: 8px; letter-spacing: 2px; color: var(--red); margin-bottom: 6px; }
+.anomaly-text { font-family: var(--font-mono); font-size: 11px; color: var(--cream-dim); line-height: 1.7; }
+
+@media (max-width: 700px) {
+  .cctv-layout { grid-template-columns: 1fr; grid-template-rows: auto 1fr; }
+  .cctv-sidebar { max-height: 200px; border-right: none; border-bottom: 1px solid var(--border); }
+}
+</style>
+</head>
+<body>
+<div id="notification"></div>
+<div class="screen-header">
+  <div>
+    <div class="screen-header-title">CCTV Evidence Viewer</div>
+    <div class="screen-header-sub" id="footage-sub">Select footage from the list</div>
+  </div>
+  <button class="back-btn" onclick="window.location.href='../index.html'">← BOARD</button>
+</div>
+
+<div class="cctv-layout">
+  <div class="cctv-sidebar">
+    <div class="sidebar-title">Available Footage</div>
+    <div id="footage-list"></div>
+  </div>
+  <div class="cctv-main">
+    <div class="screen-display">
+      <div class="cctv-screen" id="cctv-screen">
+        <div class="cctv-placeholder" id="cctv-placeholder">
+          <div class="cctv-placeholder-icon">📹</div>
+          <div class="cctv-placeholder-text">Select footage to review</div>
+        </div>
+        <div class="cctv-hud" id="cctv-hud" style="display:none">
+          <div class="cctv-timestamp" id="cctv-ts">00:00:00</div>
+          <div class="cctv-rec"><div class="rec-dot"></div><div class="rec-text">REC</div></div>
+          <div class="cctv-location-hud" id="cctv-loc"></div>
+          <div class="cctv-quality-hud" id="cctv-qual"></div>
+        </div>
+        <div class="corruption-overlay" id="corruption-overlay">
+          <div class="corruption-bar"></div>
+          <div class="corruption-text">SIGNAL CORRUPTED</div>
+        </div>
+      </div>
+      <div class="cctv-controls" id="cctv-controls" style="display:none">
+        <div class="timeline" id="timeline" onclick="scrubTimeline(event)">
+          <div class="timeline-fill" id="timeline-fill" style="width:0%"></div>
+          <div class="timeline-thumb" id="timeline-thumb" style="left:0%"></div>
+          <div class="timeline-anomaly" id="anomaly-zone" style="display:none"></div>
+        </div>
+        <div class="controls-row">
+          <div style="display:flex;gap:8px">
+            <button class="ctrl-btn" id="play-btn" onclick="togglePlay()">▶ PLAY</button>
+            <button class="ctrl-btn" onclick="jumpToAnomaly()">⚠ ANOMALY</button>
+          </div>
+          <div class="time-display" id="time-display">00:00 / 00:00</div>
+          <div style="display:flex;gap:8px">
+            <button class="ctrl-btn" onclick="markEvidence()">📌 MARK</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="analysis-panel" id="analysis-panel">
+      <div style="color:var(--text-dim);font-family:var(--font-mono);font-size:11px;text-align:center;padding:30px">
+        Select a footage file to begin analysis.
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="../js/game.js"></script>
+<script>
+let currentFootage = null;
+let playInterval = null;
+let playProgress = 0;
+let isPlaying = false;
+
+function buildSidebar() {
+  const c = COL.getCase();
+  const list = document.getElementById('footage-list');
+  c.cctv.forEach(v => {
+    const item = document.createElement('div');
+    item.className = 'footage-item';
+    item.id = 'fi-' + v.id;
+    const watched = COL.state.watchedCCTV.has(v.id);
+    item.innerHTML = `
+      <div class="footage-item-title">${v.file}</div>
+      <div class="footage-item-sub">${v.location.split('—')[1]?.trim() || v.location}<br>${v.timestamp} · ${v.duration}</div>
+      <span class="tag ${v.quality === 'CLEAR' ? 'tag-green' : v.quality === 'DEGRADED' ? 'tag-amber' : 'tag-red'}">${v.quality}</span>
+      ${watched ? '<span class="tag tag-blue" style="margin-left:4px">REVIEWED</span>' : ''}`;
+    item.onclick = () => loadFootage(v.id);
+    list.appendChild(item);
+  });
+}
+
+function loadFootage(id) {
+  const c = COL.getCase();
+  currentFootage = c.cctv.find(v => v.id === id);
+  if (!currentFootage) return;
+  stopPlay();
+
+  document.querySelectorAll('.footage-item').forEach(el => el.classList.remove('active'));
+  document.getElementById('fi-' + id).classList.add('active');
+  document.getElementById('footage-sub').textContent = currentFootage.file;
+
+  // Show HUD
+  document.getElementById('cctv-placeholder').style.display = 'none';
+  document.getElementById('cctv-hud').style.display = 'block';
+  document.getElementById('cctv-controls').style.display = 'block';
+  document.getElementById('cctv-loc').textContent = currentFootage.location.split('—')[1]?.trim() || currentFootage.location;
+  document.getElementById('cctv-qual').innerHTML = `<span class="tag ${currentFootage.quality === 'CLEAR' ? 'tag-green' : 'tag-amber'}">${currentFootage.quality}</span>`;
+
+  // Set anomaly zone
+  const az = document.getElementById('anomaly-zone');
+  if (currentFootage.id === 'cctv_01') {
+    az.style.display = 'block';
+    az.style.left = '63%';
+    az.style.width = '20%';
+    az.innerHTML = '<span class="timeline-anomaly-label">CORRUPTION 22:07</span>';
+  } else {
+    az.style.display = 'none';
+  }
+
+  playProgress = 0;
+  updateTimeDisplay();
+  renderAnalysis();
+
+  // Mark as watched
+  COL.state.watchedCCTV.add(id);
+  COL.markEvidence(currentFootage.evidence_ids[0]);
+  document.getElementById('fi-' + id).querySelector('.footage-item-sub').parentElement.querySelector('.footage-item-title').style.color = 'var(--amber)';
+}
+
+function renderAnalysis() {
+  if (!currentFootage) return;
+  const panel = document.getElementById('analysis-panel');
+  panel.innerHTML = `
+    <div class="analysis-section">
+      <div class="analysis-label">Footage Details</div>
+      <div class="analysis-text">
+        <strong style="color:var(--cream)">File:</strong> ${currentFootage.file}<br>
+        <strong style="color:var(--cream)">Location:</strong> ${currentFootage.location}<br>
+        <strong style="color:var(--cream)">Timestamp:</strong> ${currentFootage.timestamp}<br>
+        <strong style="color:var(--cream)">Duration:</strong> ${currentFootage.duration}<br>
+        <strong style="color:var(--cream)">Quality:</strong> ${currentFootage.quality}
+      </div>
+    </div>
+    <div class="divider"></div>
+    <div class="analysis-section">
+      <div class="analysis-label">Footage Description</div>
+      <div class="analysis-text">${currentFootage.description}</div>
+    </div>
+    <div class="anomaly-box">
+      <div class="anomaly-label">⚠ ANOMALY DETECTED</div>
+      <div class="anomaly-text">${currentFootage.anomaly}</div>
+    </div>
+    <div style="margin-top:16px">
+      <button class="btn btn-amber" style="width:100%;font-size:11px" onclick="markEvidence()">📌 ADD TO CASE FILE</button>
+    </div>`;
+}
+
+function togglePlay() {
+  if (isPlaying) stopPlay(); else startPlay();
+}
+
+function startPlay() {
+  if (!currentFootage) return;
+  isPlaying = true;
+  document.getElementById('play-btn').textContent = '⏸ PAUSE';
+  document.getElementById('play-btn').classList.add('playing');
+  const duration = parseInt(currentFootage.duration) || 34;
+  playInterval = setInterval(() => {
+    playProgress += 1 / (duration * 10);
+    if (playProgress >= 1) { playProgress = 0; }
+    updateTimeDisplay();
+    // Corruption window for cctv_01
+    if (currentFootage.id === 'cctv_01' && playProgress > 0.63 && playProgress < 0.83) {
+      document.getElementById('corruption-overlay').classList.add('active');
+    } else {
+      document.getElementById('corruption-overlay').classList.remove('active');
+    }
+  }, 100);
+}
+
+function stopPlay() {
+  isPlaying = false;
+  clearInterval(playInterval);
+  document.getElementById('play-btn').textContent = '▶ PLAY';
+  document.getElementById('play-btn').classList.remove('playing');
+  document.getElementById('corruption-overlay').classList.remove('active');
+}
+
+function updateTimeDisplay() {
+  if (!currentFootage) return;
+  const dur = parseInt(currentFootage.duration) || 34;
+  const elapsed = Math.floor(playProgress * dur * 60);
+  const total = dur * 60;
+  const fmt = s => `${String(Math.floor(s/60)).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`;
+  document.getElementById('timeline-fill').style.width = (playProgress * 100) + '%';
+  document.getElementById('timeline-thumb').style.left = `calc(${playProgress * 100}% - 7px)`;
+  document.getElementById('time-display').textContent = fmt(elapsed) + ' / ' + fmt(total);
+  // Update timestamp
+  const [h, m] = (currentFootage.timestamp.split('—')[0].trim() || '21:44').split(':');
+  const startSec = parseInt(h) * 3600 + parseInt(m) * 60;
+  const nowSec = startSec + elapsed;
+  const nowH = Math.floor(nowSec / 3600) % 24;
+  const nowM = Math.floor((nowSec % 3600) / 60);
+  const nowS = nowSec % 60;
+  document.getElementById('cctv-ts').textContent =
+    `${String(nowH).padStart(2,'0')}:${String(nowM).padStart(2,'0')}:${String(nowS).padStart(2,'0')}`;
+}
+
+function scrubTimeline(e) {
+  if (!currentFootage) return;
+  const rect = e.currentTarget.getBoundingClientRect();
+  playProgress = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+  updateTimeDisplay();
+}
+
+function jumpToAnomaly() {
+  if (!currentFootage) return;
+  playProgress = 0.64;
+  updateTimeDisplay();
+  COL.notify('Jumping to anomaly window: ' + (currentFootage.id === 'cctv_01' ? '22:07 — SIGNAL CORRUPTED' : 'Anomaly detected'));
+}
+
+function markEvidence() {
+  if (!currentFootage) return;
+  COL.markEvidence(currentFootage.evidence_ids[0]);
+  COL.addNote(`[CCTV] Reviewed: ${currentFootage.file} — ${currentFootage.anomaly.substring(0, 80)}...`);
+  COL.notify('Evidence marked and added to case file.');
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  buildSidebar();
+  const target = sessionStorage.getItem('col_target');
+  if (target) loadFootage(target);
+});
+</script>
+</body>
+</html>
+
