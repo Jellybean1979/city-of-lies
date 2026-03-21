@@ -174,9 +174,18 @@ function buildSubjectList(type) {
 function buildSubjectPanel(subject, type) {
   const isSuspect = type === 'suspect';
   const panel = document.getElementById('subject-panel');
+  // Set portrait image if available
+  const imgEl = document.getElementById('subject-img');
+  const emojiEl = document.getElementById('subject-emoji');
+  if (subject.portrait && subject.portrait.includes('/') && imgEl) {
+    imgEl.src = subject.portrait;
+    imgEl.style.display = 'block';
+    if (emojiEl) emojiEl.style.display = 'none';
+  }
   panel.innerHTML = `
-    <div class="subject-portrait">
-      <span>👤</span>
+    <div class="subject-portrait" style="padding:0;overflow:hidden">
+      <img id="subject-img" src="" alt="" style="width:100%;height:100%;object-fit:cover;object-position:top;display:none">
+      <span id="subject-emoji" style="font-size:60px">👤</span>
       <div class="subject-portrait-overlay"></div>
     </div>
     <div>
