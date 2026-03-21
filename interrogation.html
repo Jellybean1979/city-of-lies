@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Interrogation — City of Lies</title>
+<link rel="stylesheet" href="../css/style.css">
+<style>
+.interrog-layout { display: grid; grid-template-columns: 280px 1fr; height: calc(100vh - 53px); }
+
+/* SUBJECT PANEL */
+.subject-panel { background: var(--noir-panel); border-right: 1px solid var(--border); padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 16px; }
+.subject-portrait { width: 100%; aspect-ratio: 1; background: var(--blue-deep); border: 1px solid var(--border-bright); display: flex; align-items: center; justify-content: center; font-size: 60px; position: relative; }
+.subject-portrait-overlay { position: absolute; inset: 0; background: linear-gradient(180deg, transparent 50%, rgba(0,0,0,0.7) 100%); }
+.subject-name { font-family: var(--font-sans); font-size: 14px; letter-spacing: 2px; color: var(--cream); }
+.subject-role { font-family: var(--font-mono); font-size: 10px; color: var(--text-dim); margin-top: 3px; line-height: 1.5; }
+.subject-detail { font-family: var(--font-mono); font-size: 10px; color: var(--text-dim); margin-top: 4px; }
+.subject-detail strong { color: var(--cream-dim); }
+.personality-box { background: rgba(58,90,140,0.1); border: 1px solid var(--blue-mid); padding: 12px; }
+.personality-label { font-family: var(--font-sans); font-size: 7px; letter-spacing: 2px; color: var(--blue-bright); text-transform: uppercase; margin-bottom: 6px; }
+.personality-text { font-family: var(--font-type); font-size: 11px; color: var(--cream-dim); line-height: 1.7; font-style: italic; }
+
+/* LIE DETECTOR */
+.lie-detector { background: #080810; border: 1px solid var(--border); padding: 12px; }
+.ld-title { font-family: var(--font-sans); font-size: 7px; letter-spacing: 3px; color: var(--text-muted); text-transform: uppercase; margin-bottom: 10px; }
+.ld-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; font-size: 9px; }
+.ld-label { font-family: var(--font-sans); letter-spacing: 1px; color: var(--text-dim); text-transform: uppercase; }
+.ld-val { font-family: var(--font-mono); font-size: 11px; }
+.ld-bar-outer { height: 4px; background: var(--border); flex: 1; margin: 0 10px; position: relative; overflow: visible; }
+.ld-bar-fill { height: 100%; transition: width 0.8s, background 0.8s; }
+.ld-hr-canvas { width: 100%; height: 40px; display: block; background: #020208; margin-top: 4px; border: 1px solid var(--border); }
+.truth-meter { text-align: center; padding: 8px; border: 1px solid var(--border); margin-top: 8px; }
+.truth-pct { font-family: var(--font-display, var(--font-sans)); font-size: 24px; font-weight: 600; }
+.truth-label { font-family: var(--font-sans); font-size: 7px; letter-spacing: 2px; color: var(--text-dim); text-transform: uppercase; }
+.truth-interp { font-family: var(--font-mono); font-size: 9px; color: var(--cream-dim); line-height: 1.6; margin-top: 6px; border-top: 1px solid var(--border); padding-top: 6px; }
+
+/* INTERROGATION MAIN */
+.interrog-main { display: flex; flex-direction: column; overflow: hidden; }
+.interrog-header { padding: 16px 20px; background: var(--noir-dark); border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
+.interrog-status { font-family: var(--font-mono); font-size: 10px; color: var(--text-dim); }
+.q-counter { font-family: var(--font-sans); font-size: 9px; letter-spacing: 2px; color: var(--amber); }
+.chat-area { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 16px; }
+
+/* Chat bubbles */
+.chat-q { align-self: flex-end; max-width: 80%; }
+.chat-a { align-self: flex-start; max-width: 85%; }
+.chat-q .bubble { background: var(--blue-deep); border: 1px solid var(--blue-mid); padding: 12px 16px; }
+.chat-a .bubble { background: var(--noir-panel); border: 1px solid var(--border); padding: 12px 16px; }
+.bubble-label { font-family: var(--font-sans); font-size: 7px; letter-spacing: 2px; color: var(--text-muted); text-transform: uppercase; margin-bottom: 6px; }
+.bubble-text { font-family: var(--font-type); font-size: 12px; color: var(--text); line-height: 1.8; }
+.chat-q .bubble-text { color: var(--cream-dim); }
+
+/* Lie detector result bubble */
+.ld-result-bubble { background: rgba(8,8,20,0.95); border: 1px solid var(--border-bright); padding: 10px 14px; margin-top: 6px; }
+.ld-rb-title { font-family: var(--font-sans); font-size: 7px; letter-spacing: 2px; color: var(--text-muted); margin-bottom: 8px; }
+.ld-rb-row { display: flex; justify-content: space-between; font-size: 9px; margin-bottom: 4px; }
+.ld-rb-key { font-family: var(--font-sans); letter-spacing: 1px; color: var(--text-dim); text-transform: uppercase; }
+.ld-rb-val { font-family: var(--font-mono); }
+.ld-rb-interp { font-family: var(--font-mono); font-size: 9px; color: var(--cream-dim); line-height: 1.6; border-top: 1px solid var(--border); padding-top: 6px; margin-top: 6px; }
+
+/* Question selector */
+.q-selector { padding: 16px 20px; background: var(--noir-dark); border-top: 1px solid var(--border); flex-shrink: 0; }
+.q-selector-title { font-family: var(--font-sans); font-size: 8px; letter-spacing: 3px; color: var(--text-dim); text-transform: uppercase; margin-bottom: 10px; }
+.q-buttons { display: flex; flex-direction: column; gap: 6px; max-height: 200px; overflow-y: auto; }
+.q-btn { background: var(--noir-panel); border: 1px solid var(--border); padding: 10px 14px; cursor: pointer; text-align: left; transition: all 0.15s; font-family: var(--font-type); font-size: 11px; color: var(--text-dim); line-height: 1.4; }
+.q-btn:hover { border-color: var(--blue-accent); color: var(--cream); background: rgba(58,90,140,0.1); }
+.q-btn.asked { opacity: 0.4; cursor: default; border-style: dashed; }
+.q-btn.asked:hover { border-color: var(--border); color: var(--text-dim); background: var(--noir-panel); }
+
+/* Suspect profile list */
+.suspect-list-item { padding: 10px 12px; border: 1px solid var(--border); margin-bottom: 6px; cursor: pointer; transition: all 0.15s; }
+.suspect-list-item:hover { border-color: var(--blue-accent); background: rgba(58,90,140,0.1); }
+.suspect-list-item.active { border-color: var(--amber); }
+.sli-name { font-family: var(--font-sans); font-size: 10px; letter-spacing: 1px; color: var(--cream); }
+.sli-role { font-family: var(--font-mono); font-size: 9px; color: var(--text-dim); margin-top: 2px; }
+
+/* Info-only (no interrogation) */
+.info-panel { padding: 24px; }
+.info-panel-title { font-family: var(--font-sans); font-size: 16px; letter-spacing: 3px; color: var(--amber-bright); margin-bottom: 6px; text-transform: uppercase; }
+.info-panel-role { font-family: var(--font-mono); font-size: 11px; color: var(--text-dim); margin-bottom: 16px; }
+.info-section-label { font-family: var(--font-sans); font-size: 8px; letter-spacing: 3px; color: var(--text-dim); text-transform: uppercase; margin-bottom: 8px; margin-top: 16px; }
+.info-text { font-family: var(--font-mono); font-size: 11px; color: var(--text); line-height: 1.9; }
+
+@media (max-width: 700px) {
+  .interrog-layout { grid-template-columns: 1fr; grid-template-rows: auto 1fr; }
+  .subject-panel { flex-direction: row; flex-wrap: wrap; gap: 10px; max-height: 260px; overflow-y: auto; }
+  .subject-portrait { width: 80px; height: 80px; font-size: 36px; flex-shrink: 0; }
+  .lie-detector { width: 100%; }
+}
+</style>
+</head>
+<body>
+<div id="notification"></div>
+<div class="screen-header">
+  <div>
+    <div class="screen-header-title" id="screen-title">Interrogation Room</div>
+    <div class="screen-header-sub" id="screen-sub">Select a subject</div>
+  </div>
+  <div style="display:flex;gap:8px">
+    <button class="back-btn" onclick="window.location.href='../index.html'">← BOARD</button>
+  </div>
+</div>
+
+<div class="interrog-layout">
+  <!-- SUBJECT PANEL -->
+  <div class="subject-panel" id="subject-panel">
+    <div style="color:var(--text-dim);font-family:var(--font-mono);font-size:11px;text-align:center;padding:20px">
+      Loading...
+    </div>
+  </div>
+
+  <!-- MAIN AREA -->
+  <div class="interrog-main" id="interrog-main">
+    <div style="padding:40px;text-align:center;color:var(--text-dim);font-family:var(--font-mono);font-size:11px">
+      Loading subject profile...
+    </div>
+  </div>
+</div>
+
+<script src="../js/game.js"></script>
+<script>
+let currentSubject = null;
+let currentInterrog = null;
+let askedQuestions = new Set();
+let chatHistory = [];
+
+function loadSubject(id, type) {
+  const c = COL.getCase();
+  let subject = null;
+  let interrog = null;
+
+  if (type === 'suspect') {
+    subject = c.suspects.find(s => s.id === id);
+    interrog = c.interrogations.find(x => x.subject_id === id);
+  } else {
+    subject = c.witnesses.find(w => w.id === id);
+    interrog = c.interrogations.find(x => x.subject_id === id);
+  }
+
+  if (!subject) { buildSubjectList(type); return; }
+
+  currentSubject = subject;
+  currentInterrog = interrog;
+  askedQuestions = new Set();
+  chatHistory = [];
+
+  document.getElementById('screen-title').textContent = interrog ? 'Interrogation Room' : 'Subject Profile';
+  document.getElementById('screen-sub').textContent = subject.name + (subject.role ? ' — ' + subject.role : '');
+
+  buildSubjectPanel(subject, type);
+  if (interrog) buildInterrogationUI();
+  else buildInfoUI(subject, type);
+
+  COL.state.interrogatedWitnesses.add(id);
+  COL.save();
+}
+
+function buildSubjectList(type) {
+  const c = COL.getCase();
+  const panel = document.getElementById('subject-panel');
+  const main = document.getElementById('interrog-main');
+  const list = type === 'suspect' ? c.suspects : c.witnesses;
+
+  panel.innerHTML = `<div class="ld-title" style="margin-bottom:12px">SELECT SUBJECT</div>` +
+    list.map(s => `
+      <div class="suspect-list-item" onclick="loadSubject('${s.id || 'witness_' + s.number}', '${type}')">
+        <div class="sli-name">${s.name}</div>
+        <div class="sli-role">${s.role}</div>
+      </div>`).join('');
+
+  main.innerHTML = `<div style="padding:40px;text-align:center;color:var(--text-dim);font-family:var(--font-mono);font-size:11px">Select a subject from the left panel.</div>`;
+}
+
+function buildSubjectPanel(subject, type) {
+  const isSuspect = type === 'suspect';
+  const panel = document.getElementById('subject-panel');
+  panel.innerHTML = `
+    <div class="subject-portrait">
+      <span>👤</span>
+      <div class="subject-portrait-overlay"></div>
+    </div>
+    <div>
+      <div class="subject-name">${subject.name}</div>
+      <div class="subject-role">${subject.role}</div>
+      ${isSuspect ? `
+        <div class="subject-detail" style="margin-top:8px"><strong>Age:</strong> ${subject.age}</div>
+        <div class="subject-detail"><strong>Power:</strong> <span style="color:${subject.powerful ? 'var(--red)' : 'var(--text-dim)'}">${subject.powerLevel}</span></div>
+        <div class="subject-detail"><strong>Alibi:</strong> ${subject.alibi}</div>
+        <div class="subject-detail" style="margin-top:4px;color:var(--amber-dim);font-size:9px">${subject.alibiSupport}</div>
+      ` : `
+        <div class="subject-detail" style="margin-top:8px">${subject.description}</div>
+      `}
+    </div>
+    ${currentInterrog ? `
+      <div class="personality-box">
+        <div class="personality-label">Profile</div>
+        <div class="personality-text">${currentInterrog.personality}</div>
+      </div>
+      <div class="lie-detector" id="lie-detector">
+        <div class="ld-title">Polygraph Monitor</div>
+        <canvas class="ld-hr-canvas" id="hr-canvas"></canvas>
+        <div class="ld-row" style="margin-top:8px">
+          <span class="ld-label">HR</span>
+          <div class="ld-bar-outer"><div class="ld-bar-fill" id="ld-hr-bar" style="width:40%;background:var(--green)"></div></div>
+          <span class="ld-val" id="ld-hr-val" style="color:var(--green)">72 bpm</span>
+        </div>
+        <div class="ld-row">
+          <span class="ld-label">Stress</span>
+          <div class="ld-bar-outer"><div class="ld-bar-fill" id="ld-stress-bar" style="width:20%;background:var(--blue-bright)"></div></div>
+          <span class="ld-val" id="ld-stress-val" style="color:var(--blue-bright)">LOW</span>
+        </div>
+        <div class="truth-meter">
+          <div class="truth-pct" id="ld-truth-pct" style="color:var(--green)">—</div>
+          <div class="truth-label">Truthfulness Estimate</div>
+          <div class="truth-interp" id="ld-interp">Awaiting response...</div>
+        </div>
+      </div>
+    ` : ''}`;
+  drawHeartRate(72, false);
+}
+
+function buildInterrogationUI() {
+  const main = document.getElementById('interrog-main');
+  main.innerHTML = `
+    <div class="interrog-header">
+      <div class="interrog-status">Recording active — <span style="color:var(--red)">●</span> LIVE</div>
+      <div class="q-counter">Question <span id="q-num">0</span> / ${currentInterrog.questions.length}</div>
+    </div>
+    <div class="chat-area" id="chat-area">
+      <div style="text-align:center;color:var(--text-dim);font-family:var(--font-type);font-size:12px;font-style:italic;padding:20px">
+        Select a question below to begin the interrogation.
+      </div>
+    </div>
+    <div class="q-selector">
+      <div class="q-selector-title">Choose Your Question</div>
+      <div class="q-buttons" id="q-buttons"></div>
+    </div>`;
+  buildQuestionButtons();
+}
+
+function buildInfoUI(subject, type) {
+  const main = document.getElementById('interrog-main');
+  const isSuspect = type === 'suspect';
+  main.innerHTML = `
+    <div class="info-panel">
+      <div class="info-panel-title">${subject.name}</div>
+      <div class="info-panel-role">${subject.role}</div>
+      ${isSuspect ? `
+        <div class="info-section-label">Background</div>
+        <div class="info-text">${subject.description}</div>
+        <div class="info-section-label">Motive</div>
+        <div class="info-text">${subject.motive}</div>
+        <div class="info-section-label">Known Associates</div>
+        <div class="info-text">${subject.knownAssociates.join(', ')}</div>
+        <div style="margin-top:20px"><div class="tag tag-red">No interrogation script available — profile only</div></div>
+      ` : `
+        <div class="info-section-label">Description</div>
+        <div class="info-text">${subject.description}</div>
+        <div style="margin-top:20px"><div class="tag tag-blue">Witness — no interrogation script</div></div>
+      `}
+      <div style="margin-top:20px">
+        <button class="btn btn-amber" style="font-size:10px" onclick="addSubjectNote()">📌 ADD TO CASE FILE</button>
+      </div>
+    </div>`;
+}
+
+function buildQuestionButtons() {
+  const container = document.getElementById('q-buttons');
+  if (!container || !currentInterrog) return;
+  container.innerHTML = '';
+  currentInterrog.questions.forEach((q, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'q-btn' + (askedQuestions.has(i) ? ' asked' : '');
+    btn.textContent = `Q${i+1}: ${q.q}`;
+    btn.onclick = () => { if (!askedQuestions.has(i)) askQuestion(i); };
+    container.appendChild(btn);
+  });
+}
+
+function askQuestion(idx) {
+  if (!currentInterrog || askedQuestions.has(idx)) return;
+  askedQuestions.add(idx);
+  const q = currentInterrog.questions[idx];
+  document.getElementById('q-num').textContent = askedQuestions.size;
+
+  const chatArea = document.getElementById('chat-area');
+  // Clear placeholder
+  if (chatArea.children.length === 1 && chatArea.firstChild.tagName !== 'DIV'.toUpperCase() || chatArea.querySelector('[style*="italic"]')) {
+    const placeholder = chatArea.querySelector('[style*="italic"]');
+    if (placeholder) placeholder.remove();
+  }
+
+  // Add question bubble
+  const qDiv = document.createElement('div');
+  qDiv.className = 'chat-q fade-in';
+  qDiv.innerHTML = `<div class="bubble"><div class="bubble-label">Investigator</div><div class="bubble-text">${q.q}</div></div>`;
+  chatArea.appendChild(qDiv);
+
+  // Animate lie detector before answer
+  animateLieDetector(q.lie_detector, () => {
+    const aDiv = document.createElement('div');
+    aDiv.className = 'chat-a fade-in';
+    const ld = q.lie_detector;
+    const truth = ld.truth === 'N/A — no verbal response' || ld.truth === 'N/A' ? null : parseInt(ld.truth);
+    const truthColor = truth === null ? 'var(--text-dim)' : truth > 70 ? 'var(--green)' : truth > 40 ? 'var(--amber)' : 'var(--red)';
+    aDiv.innerHTML = `
+      <div class="bubble">
+        <div class="bubble-label">${currentSubject.name}</div>
+        <div class="bubble-text">${q.a}</div>
+      </div>
+      <div class="ld-result-bubble">
+        <div class="ld-rb-title">Polygraph Output</div>
+        <div class="ld-rb-row"><span class="ld-rb-key">Heart Rate</span><span class="ld-rb-val" style="color:${getHRColor(ld.hr)}">${ld.hr}</span></div>
+        <div class="ld-rb-row"><span class="ld-rb-key">Stress</span><span class="ld-rb-val" style="color:${getStressColor(ld.stress)}">${ld.stress}</span></div>
+        <div class="ld-rb-row"><span class="ld-rb-key">Truthfulness</span><span class="ld-rb-val" style="color:${truthColor}">${ld.truth}</span></div>
+        <div class="ld-rb-interp">${ld.interpretation}</div>
+      </div>`;
+    chatArea.appendChild(aDiv);
+    chatArea.scrollTop = chatArea.scrollHeight;
+    buildQuestionButtons();
+    COL.addNote(`[INTERROG — ${currentSubject.name}] Q: ${q.q.substring(0,50)}... | Truth: ${ld.truth}`);
+  });
+
+  chatArea.scrollTop = chatArea.scrollHeight;
+}
+
+function getHRColor(hr) {
+  const bpm = parseInt(hr);
+  if (bpm > 90) return 'var(--red)';
+  if (bpm > 80) return 'var(--amber)';
+  return 'var(--green)';
+}
+function getStressColor(stress) {
+  if (stress.includes('HIGH')) return 'var(--red)';
+  if (stress.includes('MODERATE') || stress.includes('MILD')) return 'var(--amber)';
+  return 'var(--green)';
+}
+
+function animateLieDetector(ld, callback) {
+  const hr = parseInt(ld.hr) || 72;
+  const stressLevel = ld.stress.includes('HIGH') ? 85 : ld.stress.includes('MODERATE') ? 55 : ld.stress.includes('MILD') ? 35 : 20;
+  const truth = ld.truth === 'N/A — no verbal response' || ld.truth === 'N/A' ? null : parseInt(ld.truth);
+
+  drawHeartRate(hr, hr > 85);
+
+  const hrBar = document.getElementById('ld-hr-bar');
+  const hrVal = document.getElementById('ld-hr-val');
+  const stressBar = document.getElementById('ld-stress-bar');
+  const stressVal = document.getElementById('ld-stress-val');
+  const truthPct = document.getElementById('ld-truth-pct');
+  const interp = document.getElementById('ld-interp');
+
+  if (!hrBar) { callback(); return; }
+
+  const hrPct = Math.min(100, ((hr - 60) / 60) * 100);
+  const hrColor = hr > 90 ? 'var(--red)' : hr > 80 ? 'var(--amber)' : 'var(--green)';
+  hrBar.style.width = hrPct + '%';
+  hrBar.style.background = hrColor;
+  hrVal.textContent = ld.hr;
+  hrVal.style.color = hrColor;
+
+  stressBar.style.width = stressLevel + '%';
+  const stressColor = stressLevel > 70 ? 'var(--red)' : stressLevel > 40 ? 'var(--amber)' : 'var(--blue-bright)';
+  stressBar.style.background = stressColor;
+  stressVal.textContent = ld.stress;
+  stressVal.style.color = stressColor;
+
+  setTimeout(() => {
+    if (truth !== null) {
+      const tc = truth > 70 ? 'var(--green)' : truth > 40 ? 'var(--amber)' : 'var(--red)';
+      truthPct.textContent = truth + '%';
+      truthPct.style.color = tc;
+    } else {
+      truthPct.textContent = 'N/A';
+      truthPct.style.color = 'var(--text-dim)';
+    }
+    interp.textContent = ld.interpretation;
+    setTimeout(callback, 400);
+  }, 600);
+}
+
+function drawHeartRate(bpm, stressed) {
+  const canvas = document.getElementById('hr-canvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  canvas.width = canvas.offsetWidth;
+  canvas.height = 40;
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.fillStyle = '#020208';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  const color = bpm > 90 ? '#ff4444' : bpm > 80 ? '#c8912a' : '#3a8c4a';
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  const period = canvas.width / (bpm / 20);
+  let x = 0;
+  ctx.moveTo(0, 20);
+  while (x < canvas.width) {
+    ctx.lineTo(x, 20);
+    ctx.lineTo(x + period * 0.3, 20);
+    ctx.lineTo(x + period * 0.38, stressed ? 6 : 8);
+    ctx.lineTo(x + period * 0.45, stressed ? 36 : 34);
+    ctx.lineTo(x + period * 0.52, stressed ? 10 : 12);
+    ctx.lineTo(x + period * 0.6, 20);
+    x += period;
+  }
+  ctx.stroke();
+  ctx.shadowBlur = 6;
+  ctx.shadowColor = color;
+  ctx.stroke();
+}
+
+function addSubjectNote() {
+  if (!currentSubject) return;
+  COL.addNote(`[SUBJECT] Reviewed profile: ${currentSubject.name} — ${currentSubject.role}`);
+  COL.notify('Profile added to case file.');
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  const target = sessionStorage.getItem('col_target');
+  const type = sessionStorage.getItem('col_type') || 'witness';
+  if (target) loadSubject(target, type);
+  else buildSubjectList(type);
+});
+</script>
+</body>
+</html>
