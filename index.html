@@ -1,0 +1,824 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>City of Lies — Vesper City Investigation</title>
+<link rel="stylesheet" href="css/style.css">
+<style>
+/* ── TITLE SCREEN ── */
+#title-screen {
+  position: fixed;
+  inset: 0;
+  background: var(--noir-black);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  transition: opacity 0.8s, visibility 0.8s;
+}
+#title-screen.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
+
+.title-eyebrow {
+  font-family: var(--font-sans);
+  font-size: 10px;
+  letter-spacing: 6px;
+  color: var(--text-muted);
+  margin-bottom: 20px;
+}
+.title-main {
+  font-family: var(--font-sans);
+  font-size: clamp(2.5rem, 8vw, 5rem);
+  font-weight: 600;
+  color: var(--cream);
+  letter-spacing: 6px;
+  text-transform: uppercase;
+  line-height: 1;
+  text-align: center;
+  position: relative;
+}
+.title-main::after {
+  content: '';
+  display: block;
+  width: 60%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--amber), transparent);
+  margin: 20px auto 0;
+}
+.title-sub {
+  font-family: var(--font-type);
+  font-size: clamp(0.9rem, 2.5vw, 1.2rem);
+  color: var(--amber);
+  letter-spacing: 2px;
+  margin-top: 18px;
+  text-align: center;
+  font-style: italic;
+}
+.title-case {
+  font-family: var(--font-sans);
+  font-size: 9px;
+  letter-spacing: 4px;
+  color: var(--text-dim);
+  margin-top: 40px;
+  margin-bottom: 8px;
+}
+.title-case-name {
+  font-family: var(--font-type);
+  font-size: 1.4rem;
+  color: var(--cream-dim);
+  text-align: center;
+  margin-bottom: 48px;
+}
+.title-byline {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  color: var(--text-muted);
+  letter-spacing: 1px;
+  position: absolute;
+  bottom: 24px;
+}
+.title-byline a { color: var(--text-muted); text-decoration: none; }
+.title-byline a:hover { color: var(--amber); }
+
+/* ── RAIN EFFECT ── */
+.rain-container {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+.rain-drop {
+  position: absolute;
+  width: 1px;
+  background: linear-gradient(180deg, transparent, rgba(91,138,199,0.15));
+  animation: rain-fall linear infinite;
+}
+@keyframes rain-fall {
+  0% { transform: translateY(-100px); opacity: 0; }
+  10% { opacity: 1; }
+  90% { opacity: 0.5; }
+  100% { transform: translateY(100vh); opacity: 0; }
+}
+
+/* ── CORKBOARD ── */
+#corkboard-screen {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.board-header {
+  background: var(--noir-dark);
+  border-bottom: 2px solid var(--amber-dim);
+  padding: 12px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+.board-header-left {
+  display: flex;
+  flex-direction: column;
+}
+.board-case-label {
+  font-family: var(--font-sans);
+  font-size: 8px;
+  letter-spacing: 4px;
+  color: var(--amber-dim);
+  text-transform: uppercase;
+}
+.board-case-title {
+  font-family: var(--font-type);
+  font-size: 1.1rem;
+  color: var(--cream);
+  margin-top: 2px;
+}
+.board-header-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.evidence-counter {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-dim);
+  letter-spacing: 1px;
+}
+.evidence-counter span { color: var(--amber); font-weight: 700; }
+
+/* ── CORKBOARD SURFACE ── */
+.corkboard {
+  flex: 1;
+  background-color: #8B6914;
+  background-image:
+    repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 8px,
+      rgba(0,0,0,0.04) 8px,
+      rgba(0,0,0,0.04) 9px
+    ),
+    repeating-linear-gradient(
+      90deg,
+      transparent,
+      transparent 8px,
+      rgba(0,0,0,0.04) 8px,
+      rgba(0,0,0,0.04) 9px
+    );
+  padding: 40px 24px 60px;
+  position: relative;
+  overflow: hidden;
+}
+.corkboard::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at 30% 40%, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.4) 100%);
+  pointer-events: none;
+}
+
+/* ── SECTION LABELS ── */
+.board-section-label {
+  font-family: var(--font-sans);
+  font-size: 8px;
+  letter-spacing: 4px;
+  color: rgba(255,255,255,0.3);
+  text-transform: uppercase;
+  margin-bottom: 16px;
+  margin-top: 32px;
+}
+.board-section-label:first-child { margin-top: 0; }
+
+/* ── STRING LINES (decorative) ── */
+.string-lines {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ── PINNED NOTE GRID ── */
+.pin-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  position: relative;
+  z-index: 1;
+}
+
+/* ── PINNED NOTE ── */
+.pin-note {
+  position: relative;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+  transform-origin: top center;
+}
+.pin-note:hover { transform: translateY(-4px) rotate(0deg) !important; }
+.pin-note:hover .note-paper { box-shadow: 4px 6px 20px rgba(0,0,0,0.6); }
+
+/* Push pin */
+.push-pin {
+  position: absolute;
+  top: -12px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.pin-head {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 2px solid rgba(0,0,0,0.3);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.4), inset 0 1px 2px rgba(255,255,255,0.3);
+  position: relative;
+  z-index: 2;
+}
+.pin-needle {
+  width: 2px;
+  height: 8px;
+  background: linear-gradient(180deg, #aaa, #555);
+  margin-top: -2px;
+  z-index: 1;
+}
+.pin-red .pin-head { background: radial-gradient(circle at 35% 35%, #ff6b6b, #8c2a2a); }
+.pin-blue .pin-head { background: radial-gradient(circle at 35% 35%, #7ab3e0, #1a3a6c); }
+.pin-amber .pin-head { background: radial-gradient(circle at 35% 35%, #f0c060, #8c5500); }
+.pin-green .pin-head { background: radial-gradient(circle at 35% 35%, #6bcf7f, #1a5c2a); }
+.pin-white .pin-head { background: radial-gradient(circle at 35% 35%, #fff, #ccc); }
+
+/* Note paper */
+.note-paper {
+  background: #f4f0e4;
+  box-shadow: 2px 3px 12px rgba(0,0,0,0.45);
+  padding: 16px 14px 14px;
+  position: relative;
+  min-height: 100px;
+}
+.note-paper::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, transparent 20%, rgba(0,0,0,0.06) 50%, transparent 80%);
+}
+
+/* Note sizes */
+.note-sm { width: 130px; }
+.note-md { width: 170px; }
+.note-lg { width: 210px; }
+.note-wide { width: 240px; }
+
+/* Note rotations */
+.rot-1 { transform: rotate(-2deg); }
+.rot-2 { transform: rotate(1.5deg); }
+.rot-3 { transform: rotate(-1deg); }
+.rot-4 { transform: rotate(2.5deg); }
+.rot-5 { transform: rotate(-3deg); }
+.rot-6 { transform: rotate(0.8deg); }
+
+.note-icon {
+  font-size: 22px;
+  margin-bottom: 8px;
+  display: block;
+}
+.note-title {
+  font-family: var(--font-type);
+  font-size: 13px;
+  color: #1a1008;
+  line-height: 1.3;
+  margin-bottom: 6px;
+}
+.note-sub {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  color: #5a4a30;
+  letter-spacing: 0.5px;
+  line-height: 1.5;
+}
+.note-tag {
+  display: inline-block;
+  margin-top: 8px;
+  font-family: var(--font-sans);
+  font-size: 7px;
+  letter-spacing: 2px;
+  padding: 2px 6px;
+  border: 1px solid;
+  text-transform: uppercase;
+}
+.note-tag-red { color: #8c2a2a; border-color: #8c2a2a; }
+.note-tag-blue { color: #1a3a6c; border-color: #1a3a6c; }
+.note-tag-amber { color: #7a5500; border-color: #7a5500; }
+.note-tag-green { color: #1a5c2a; border-color: #1a5c2a; }
+
+/* Discovery dot */
+.discovery-dot {
+  position: absolute;
+  bottom: 8px;
+  right: 8px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #ccc;
+  border: 1px solid rgba(0,0,0,0.2);
+}
+.pin-note.discovered .discovery-dot {
+  background: #2a8c3a;
+  box-shadow: 0 0 6px rgba(42,140,58,0.6);
+}
+
+/* ── TAPE PIECES ── */
+.tape {
+  position: absolute;
+  background: rgba(255,240,180,0.5);
+  border: 1px solid rgba(200,180,80,0.3);
+  z-index: 5;
+}
+.tape-h { width: 50px; height: 14px; top: 4px; left: 50%; transform: translateX(-50%) rotate(-1deg); }
+.tape-v { width: 14px; height: 40px; }
+
+/* ── PHOTO NOTES (CCTV thumbnails) ── */
+.note-photo {
+  background: #1a1a1a;
+  border: 3px solid #f4f0e4;
+  width: 160px;
+}
+.photo-still {
+  width: 100%;
+  height: 90px;
+  background: linear-gradient(135deg, #0a0a14, #1a1a2a);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  color: rgba(255,255,255,0.3);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  position: relative;
+  overflow: hidden;
+}
+.photo-still::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,255,0,0.015) 2px, rgba(0,255,0,0.015) 4px);
+}
+.cctv-overlay {
+  position: absolute;
+  top: 4px; left: 4px;
+  font-size: 8px;
+  color: rgba(255,50,50,0.8);
+  letter-spacing: 1px;
+}
+.photo-caption {
+  padding: 6px 8px;
+  font-family: var(--font-mono);
+  font-size: 8px;
+  color: #aaa;
+  letter-spacing: 0.5px;
+  background: #111;
+}
+
+/* ── RED STRING ── */
+.red-string-svg {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ── HANDWRITTEN TEXT ── */
+.handwritten {
+  font-family: var(--font-type);
+  font-size: 11px;
+  color: #2a1a08;
+  line-height: 1.6;
+  font-style: italic;
+}
+
+/* ── VICTIM PHOTO NOTE ── */
+.victim-note {
+  background: #1a1208;
+  border: 2px solid #8c2a2a;
+}
+.victim-note .note-title { color: #e8c090; }
+.victim-note .note-sub { color: #8a7060; }
+
+/* ── RESPONSIVE ── */
+@media (max-width: 600px) {
+  .pin-grid { gap: 14px; }
+  .note-sm { width: 110px; }
+  .note-md { width: 140px; }
+  .note-lg { width: 170px; }
+  .note-wide { width: 200px; }
+  .corkboard { padding: 30px 16px 50px; }
+}
+</style>
+</head>
+<body>
+<div id="notification"></div>
+
+<!-- ── TITLE SCREEN ── -->
+<div id="title-screen">
+  <div class="rain-container" id="rain"></div>
+  <div class="title-eyebrow">A Vesper City Investigation</div>
+  <div class="title-main">City of Lies</div>
+  <div class="title-sub">"In Vesper City, every secret has a price."</div>
+  <div class="title-case">Active Case</div>
+  <div class="title-case-name">The Whitmore Affair</div>
+  <button class="btn btn-amber" onclick="enterBoard()" style="font-size:13px;padding:12px 40px;letter-spacing:3px">OPEN CASE FILE</button>
+  <div style="margin-top:14px;display:flex;gap:12px">
+    <button class="btn btn-ghost" onclick="showHowToPlay()" style="font-size:10px">HOW TO PLAY</button>
+    <button class="btn btn-ghost" onclick="confirmReset()" style="font-size:10px">RESET</button>
+  </div>
+  <div class="title-byline">By Gary Langley &nbsp;|&nbsp; build <a id="commit-hash" href="https://github.com/jellybean1979/city-of-lies" target="_blank">......</a></div>
+</div>
+
+<!-- ── CORKBOARD ── -->
+<div id="corkboard-screen" style="display:none">
+  <div class="board-header">
+    <div class="board-header-left">
+      <span class="board-case-label">Active Case</span>
+      <span class="board-case-title">The Whitmore Affair</span>
+    </div>
+    <div class="board-header-right">
+      <span class="evidence-counter">Evidence: <span id="ev-count">0</span>/<span id="ev-total">0</span></span>
+      <button class="btn btn-amber" style="font-size:10px;padding:6px 16px" onclick="goToTheory()">FILE THEORY</button>
+      <button class="btn btn-ghost" style="font-size:10px;padding:6px 14px" onclick="showHowToPlay()">?</button>
+    </div>
+  </div>
+
+  <div class="corkboard" id="corkboard">
+    <!-- Red string SVG -->
+    <svg class="red-string-svg" id="string-svg" xmlns="http://www.w3.org/2000/svg"></svg>
+
+    <!-- SECTION: VICTIM -->
+    <div class="board-section-label">The Victim</div>
+    <div class="pin-grid">
+      <div class="pin-note rot-2" onclick="openVictim()">
+        <div class="push-pin pin-red"><div class="pin-head"></div><div class="pin-needle"></div></div>
+        <div class="note-paper note-photo victim-note">
+          <div class="photo-still">
+            <span class="cctv-overlay">■ REC</span>
+            <span style="font-size:9px;color:rgba(200,150,100,0.5)">VICTIM</span>
+          </div>
+          <div class="photo-caption" style="background:#1a0a08;color:#c09070">JOEL CASSIDY<br>Tribune — Press</div>
+        </div>
+        <div class="discovery-dot"></div>
+      </div>
+      <div class="pin-note rot-5" onclick="openVictim()">
+        <div class="push-pin pin-red"><div class="pin-head"></div><div class="pin-needle"></div></div>
+        <div class="note-paper note-md" style="background:#f8f0e4;">
+          <span class="note-icon">📋</span>
+          <div class="note-title">Incident Report</div>
+          <div class="note-sub">VPD Case #4471-B<br>Filed: Night of incident</div>
+          <span class="note-tag note-tag-red">POLICE REPORT</span>
+          <div class="discovery-dot"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SECTION: SUSPECTS -->
+    <div class="board-section-label" style="margin-top:36px">Suspects</div>
+    <div class="pin-grid" id="suspects-grid"></div>
+
+    <!-- SECTION: WITNESSES -->
+    <div class="board-section-label" style="margin-top:36px">Witnesses — Interrogation</div>
+    <div class="pin-grid" id="witnesses-grid"></div>
+
+    <!-- SECTION: CCTV -->
+    <div class="board-section-label" style="margin-top:36px">CCTV Footage</div>
+    <div class="pin-grid" id="cctv-grid"></div>
+
+    <!-- SECTION: AUDIO -->
+    <div class="board-section-label" style="margin-top:36px">Audio Evidence</div>
+    <div class="pin-grid" id="audio-grid"></div>
+
+    <!-- SECTION: DOCUMENTS -->
+    <div class="board-section-label" style="margin-top:36px">Documents &amp; Reports</div>
+    <div class="pin-grid" id="docs-grid"></div>
+
+    <!-- SECTION: QUICK ACCESS -->
+    <div class="board-section-label" style="margin-top:36px">Investigation Tools</div>
+    <div class="pin-grid">
+      <div class="pin-note rot-2" onclick="COL.goTo('screens/casefile.html')">
+        <div class="push-pin pin-amber"><div class="pin-head"></div><div class="pin-needle"></div></div>
+        <div class="note-paper note-md">
+          <span class="note-icon">📓</span>
+          <div class="note-title">Case File &amp; Notes</div>
+          <div class="note-sub">Your running notes<br>and observations</div>
+          <span class="note-tag note-tag-amber">NOTES</span>
+        </div>
+        <div class="discovery-dot"></div>
+      </div>
+      <div class="pin-note rot-4" onclick="goToTheory()">
+        <div class="push-pin pin-green"><div class="pin-head"></div><div class="pin-needle"></div></div>
+        <div class="note-paper note-md" style="background:#e8f4e8;">
+          <span class="note-icon">⚖️</span>
+          <div class="note-title">File Your Theory</div>
+          <div class="note-sub" style="color:#2a5a3a">Name the culprit.<br>Choose your path.</div>
+          <span class="note-tag note-tag-green">FILE THEORY</span>
+        </div>
+        <div class="discovery-dot"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── HOW TO PLAY MODAL ── -->
+<div class="modal-overlay" id="htp-modal">
+  <div class="modal-box" style="max-width:580px;max-height:80vh;overflow-y:auto">
+    <div class="modal-title">How to Play</div>
+    <div class="modal-body" style="font-size:11px;line-height:2">
+      <p style="color:var(--amber);margin-bottom:12px;font-style:italic">"The truth is here. You just have to know where to look."</p>
+
+      <div style="color:var(--cream-dim);font-family:var(--font-sans);font-size:9px;letter-spacing:3px;margin-bottom:6px">THE GOAL</div>
+      <p>A man is dead. Your job is to find out who killed him, where, and how — then decide what to do about it. Gather evidence, interrogate witnesses, and when you're ready, file your theory.</p>
+
+      <div style="color:var(--cream-dim);font-family:var(--font-sans);font-size:9px;letter-spacing:3px;margin:14px 0 6px">THE BOARD</div>
+      <p>The corkboard is your investigation hub. Every pinned note is a piece of evidence. Tap any note to open it. Green dots mean you've reviewed that piece. No dots means you haven't looked yet.</p>
+
+      <div style="color:var(--cream-dim);font-family:var(--font-sans);font-size:9px;letter-spacing:3px;margin:14px 0 6px">EVIDENCE TYPES</div>
+      <p><span style="color:var(--amber)">CCTV</span> — Review footage. Look for timing, faces, vehicles, and anomalies.<br>
+      <span style="color:var(--amber)">AUDIO</span> — Listen to recordings and examine spectrograms for hidden clues.<br>
+      <span style="color:var(--amber)">DOCUMENTS</span> — Read reports, financials, and field notes carefully.<br>
+      <span style="color:var(--amber)">INTERROGATION</span> — Question suspects and witnesses. Watch the lie detector.</p>
+
+      <div style="color:var(--cream-dim);font-family:var(--font-sans);font-size:9px;letter-spacing:3px;margin:14px 0 6px">SPECTROGRAMS</div>
+      <p>Audio spectrograms are visual representations of sound. Look for anomalies: sudden silences, unexpected frequency spikes, or patterns that don't match the stated content. Hidden clues are buried in the noise.</p>
+
+      <div style="color:var(--cream-dim);font-family:var(--font-sans);font-size:9px;letter-spacing:3px;margin:14px 0 6px">LIE DETECTOR</div>
+      <p>During interrogations, a simulated polygraph tracks heart rate, stress, and truthfulness. High stress and heart rate spikes don't always mean guilt — but they always mean something. No verbal response is as telling as any answer.</p>
+
+      <div style="color:var(--cream-dim);font-family:var(--font-sans);font-size:9px;letter-spacing:3px;margin:14px 0 6px">FILING YOUR THEORY</div>
+      <p>When you're ready: name the culprit, the location, and the method — like Clue. If the accused is powerful, a second choice appears. You can expose them to the DA — or take the money and bury it. Both paths lead somewhere. Neither is without consequence.</p>
+
+      <div style="color:var(--cream-dim);font-family:var(--font-sans);font-size:9px;letter-spacing:3px;margin:14px 0 6px">THE ENDING</div>
+      <p>There are four possible outcomes: the right verdict exposed, the right verdict buried, the wrong verdict, and a partial truth. The city doesn't forget. Neither does your conscience.</p>
+    </div>
+    <button class="btn btn-amber" onclick="closeHTP()" style="width:100%">BEGIN INVESTIGATION</button>
+  </div>
+</div>
+
+<!-- ── VICTIM MODAL ── -->
+<div class="modal-overlay" id="victim-modal">
+  <div class="modal-box">
+    <div class="modal-title" style="color:var(--red)">The Victim</div>
+    <div class="modal-body">
+      <div style="display:flex;gap:16px;align-items:flex-start;margin-bottom:16px">
+        <div style="width:70px;height:70px;background:var(--blue-deep);border:1px solid var(--border-bright);display:flex;align-items:center;justify-content:center;font-size:28px;flex-shrink:0">👤</div>
+        <div>
+          <div style="font-family:var(--font-sans);font-size:14px;letter-spacing:2px;color:var(--cream)">JOEL CASSIDY</div>
+          <div style="font-size:11px;color:var(--text-dim);margin-top:2px">Investigative Journalist — Vesper City Tribune, Age 34</div>
+          <div class="tag tag-red" style="margin-top:8px">DECEASED</div>
+        </div>
+      </div>
+      <p style="font-size:11px;line-height:1.9">Cassidy had been working a story on city corruption for eight months. Found dead in the Meridian Parking Garage at approximately 10:15pm. Official cause of death: blunt force trauma. His laptop and recorder were missing from the scene.</p>
+      <p style="font-size:11px;line-height:1.9;margin-top:10px">Last known location: Meridian Hotel charity gala, attending as press. Left the ballroom at an unknown time and was found dead in the adjacent parking structure.</p>
+    </div>
+    <button class="btn btn-ghost" onclick="document.getElementById('victim-modal').classList.remove('show')" style="width:100%">CLOSE</button>
+  </div>
+</div>
+
+<!-- ── RESET CONFIRM ── -->
+<div class="modal-overlay" id="reset-modal">
+  <div class="modal-box">
+    <div class="modal-title" style="color:var(--red)">Reset Investigation?</div>
+    <div class="modal-body">All progress, notes, and evidence reviews will be permanently erased. This cannot be undone.</div>
+    <div style="display:flex;gap:10px">
+      <button class="btn btn-red" onclick="COL.reset()" style="flex:1">CONFIRM RESET</button>
+      <button class="btn btn-ghost" onclick="document.getElementById('reset-modal').classList.remove('show')" style="flex:1">CANCEL</button>
+    </div>
+  </div>
+</div>
+
+<script src="js/game.js"></script>
+<script>
+// ── BUILD CORKBOARD ──────────────────────────────────────────
+function buildBoard() {
+  const c = COL.getCase();
+  const PIN_COLORS = ['pin-red','pin-blue','pin-amber','pin-green','pin-white'];
+  const ROTS = ['rot-1','rot-2','rot-3','rot-4','rot-5','rot-6'];
+
+  // Update evidence counter
+  document.getElementById('ev-total').textContent = c.evidence.length;
+  document.getElementById('ev-count').textContent = COL.state.discoveredEvidence.size;
+
+  // SUSPECTS
+  const sg = document.getElementById('suspects-grid');
+  c.suspects.forEach((s, i) => {
+    const pin = PIN_COLORS[i % PIN_COLORS.length];
+    const rot = ROTS[i % ROTS.length];
+    const evId = 'ev_suspect_' + s.id;
+    const note = document.createElement('div');
+    note.className = `pin-note ${rot}`;
+    note.dataset.evidence = evId;
+    note.innerHTML = `
+      <div class="push-pin ${pin}"><div class="pin-head"></div><div class="pin-needle"></div></div>
+      <div class="note-paper note-md ${s.powerful ? 'victim-note' : ''}">
+        <span class="note-icon">👤</span>
+        <div class="note-title">${s.name}</div>
+        <div class="note-sub">${s.role}</div>
+        <span class="note-tag ${s.powerful ? 'note-tag-red' : 'note-tag-blue'}">${s.powerful ? 'HIGH PROFILE' : 'SUSPECT'}</span>
+        <div class="discovery-dot"></div>
+      </div>`;
+    note.onclick = () => openSuspect(s.id);
+    sg.appendChild(note);
+  });
+
+  // WITNESSES
+  const wg = document.getElementById('witnesses-grid');
+  c.witnesses.forEach((w, i) => {
+    const pin = PIN_COLORS[(i + 2) % PIN_COLORS.length];
+    const rot = ROTS[(i + 1) % ROTS.length];
+    const interrog = c.interrogations.find(x => x.subject_id === w.id);
+    const note = document.createElement('div');
+    note.className = `pin-note ${rot}`;
+    note.innerHTML = `
+      <div class="push-pin ${pin}"><div class="pin-head"></div><div class="pin-needle"></div></div>
+      <div class="note-paper note-sm">
+        <span class="note-icon">🗣️</span>
+        <div class="note-title">Witness #${w.number}</div>
+        <div class="note-sub">${w.role.split(',')[0]}</div>
+        <span class="note-tag ${interrog ? 'note-tag-amber' : 'note-tag-blue'}">${interrog ? 'INTERROGATE' : 'WITNESS'}</span>
+        <div class="discovery-dot"></div>
+      </div>`;
+    note.onclick = () => openWitness(w.id);
+    wg.appendChild(note);
+  });
+
+  // CCTV
+  const cg = document.getElementById('cctv-grid');
+  c.cctv.forEach((v, i) => {
+    const pin = PIN_COLORS[i % 3];
+    const rot = ROTS[(i + 3) % ROTS.length];
+    const note = document.createElement('div');
+    note.className = `pin-note ${rot}`;
+    note.dataset.evidence = v.evidence_ids[0];
+    note.innerHTML = `
+      <div class="push-pin ${pin}"><div class="pin-head"></div><div class="pin-needle"></div></div>
+      <div class="note-paper note-photo">
+        <div class="photo-still">
+          <span class="cctv-overlay">● REC</span>
+          <div style="text-align:center">
+            <div style="font-size:18px;margin-bottom:4px">📹</div>
+            <div style="font-size:8px;color:rgba(255,255,255,0.4)">${v.quality}</div>
+          </div>
+        </div>
+        <div class="photo-caption">${v.location.split('—')[1]?.trim() || v.location}<br><span style="color:#666">${v.timestamp}</span></div>
+        <div class="discovery-dot" style="position:relative;display:inline-block;margin:4px 4px 0 0"></div>
+      </div>`;
+    note.onclick = () => openCCTV(v.id);
+    cg.appendChild(note);
+  });
+
+  // AUDIO
+  const ag = document.getElementById('audio-grid');
+  c.audio.forEach((a, i) => {
+    const pin = ['pin-amber','pin-blue','pin-white'][i % 3];
+    const rot = ROTS[(i + 2) % ROTS.length];
+    const note = document.createElement('div');
+    note.className = `pin-note ${rot}`;
+    note.dataset.evidence = a.evidence_ids[0];
+    note.innerHTML = `
+      <div class="push-pin ${pin}"><div class="pin-head"></div><div class="pin-needle"></div></div>
+      <div class="note-paper note-md">
+        <span class="note-icon">🎙️</span>
+        <div class="note-title">${a.file}</div>
+        <div class="note-sub">${a.source.split('—')[0].trim()}<br>${a.duration}</div>
+        <span class="note-tag note-tag-amber">AUDIO</span>
+        <div class="discovery-dot"></div>
+      </div>`;
+    note.onclick = () => openAudio(a.id);
+    ag.appendChild(note);
+  });
+
+  // DOCUMENTS
+  const dg = document.getElementById('docs-grid');
+  c.documents.forEach((d, i) => {
+    const pin = ['pin-white','pin-amber','pin-red','pin-blue'][i % 4];
+    const rot = ROTS[i % ROTS.length];
+    const note = document.createElement('div');
+    note.className = `pin-note ${rot}`;
+    note.dataset.evidence = d.evidence_ids[0];
+    note.innerHTML = `
+      <div class="push-pin ${pin}"><div class="pin-head"></div><div class="pin-needle"></div></div>
+      <div class="note-paper note-wide">
+        <span class="note-icon">📄</span>
+        <div class="note-title">${d.title}</div>
+        <div class="note-sub">${d.type}<br>${d.author.split('—')[0].split(',')[0]}</div>
+        <span class="note-tag ${d.classification === 'CRITICAL' ? 'note-tag-red' : d.classification === 'SENSITIVE' ? 'note-tag-amber' : 'note-tag-blue'}">${d.classification}</span>
+        <div class="discovery-dot"></div>
+      </div>`;
+    note.onclick = () => openDocument(d.id);
+    dg.appendChild(note);
+  });
+
+  COL.updatePins();
+}
+
+// ── NAVIGATION FUNCTIONS ──────────────────────────────────────
+function openSuspect(id) {
+  sessionStorage.setItem('col_target', id);
+  sessionStorage.setItem('col_type', 'suspect');
+  window.location.href = 'screens/interrogation.html';
+}
+function openWitness(id) {
+  sessionStorage.setItem('col_target', id);
+  sessionStorage.setItem('col_type', 'witness');
+  window.location.href = 'screens/interrogation.html';
+}
+function openCCTV(id) {
+  sessionStorage.setItem('col_target', id);
+  window.location.href = 'screens/cctv.html';
+}
+function openAudio(id) {
+  sessionStorage.setItem('col_target', id);
+  window.location.href = 'screens/audio.html';
+}
+function openDocument(id) {
+  sessionStorage.setItem('col_target', id);
+  window.location.href = 'screens/documents.html';
+}
+function openVictim() {
+  document.getElementById('victim-modal').classList.add('show');
+}
+function goToTheory() {
+  window.location.href = 'screens/theory.html';
+}
+
+// ── TITLE SCREEN ──────────────────────────────────────────────
+function enterBoard() {
+  document.getElementById('title-screen').classList.add('hidden');
+  document.getElementById('corkboard-screen').style.display = 'flex';
+  buildBoard();
+  setTimeout(() => {
+    document.getElementById('title-screen').style.display = 'none';
+  }, 900);
+}
+
+function showHowToPlay() {
+  document.getElementById('htp-modal').classList.add('show');
+}
+function closeHTP() {
+  document.getElementById('htp-modal').classList.remove('show');
+  if (document.getElementById('corkboard-screen').style.display === 'none') {
+    enterBoard();
+  }
+}
+function confirmReset() {
+  document.getElementById('reset-modal').classList.add('show');
+}
+
+// ── RAIN EFFECT ───────────────────────────────────────────────
+function makeRain() {
+  const container = document.getElementById('rain');
+  if (!container) return;
+  for (let i = 0; i < 60; i++) {
+    const drop = document.createElement('div');
+    drop.className = 'rain-drop';
+    drop.style.left = Math.random() * 100 + 'vw';
+    drop.style.height = (40 + Math.random() * 80) + 'px';
+    drop.style.animationDuration = (0.6 + Math.random() * 0.8) + 's';
+    drop.style.animationDelay = (-Math.random() * 2) + 's';
+    container.appendChild(drop);
+  }
+}
+
+// ── COMMIT HASH ───────────────────────────────────────────────
+async function updateCommitHash() {
+  try {
+    const res = await fetch('https://api.github.com/repos/jellybean1979/city-of-lies/commits?per_page=1');
+    if (!res.ok) return;
+    const data = await res.json();
+    const sha = data[0]?.sha?.substring(0, 7);
+    if (sha) {
+      const el = document.getElementById('commit-hash');
+      el.textContent = sha;
+      el.href = `https://github.com/jellybean1979/city-of-lies/commit/${data[0].sha}`;
+    }
+  } catch(e) {}
+}
+
+// ── INIT ──────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  makeRain();
+  updateCommitHash();
+  // Show how to play on first visit
+  if (!localStorage.getItem('col_save')) {
+    setTimeout(() => showHowToPlay(), 1200);
+  }
+});
+</script>
+</body>
+</html>
