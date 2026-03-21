@@ -92,7 +92,7 @@ const COL = {
         {
           id: 'suspect_01',
           name: 'Councilman Aldric Whitmore',
-          portrait: 'Suspect #1 portrait',
+          portrait: '../assets/portraits/suspect_01.jpg',
           role: 'City Council Chairman',
           age: 58,
           powerful: true,
@@ -106,7 +106,7 @@ const COL = {
         {
           id: 'suspect_02',
           name: 'Renata Voss',
-          portrait: 'Suspect #2 portrait',
+          portrait: '../assets/portraits/suspect_02.jpg',
           role: 'Private Security Contractor',
           age: 41,
           powerful: false,
@@ -120,7 +120,7 @@ const COL = {
         {
           id: 'suspect_03',
           name: 'Deputy Mayor Conrad Hale',
-          portrait: 'Suspect #3 portrait',
+          portrait: '../assets/portraits/suspect_03.jpg',
           role: 'Deputy Mayor of Vesper City',
           age: 52,
           powerful: true,
@@ -134,7 +134,7 @@ const COL = {
         {
           id: 'suspect_04',
           name: 'Marcus Theel',
-          portrait: 'Suspect #4 portrait',
+          portrait: '../assets/portraits/suspect_04.jpg',
           role: 'Real Estate Developer',
           age: 46,
           powerful: false,
@@ -148,7 +148,7 @@ const COL = {
         {
           id: 'suspect_05',
           name: 'Lena Dray',
-          portrait: 'Suspect #5 portrait',
+          portrait: '../assets/portraits/suspect_05.jpg',
           role: 'Fixer / Intelligence Broker',
           age: 38,
           powerful: false,
@@ -164,7 +164,7 @@ const COL = {
       // ── VICTIM ──
       victim: {
         name: 'Joel Cassidy',
-        portrait: 'Witness #1 portrait',
+        portrait: '../assets/portraits/victim_01.jpg',
         role: 'Investigative Journalist, Vesper City Tribune',
         age: 34,
         description: 'Cassidy had been working a story on city corruption for eight months. Found dead in the Meridian Parking Garage at approximately 10:15pm. Official cause of death: blunt force trauma. His laptop and recorder were missing from the scene.',
@@ -177,7 +177,7 @@ const COL = {
           id: 'witness_02',
           number: 2,
           name: 'Eloise Graves',
-          portrait: 'Witness #2 portrait',
+          portrait: '../assets/portraits/witness_02.jpg',
           role: 'Event Coordinator, Meridian Hotel',
           description: 'Managed the charity gala. Nervous, cooperative, clearly hiding something minor.',
         },
@@ -185,7 +185,7 @@ const COL = {
           id: 'witness_03',
           number: 3,
           name: 'Terrance Webb',
-          portrait: 'Witness #3 portrait',
+          portrait: '../assets/portraits/witness_03.jpg',
           role: 'Parking Garage Attendant',
           description: 'Was on duty the night of the incident. Saw multiple vehicles enter and exit. Initially gave a different story to police.',
         },
@@ -193,7 +193,7 @@ const COL = {
           id: 'witness_05',
           number: 5,
           name: 'Sasha Mirin',
-          portrait: 'Witness #5 portrait',
+          portrait: '../assets/portraits/witness_05.jpg',
           role: 'Cassidy\'s Editor, Vesper City Tribune',
           description: 'Last person to speak with Cassidy before his death. Received a partial voicemail at 10:02pm.',
         },
@@ -201,7 +201,7 @@ const COL = {
           id: 'witness_07',
           number: 7,
           name: 'Dmitri Vane',
-          portrait: 'Witness #7 portrait',
+          portrait: '../assets/portraits/witness_07.jpg',
           role: 'Whitmore\'s Personal Driver',
           description: 'Drove Whitmore to the gala and was instructed to wait. Claims he waited the entire evening without interruption.',
         },
@@ -209,7 +209,7 @@ const COL = {
           id: 'witness_09',
           number: 9,
           name: 'Officer Carla Reese',
-          portrait: 'Witness #9 portrait',
+          portrait: '../assets/portraits/witness_09.jpg',
           role: 'First Responding Officer, VPD',
           description: 'Arrived at the scene at 10:31pm. Filed the initial report. Off-the-record, expressed concern that the crime scene was disturbed before her arrival.',
         },
@@ -217,7 +217,7 @@ const COL = {
           id: 'witness_12',
           number: 12,
           name: 'Unknown Contact',
-          portrait: 'Witness #12 portrait',
+          portrait: '../assets/portraits/witness_12.jpg',
           role: 'Anonymous — identity unknown',
           description: 'Left the anonymous tip recording. Voice has been digitally altered.',
         },
@@ -507,7 +507,7 @@ If I'm wrong about who I can trust...
           subject_id: 'witness_03',
           subject_name: 'Terrance Webb',
           subject_role: 'Parking Garage Attendant',
-          portrait: 'Witness #3 portrait',
+          portrait: '../assets/portraits/witness_03.jpg',
           personality: 'Working-class, mid-50s. Initially cooperative but becomes evasive on specific details. Shows clear signs of fear — not guilt. Likely intimidated or coerced into his original police statement. Responds well to empathy, poorly to aggression.',
           questions: [
             {
@@ -552,7 +552,7 @@ If I'm wrong about who I can trust...
           subject_id: 'suspect_03',
           subject_name: 'Deputy Mayor Conrad Hale',
           subject_role: 'Deputy Mayor of Vesper City',
-          portrait: 'Suspect #3 portrait',
+          portrait: '../assets/portraits/suspect_03.jpg',
           personality: 'Polished, controlled, politically experienced. Treats interrogation as a PR exercise. Never directly answers questions — redirects, reframes, and deploys plausible deniability with practiced ease. Reacts with contempt to direct accusations. His tells are subtle: slightly increased blink rate, micro-pauses before named individuals.',
           questions: [
             {
@@ -714,4 +714,3 @@ COL.init = function() {
 
 // Auto-init
 document.addEventListener('DOMContentLoaded', () => COL.init());
-
