@@ -709,80 +709,105 @@
        Placeholder items — replace/extend as
        the game's story develops.
     ════════════════════════════════════════ */
-    const EVIDENCE = [
+    /* ════════════════════════════════════════
+       EVIDENCE STAGING SYSTEM
+       ─────────────────────────────────────
+       Evidence arrives in waves using real-time
+       timestamps stored in localStorage.
+
+       WAVE 0 (immediate): 2 items in 'pending'
+         → become 'logged' after ~1 minute
+
+       WAVE 1 (after 2 min): 2 more items in 'pending'
+       WAVE 2 (after 4 min): 2 more items in 'pending'
+       WAVE 3 (after 6 min): final 2 items in 'pending'
+
+       Key: col_evidence_waves — { waveN_released: timestamp }
+
+       Items start hidden and are added to EVIDENCE
+       when their wave releases. The pending→logged
+       transition is handled by the existing tickTimers.
+    ════════════════════════════════════════ */
+
+    // Master evidence definitions — all 8 items
+    // wave: which wave releases this item (0=immediate)
+    const ALL_EVIDENCE_DEFS = [
       {
-        id:       `${CURRENT_CASE}-E01`,
+        id: `${CURRENT_CASE}-E01`, wave: 0,
         name:     'Monogrammed Cigarette Case',
         location: 'Harlow Street Alley, near dumpster behind The Blue Meridian bar',
         date:     'Mar 04 2026 · 22:14',
         owner:    'Victor Marre',
         why:      'Found at the primary crime scene. Monogram "V.M." matches Victor Marre. Suggests Marre was present within hours of the incident. Partial fingerprint on inner lid sent to lab.',
-        status:   'analysis'
       },
       {
-        id:       `${CURRENT_CASE}-E02`,
+        id: `${CURRENT_CASE}-E02`, wave: 0,
         name:     'Unsigned Threatening Letter',
-        location: 'Victim\'s desk drawer — 14B Creston Apartments',
+        location: "Victim's desk drawer — 14B Creston Apartments",
         date:     'Mar 05 2026 · 09:30',
         owner:    'Unknown',
         why:      'Letter warns the victim to "stop digging or face the same fate as the others." Written on a typewriter — font analysis in progress. No prints recovered. May indicate premeditation.',
-        status:   'analysis'
       },
       {
-        id:       `${CURRENT_CASE}-E03`,
+        id: `${CURRENT_CASE}-E03`, wave: 1,
         name:     'Burner Mobile Phone',
         location: 'Storm drain — intersection of 4th Ave and Canal St',
         date:     'Mar 05 2026 · 14:45',
         owner:    'Unknown',
         why:      'Recovered during canal sweep. SIM card removed but internal memory partially intact. Forensics recovered 3 fragmented call logs and a deleted photo. Device is being imaged.',
-        status:   'analysis'
       },
       {
-        id:       `${CURRENT_CASE}-E04`,
+        id: `${CURRENT_CASE}-E04`, wave: 1,
         name:     'Bloodstained Cloth Fragment',
         location: 'Chain-link fence — rear of Kessler Warehouse District',
         date:     'Mar 06 2026 · 07:10',
         owner:    'Unknown',
         why:      'Fabric snagged on fence consistent with a struggle. Blood type matches victim. Textile analysis may identify garment origin. No DNA results yet.',
-        status:   'analysis'
       },
       {
-        id:       `${CURRENT_CASE}-E05`,
+        id: `${CURRENT_CASE}-E05`, wave: 2,
         name:     'Ledger — Handwritten Accounts',
         location: 'Hidden compartment beneath floorboard — Marre Import Co. Office',
         date:     'Mar 06 2026 · 11:55',
         owner:    'Victor Marre',
         why:      'Ledger records irregular cash transactions totalling $340,000 over six months. Entries use coded names. Cross-referencing with known associates. Possible motive documentation.',
-        status:   'logged'
       },
       {
-        id:       `${CURRENT_CASE}-E06`,
+        id: `${CURRENT_CASE}-E06`, wave: 2,
         name:     'Security Footage — USB Drive',
         location: 'City Harbour CCTV Office, Bay 7',
         date:     'Mar 06 2026 · 16:00',
         owner:    'City Harbour Authority',
         why:      'Footage covers the night of the incident. Partial view of the alley entrance. A figure matching suspect description observed at 21:48. Awaiting enhancement.',
-        status:   'analysis'
       },
       {
-        id:       `${CURRENT_CASE}-E07`,
+        id: `${CURRENT_CASE}-E07`, wave: 3,
         name:     'Prescription Medicine Bottle',
-        location: 'Victim\'s bathroom cabinet — 14B Creston Apartments',
+        location: "Victim's bathroom cabinet — 14B Creston Apartments",
         date:     'Mar 07 2026 · 10:20',
         owner:    'Elara Voss',
         why:      'Bottle prescribed to Elara Voss, not the victim. Suggests Voss had access to the apartment. Relationship between victim and Voss under investigation.',
-        status:   'logged'
       },
       {
-        id:       `${CURRENT_CASE}-E08`,
+        id: `${CURRENT_CASE}-E08`, wave: 3,
         name:     'Partial Boot Print Cast',
         location: 'Muddy lot — adjacent to Harlow Street Alley',
         date:     'Mar 07 2026 · 08:05',
         owner:    'Unknown',
         why:      'Size 11 boot print taken in plaster. Distinctive tread pattern consistent with military-issue footwear. Checking against suspect profiles.',
-        status:   'pending'
       },
     ];
+
+    // Wave release delays (ms after first page visit)
+    const WAVE_DELAYS = {
+      0: 0,              // immediate
+      1: 2 * 60 * 1000,  // 2 minutes
+      2: 4 * 60 * 1000,  // 4 minutes
+      3: 6 * 60 * 1000,  // 6 minutes
+    };
+
+    // Working evidence array — populated by wave system
+    const EVIDENCE = [];
 
     /* ════════════════════════════════════════
        RENDER
@@ -804,7 +829,7 @@
       if (filtered.length === 0) {
         empty.classList.add('show');
         document.getElementById('empty-text').textContent = EVIDENCE.length === 0
-          ? 'No evidence has been logged for this case yet'
+          ? 'No evidence has been processed yet — check back shortly'
           : 'No items match this filter';
         return;
       }
@@ -917,13 +942,15 @@
        Keys used:
          col_evidence_status   — { id: status }
          col_lab_timers        — { id: { lab, analysisEnd, pendingEnd } }
-         col_lab_used          — { id: [lab1, lab2] }  (locked labs per item)
+         col_lab_used          — { id: [lab1, lab2] }
          col_evidence_extra    — [ ...extra items added by lab results ]
+         col_evidence_waves    — { firstVisit, wave timings }
     ════════════════════════════════════════ */
 
-    const ANALYSIS_MIN_MS = 5  * 60 * 1000;   // 5 minutes
-    const ANALYSIS_MAX_MS = 10 * 60 * 1000;   // 10 minutes
-    const PENDING_MS      = 1  * 60 * 1000;   // 1 minute
+    const ANALYSIS_MIN_MS  = 5  * 60 * 1000;
+    const ANALYSIS_MAX_MS  = 10 * 60 * 1000;
+    const PENDING_MS       = 1  * 60 * 1000;
+    const WAVE_PENDING_MS  = 1  * 60 * 1000;  // intake pending before logged
 
     /* New evidence that can be unlocked by lab analysis (60% chance on return).
        Each entry: triggered when a specific item is analysed.
@@ -976,30 +1003,62 @@
       },
     };
 
-    /* ── Load all persisted data on startup ── */
+    /* ── State ── */
     let labTimers  = {};
     let labUsed    = {};
     let extraItems = [];
+    let waveState  = {};
 
-    (function loadPersistedData() {
+    /* ── Initialise wave staging and load all persisted data ── */
+    (function initWavesAndLoad() {
       try {
         const savedStatus = JSON.parse(localStorage.getItem('col_evidence_status') || '{}');
-        labTimers  = JSON.parse(localStorage.getItem('col_lab_timers')    || '{}');
-        labUsed    = JSON.parse(localStorage.getItem('col_lab_used')       || '{}');
-        extraItems = JSON.parse(localStorage.getItem('col_evidence_extra') || '[]');
+        labTimers  = JSON.parse(localStorage.getItem('col_lab_timers')     || '{}');
+        labUsed    = JSON.parse(localStorage.getItem('col_lab_used')        || '{}');
+        extraItems = JSON.parse(localStorage.getItem('col_evidence_extra')  || '[]');
+        waveState  = JSON.parse(localStorage.getItem('col_evidence_waves')  || '{}');
 
-        // Apply status overrides to base EVIDENCE array
-        EVIDENCE.forEach(item => {
-          if (savedStatus[item.id]) item.status = savedStatus[item.id];
-        });
+        const now = Date.now();
 
-        // Merge any extra items unlocked by lab results
-        extraItems.forEach(extra => {
-          if (!EVIDENCE.find(e => e.id === extra.id)) {
-            EVIDENCE.push(extra);
+        // Record first visit if not set
+        if (!waveState.firstVisit) {
+          waveState.firstVisit = now;
+        }
+        const elapsed = now - waveState.firstVisit;
+
+        // Process each evidence definition
+        ALL_EVIDENCE_DEFS.forEach(def => {
+          const waveDelay   = WAVE_DELAYS[def.wave];
+          const waveKey     = 'released_' + def.id;
+          const alreadyOut  = waveState[waveKey] !== undefined;
+          const hasStatus   = savedStatus[def.id] !== undefined;
+
+          if (elapsed >= waveDelay) {
+            // Wave time reached — add to active EVIDENCE
+            if (!alreadyOut && !hasStatus) {
+              // First time releasing — set as pending with timer
+              const pendingEnd = now + WAVE_PENDING_MS;
+              labTimers[def.id] = { lab:'intake', analysisEnd: now - 1, pendingEnd };
+              savedStatus[def.id] = 'pending';
+              waveState[waveKey]  = now;
+            }
+            const status = savedStatus[def.id] || 'pending';
+            EVIDENCE.push({ ...def, status });
           }
+          // If wave not reached yet: item is invisible, not in EVIDENCE
         });
-      } catch(e) {}
+
+        // Save updated state
+        localStorage.setItem('col_evidence_status', JSON.stringify(savedStatus));
+        localStorage.setItem('col_lab_timers',      JSON.stringify(labTimers));
+        localStorage.setItem('col_evidence_waves',  JSON.stringify(waveState));
+
+        // Merge lab-generated extra items
+        extraItems.forEach(extra => {
+          if (!EVIDENCE.find(e => e.id === extra.id)) EVIDENCE.push(extra);
+        });
+
+      } catch(e) { console.error('Wave init error:', e); }
     })();
 
     /* ── Persist all status data ── */
@@ -1045,6 +1104,37 @@
       const now     = Date.now();
       let   changed = false;
 
+      // ── Check for new waves to release ──
+      if (waveState.firstVisit) {
+        const elapsed = now - waveState.firstVisit;
+        const savedStatus = JSON.parse(localStorage.getItem('col_evidence_status') || '{}');
+
+        ALL_EVIDENCE_DEFS.forEach(def => {
+          const waveDelay  = WAVE_DELAYS[def.wave];
+          const waveKey    = 'released_' + def.id;
+          const alreadyOut = waveState[waveKey] !== undefined;
+
+          if (elapsed >= waveDelay && !alreadyOut) {
+            // Release this wave item
+            const pendingEnd = now + WAVE_PENDING_MS;
+            labTimers[def.id]   = { lab:'intake', analysisEnd: now - 1, pendingEnd };
+            savedStatus[def.id] = 'pending';
+            waveState[waveKey]  = now;
+
+            EVIDENCE.push({ ...def, status: 'pending' });
+
+            localStorage.setItem('col_evidence_status', JSON.stringify(savedStatus));
+            localStorage.setItem('col_evidence_waves',  JSON.stringify(waveState));
+            localStorage.setItem('col_lab_timers',      JSON.stringify(labTimers));
+
+            // Toast notification
+            showNewEvidenceToast('New Evidence Logged: ' + def.name);
+            changed = true;
+          }
+        });
+      }
+
+      // ── Check lab timers (analysis → pending → logged) ──
       Object.keys(labTimers).forEach(itemId => {
         const t    = labTimers[itemId];
         const item = EVIDENCE.find(e => e.id === itemId);
