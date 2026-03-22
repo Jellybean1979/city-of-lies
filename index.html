@@ -683,12 +683,23 @@
     } else if (hasSrc) {
       fallback.style.display = 'none';
 
+      // If video hasn't started within 6 seconds, assume it's blocked/unavailable
+      const videoStallTimer = setTimeout(() => {
+        if (!introComplete && introVideo.readyState < 2) {
+          fallback.style.display = 'flex';
+          fallback.querySelector('.fb-icon').textContent = '⚠️';
+          fallback.querySelector('p').innerHTML =
+            'Intro video could not load.<br/>Advancing to main menu...';
+          setTimeout(launchMainUI, 2500);
+        }
+      }, 6000);
+
       // Explicitly call play() — autoplay attribute alone isn't reliable on mobile
       introVideo.addEventListener('canplay', () => {
+        clearTimeout(videoStallTimer);
         introVideo.play().catch(() => {
-          // If play() is blocked (e.g. non-muted autoplay), show fallback & advance
           fallback.style.display = 'flex';
-          setTimeout(launchMainUI, 4000);
+          setTimeout(launchMainUI, 3000);
         });
       }, { once: true });
 
@@ -696,7 +707,9 @@
 
       // If video errors (wrong path, codec, etc.) — fallback gracefully
       introVideo.addEventListener('error', () => {
+        clearTimeout(videoStallTimer);
         fallback.style.display = 'flex';
+        fallback.querySelector('.fb-icon').textContent = '⚠️';
         fallback.querySelector('p').innerHTML =
           'Video could not be loaded.<br/>Check that <strong>Assets/Video/intro-city_of_lies.mp4</strong><br/>is correctly uploaded to your repo';
         setTimeout(launchMainUI, 4000);
