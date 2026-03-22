@@ -1,0 +1,983 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>City of Lies — Field Journal</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Courier+Prime:ital,wght@0,400;0,700;1,400&family=Special+Elite&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --ink:        #0a0806;
+      --paper:      #e8dfc4;
+      --paper-mid:  #d4c89a;
+      --paper-dark: #b8a870;
+      --paper-dim:  #7a6a44;
+      --sepia:      #3a2808;
+      --amber:      #c47c1a;
+      --gold:       #a8832e;
+      --blood:      #7a1a1a;
+      --green-lit:  #2a7a3a;
+      --red-lit:    #c43030;
+      --blue-dim:   #3060a0;
+      --border:     rgba(58,40,8,0.2);
+      --border-hi:  rgba(58,40,8,0.45);
+      --rule-blue:  rgba(100,140,200,0.18);
+    }
+
+    *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+
+    html, body {
+      width:100%; height:100%;
+      background: var(--ink);
+      font-family: 'Courier Prime', monospace;
+      overflow: hidden;
+    }
+
+    body { animation: pageIn .6s ease forwards; }
+    @keyframes pageIn { from{opacity:0} to{opacity:1} }
+
+    /* ── BG ── */
+    #bg {
+      position:fixed; inset:0;
+      background-image: url('Assets/JPG/Backgrounds/background-mainUI.jpg');
+      background-size:cover; background-position:center;
+      filter: brightness(0.14) saturate(0.4) sepia(0.7);
+    }
+    #vignette {
+      position:fixed; inset:0; z-index:1; pointer-events:none;
+      box-shadow: inset 0 0 200px rgba(4,2,0,.99), inset 0 0 80px rgba(4,2,0,.7);
+    }
+
+    /* ── APP SHELL ── */
+    #app {
+      position:fixed; inset:0; z-index:10;
+      display:flex; flex-direction:column;
+    }
+
+    /* ── TOPBAR ── */
+    #topbar {
+      display:flex; align-items:center; gap:12px;
+      padding:0 clamp(14px,2.5vw,28px);
+      height:clamp(44px,7vh,56px);
+      background:rgba(6,4,2,.9);
+      border-bottom:1px solid rgba(58,40,8,.25);
+      flex-shrink:0; backdrop-filter:blur(8px);
+    }
+    #back-btn {
+      font-size:clamp(8px,1vw,10px); letter-spacing:.25em; text-transform:uppercase;
+      color:var(--paper-dim); background:none;
+      border:1px solid rgba(58,40,8,.3); padding:5px 12px;
+      cursor:pointer; transition:color .2s, border-color .2s, transform .15s;
+      white-space:nowrap; flex-shrink:0;
+    }
+    #back-btn:hover { color:var(--amber); border-color:rgba(168,131,46,.5); transform:translateX(-2px); }
+    .tb-div { width:1px; height:22px; background:rgba(58,40,8,.3); flex-shrink:0; }
+    .tb-title { font-size:clamp(13px,2vw,18px); color:var(--paper); letter-spacing:.04em; }
+    .tb-sub   { font-size:clamp(7px,.85vw,9px); letter-spacing:.35em; text-transform:uppercase; color:var(--amber); opacity:.7; }
+    #tb-right { margin-left:auto; display:flex; align-items:center; gap:12px; }
+    #versionTag { font-size:8px; letter-spacing:.2em; color:rgba(120,100,60,.3); text-transform:uppercase; }
+
+    /* ── BODY: two-column layout ── */
+    #body {
+      flex:1; display:flex; overflow:hidden;
+      gap:0;
+    }
+
+    /* ════════════════════════════
+       LEFT — NOTEBOOK (theory form)
+    ════════════════════════════ */
+    #notebook-pane {
+      flex:1; overflow-y:auto; overflow-x:hidden;
+      padding: clamp(16px,3vw,32px);
+      scrollbar-width:thin;
+      scrollbar-color:rgba(168,131,46,.2) transparent;
+      display:flex; flex-direction:column; gap:clamp(14px,2.5vh,22px);
+    }
+    #notebook-pane::-webkit-scrollbar { width:4px; }
+    #notebook-pane::-webkit-scrollbar-thumb { background:rgba(168,131,46,.2); border-radius:2px; }
+
+    /* The notebook itself */
+    #notebook {
+      background: var(--paper);
+      position:relative;
+      box-shadow: 3px 5px 24px rgba(0,0,0,.7);
+      /* ruled lines */
+      background-image:
+        repeating-linear-gradient(
+          to bottom,
+          transparent 0px, transparent 27px,
+          var(--rule-blue) 27px, var(--rule-blue) 28px
+        );
+    }
+    /* Red margin */
+    #notebook::before {
+      content:''; position:absolute;
+      top:0; bottom:0; left:clamp(44px,7vw,60px);
+      width:1px; background:rgba(196,48,48,.22);
+      pointer-events:none;
+    }
+    /* Spiral holes */
+    #notebook::after {
+      content:''; position:absolute;
+      top:20px; left:clamp(10px,2vw,16px);
+      width:10px; height:10px; border-radius:50%;
+      background:rgba(14,10,6,.5);
+      box-shadow:
+        0 36px 0 rgba(14,10,6,.5),
+        0 72px 0 rgba(14,10,6,.5),
+        0 108px 0 rgba(14,10,6,.5),
+        0 144px 0 rgba(14,10,6,.5),
+        0 180px 0 rgba(14,10,6,.5),
+        0 216px 0 rgba(14,10,6,.5),
+        0 252px 0 rgba(14,10,6,.5),
+        0 288px 0 rgba(14,10,6,.5),
+        0 324px 0 rgba(14,10,6,.5),
+        0 360px 0 rgba(14,10,6,.5);
+      pointer-events:none;
+    }
+
+    .notebook-inner {
+      padding: clamp(20px,3.5vw,36px) clamp(20px,3.5vw,36px) clamp(20px,3.5vw,36px) clamp(56px,9vw,76px);
+    }
+
+    /* ── Notebook header ── */
+    .nb-header {
+      border-bottom:2px solid rgba(58,40,8,.3);
+      padding-bottom:clamp(10px,1.8vh,16px);
+      margin-bottom:clamp(14px,2.5vh,20px);
+      display:flex; align-items:flex-start; justify-content:space-between; gap:12px;
+    }
+    .nb-title {
+      font-size:clamp(18px,3vw,26px); font-weight:700;
+      color:var(--sepia); letter-spacing:.04em; line-height:1;
+      display:block;
+    }
+    .nb-case {
+      font-size:clamp(7px,.85vw,9px); letter-spacing:.35em;
+      text-transform:uppercase; color:rgba(58,40,8,.45);
+      display:block; margin-top:3px;
+    }
+    .nb-entry-num {
+      font-size:clamp(28px,5vw,46px); font-weight:700;
+      color:rgba(58,40,8,.1); line-height:1; flex-shrink:0;
+      font-style:italic;
+    }
+
+    /* ── Form section label ── */
+    .form-section {
+      font-size:clamp(7px,.85vw,9px); letter-spacing:.4em;
+      text-transform:uppercase; color:var(--amber);
+      display:block; margin-bottom:clamp(10px,1.8vh,14px);
+      padding-bottom:3px; border-bottom:1px solid rgba(168,131,46,.25);
+    }
+
+    /* ── Field ── */
+    .nb-field { margin-bottom:clamp(12px,2vh,18px); }
+    .nb-label {
+      font-size:clamp(7px,.85vw,9px); letter-spacing:.3em;
+      text-transform:uppercase; color:rgba(58,40,8,.45);
+      display:block; margin-bottom:3px;
+    }
+    .nb-label-req::after { content:' *'; color:var(--red-lit); opacity:.6; }
+    .nb-hint {
+      font-size:clamp(7px,.8vw,9px); color:rgba(58,40,8,.3);
+      font-style:italic; display:block; margin-bottom:4px;
+    }
+    .nb-select {
+      width:100%;
+      font-family:'Courier Prime',monospace;
+      font-size:clamp(10px,1.3vw,13px); color:var(--sepia);
+      background:transparent; border:none;
+      border-bottom:1px solid var(--border-hi);
+      padding:5px 24px 5px 2px; appearance:none;
+      cursor:pointer; outline:none;
+      background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%233a2808'/%3E%3C/svg%3E");
+      background-repeat:no-repeat; background-position:right 4px center;
+      transition:border-color .2s;
+    }
+    .nb-select:focus { border-bottom-color:var(--amber); }
+    .nb-select option { background:#ede0c0; color:var(--sepia); }
+
+
+    /* ── Evidence multi-select ── */
+    .ev-chips {
+      display:flex; flex-wrap:wrap; gap:6px;
+      padding:8px 4px;
+      border-bottom:1px solid var(--border);
+      min-height:40px;
+    }
+    .ev-chip {
+      font-size:clamp(7px,.85vw,9px); letter-spacing:.15em;
+      text-transform:uppercase; padding:3px 10px;
+      border:1px solid var(--border-hi);
+      background:rgba(58,40,8,.05);
+      cursor:pointer; transition:all .15s; user-select:none;
+      color:var(--paper-dim);
+    }
+    .ev-chip:hover    { border-color:var(--amber); color:var(--sepia); }
+    .ev-chip.selected { background:rgba(168,131,46,.15); border-color:var(--amber); color:var(--sepia); }
+    .ev-chip.unavail  { opacity:.3; cursor:default; }
+    .ev-chip.unavail:hover { border-color:var(--border-hi); color:var(--paper-dim); }
+
+    /* ── Analyze button ── */
+    #analyze-btn {
+      width:100%; margin-top:clamp(16px,2.8vh,24px);
+      font-family:'Courier Prime',monospace;
+      font-size:clamp(10px,1.4vw,13px); letter-spacing:.3em;
+      text-transform:uppercase; color:var(--paper);
+      background:var(--sepia); border:none;
+      padding:clamp(10px,1.8vw,14px);
+      cursor:pointer; transition:background .2s, transform .15s, filter .2s;
+      position:relative; overflow:hidden;
+    }
+    #analyze-btn:hover:not(:disabled) { background:#5a3808; transform:translateY(-1px); filter:brightness(1.1); }
+    #analyze-btn:disabled { opacity:.35; cursor:default; }
+    #analyze-btn.loading::after {
+      content:''; position:absolute; inset:0;
+      background:linear-gradient(90deg, transparent 0%, rgba(255,255,255,.1) 50%, transparent 100%);
+      animation:shimmer 1s infinite;
+    }
+    @keyframes shimmer { from{transform:translateX(-100%)} to{transform:translateX(100%)} }
+
+    /* ════════════════════════════
+       ANALYSIS RESULT PANEL
+    ════════════════════════════ */
+    #result-panel {
+      background:rgba(58,40,8,.06);
+      border:1px solid var(--border);
+      padding:clamp(16px,2.5vw,24px);
+      display:none;
+    }
+    #result-panel.show { display:block; animation:panelIn .4s ease; }
+    @keyframes panelIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+
+    .result-header {
+      display:flex; align-items:center; justify-content:space-between;
+      margin-bottom:clamp(14px,2.5vh,20px); gap:10px;
+    }
+    .result-title {
+      font-size:clamp(7px,.85vw,9px); letter-spacing:.4em;
+      text-transform:uppercase; color:var(--amber);
+    }
+    .result-overall {
+      font-size:clamp(24px,4vw,38px); font-weight:700;
+      line-height:1;
+    }
+    .result-overall.high { color:var(--green-lit); }
+    .result-overall.mid  { color:var(--amber); }
+    .result-overall.low  { color:var(--red-lit); }
+
+    .result-verdict {
+      font-size:clamp(9px,1.2vw,12px); color:var(--paper-dim);
+      line-height:1.6; margin-bottom:clamp(14px,2.5vh,20px);
+      padding-bottom:clamp(10px,1.8vh,14px);
+      border-bottom:1px solid var(--border);
+    }
+
+    /* Category bars */
+    .cat-rows { display:flex; flex-direction:column; gap:clamp(8px,1.4vh,12px); }
+    .cat-row  { display:flex; align-items:center; gap:10px; }
+    .cat-label {
+      font-size:clamp(7px,.85vw,9px); letter-spacing:.2em;
+      text-transform:uppercase; color:var(--paper-dim);
+      min-width:clamp(90px,14vw,130px); flex-shrink:0;
+    }
+    .cat-bar-bg {
+      flex:1; height:6px; background:rgba(58,40,8,.12);
+      border:1px solid rgba(58,40,8,.1); overflow:hidden;
+    }
+    .cat-bar-fill {
+      height:100%; transition:width .8s cubic-bezier(.4,0,.2,1);
+    }
+    .cat-pct {
+      font-size:clamp(9px,1.1vw,11px); font-weight:700;
+      min-width:36px; text-align:right; flex-shrink:0;
+    }
+    .cat-hint {
+      font-size:clamp(7px,.8vw,8px); letter-spacing:.1em;
+      color:rgba(58,40,8,.35); font-style:italic;
+      display:block; margin-top:1px;
+    }
+
+    /* Colour by score */
+    .bar-high { background:linear-gradient(to right, #1a4a28, var(--green-lit)); }
+    .bar-mid  { background:linear-gradient(to right, #6a3a00, var(--amber)); }
+    .bar-low  { background:linear-gradient(to right, #4a0808, var(--red-lit)); }
+    .pct-high { color:var(--green-lit); }
+    .pct-mid  { color:var(--amber); }
+    .pct-low  { color:var(--red-lit); }
+
+    /* ════════════════════════════
+       RIGHT — JOURNAL LOG
+    ════════════════════════════ */
+    #log-pane {
+      width:clamp(240px,30vw,320px);
+      flex-shrink:0;
+      background:rgba(8,5,2,.88);
+      border-left:1px solid rgba(58,40,8,.3);
+      display:flex; flex-direction:column;
+      overflow:hidden;
+    }
+    .log-header {
+      padding:clamp(10px,1.8vw,16px) clamp(12px,2vw,18px);
+      border-bottom:1px solid rgba(58,40,8,.25);
+      display:flex; align-items:center; justify-content:space-between;
+      flex-shrink:0;
+    }
+    .log-title {
+      font-size:clamp(7px,.85vw,9px); letter-spacing:.4em;
+      text-transform:uppercase; color:var(--amber); opacity:.8;
+    }
+    .log-count {
+      font-size:clamp(7px,.85vw,9px); letter-spacing:.2em;
+      color:var(--paper-dim);
+    }
+    .log-count span { color:var(--amber); }
+
+    #log-list {
+      flex:1; overflow-y:auto;
+      scrollbar-width:thin;
+      scrollbar-color:rgba(168,131,46,.15) transparent;
+    }
+    #log-list::-webkit-scrollbar { width:3px; }
+    #log-list::-webkit-scrollbar-thumb { background:rgba(168,131,46,.15); }
+
+    .log-empty {
+      padding:clamp(20px,4vh,36px) clamp(12px,2vw,18px);
+      font-size:clamp(8px,1vw,10px); letter-spacing:.2em;
+      text-transform:uppercase; color:rgba(120,100,60,.3);
+      text-align:center; line-height:1.8;
+    }
+
+    .log-entry {
+      border-bottom:1px solid rgba(58,40,8,.15);
+      padding:clamp(10px,1.8vw,14px) clamp(12px,2vw,18px);
+      cursor:pointer; transition:background .15s;
+    }
+    .log-entry:hover { background:rgba(168,131,46,.05); }
+    .log-entry.active { background:rgba(168,131,46,.08); border-left:2px solid var(--amber); }
+
+    .log-entry-top {
+      display:flex; align-items:center; justify-content:space-between;
+      margin-bottom:4px; gap:8px;
+    }
+    .log-entry-num {
+      font-size:clamp(7px,.8vw,9px); letter-spacing:.2em;
+      text-transform:uppercase; color:var(--amber); opacity:.7;
+      flex-shrink:0;
+    }
+    .log-entry-score {
+      font-size:clamp(11px,1.5vw,14px); font-weight:700;
+    }
+    .log-entry-score.high { color:var(--green-lit); }
+    .log-entry-score.mid  { color:var(--amber); }
+    .log-entry-score.low  { color:var(--red-lit); }
+
+    .log-entry-suspect {
+      font-size:clamp(9px,1.1vw,12px); color:var(--paper-dim);
+      display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+      margin-bottom:2px;
+    }
+    .log-entry-date {
+      font-size:clamp(6px,.75vw,8px); letter-spacing:.15em;
+      color:rgba(120,100,60,.4); text-transform:uppercase;
+    }
+
+    .log-clear-btn {
+      padding:clamp(8px,1.4vw,12px) clamp(12px,2vw,18px);
+      border-top:1px solid rgba(58,40,8,.2);
+      background:none; border-left:none; border-right:none; border-bottom:none;
+      font-family:'Courier Prime',monospace;
+      font-size:clamp(7px,.85vw,9px); letter-spacing:.25em;
+      text-transform:uppercase; color:rgba(120,100,60,.3);
+      cursor:pointer; transition:color .2s; width:100%; text-align:center;
+      flex-shrink:0;
+    }
+    .log-clear-btn:hover { color:var(--red-lit); }
+
+    /* ── MOBILE: hide log pane, show as bottom sheet ── */
+    @media (max-width:600px) {
+      #log-pane { display:none; }
+      #notebook-pane { padding:12px; }
+    }
+  </style>
+</head>
+<body>
+
+  <div id="bg"></div>
+  <div id="vignette"></div>
+
+  <div id="app">
+
+    <!-- TOPBAR -->
+    <div id="topbar">
+      <button id="back-btn" onclick="goBack()">← Board</button>
+      <div class="tb-div"></div>
+      <div>
+        <span class="tb-title">Field Journal</span>
+        <span class="tb-sub">Theory Testing · Case COL-001-A</span>
+      </div>
+      <div id="tb-right">
+        <span id="versionTag">v0.1.0 · local</span>
+      </div>
+    </div>
+
+    <div id="body">
+
+      <!-- ════ LEFT: NOTEBOOK ════ -->
+      <div id="notebook-pane">
+
+        <div id="notebook">
+          <div class="notebook-inner">
+
+            <!-- Header -->
+            <div class="nb-header">
+              <div>
+                <span class="nb-title">Theory Entry</span>
+                <span class="nb-case">Case COL-001-A · Det. Gary Langley</span>
+              </div>
+              <span class="nb-entry-num" id="entry-num">#1</span>
+            </div>
+
+            <!-- Section 1: Structured fields -->
+            <span class="form-section">Working Theory</span>
+
+            <div class="nb-field">
+              <label class="nb-label nb-label-req" for="t-suspect">Primary Suspect</label>
+              <select class="nb-select" id="t-suspect" onchange="onFieldChange()">
+                <option value="">— Who do you think did it? —</option>
+                <option value="victor-marre">Victor Marre</option>
+                <option value="bowen-ashford">Bowen Ashford</option>
+                <option value="raymond-cross">Alderman Raymond Cross</option>
+                <option value="diana-whitmore">Diana Whitmore</option>
+                <option value="elara-voss">Elara Voss</option>
+                <option value="isabelle-crane">Isabelle Crane</option>
+                <option value="patrick-lorne">Patrick Lorne</option>
+                <option value="unknown">Still unsure</option>
+              </select>
+            </div>
+
+            <div class="nb-field">
+              <label class="nb-label" for="t-motive">Suspected Motive</label>
+              <select class="nb-select" id="t-motive" onchange="onFieldChange()">
+                <option value="">— What was the motive? —</option>
+                <option value="financial">Financial gain</option>
+                <option value="silencing">Silencing the victim</option>
+                <option value="revenge">Personal revenge</option>
+                <option value="power">Power and control</option>
+                <option value="cover-up">Cover-up of a prior crime</option>
+                <option value="coercion">Acting under coercion</option>
+                <option value="unknown">Unclear</option>
+              </select>
+            </div>
+
+            <div class="nb-field">
+              <label class="nb-label" for="t-method">Suspected Method</label>
+              <select class="nb-select" id="t-method" onchange="onFieldChange()">
+                <option value="">— How was it done? —</option>
+                <option value="direct">Direct physical act</option>
+                <option value="hired">Hired third party</option>
+                <option value="poisoning">Poisoning</option>
+                <option value="staged">Staged accident</option>
+                <option value="coercion">Coercion</option>
+                <option value="unknown">Unclear</option>
+              </select>
+            </div>
+
+            <div class="nb-field">
+              <label class="nb-label" for="t-timeline">Estimated Timeline</label>
+              <select class="nb-select" id="t-timeline" onchange="onFieldChange()">
+                <option value="">— When did it happen? —</option>
+                <option value="before-21">Mar 04 · Before 21:00</option>
+                <option value="21-2130">Mar 04 · 21:00–21:30</option>
+                <option value="2130-22">Mar 04 · 21:30–22:00</option>
+                <option value="22-2230">Mar 04 · 22:00–22:30</option>
+                <option value="after-2230">Mar 04 · After 22:30</option>
+                <option value="mar05-early">Mar 05 · Early morning</option>
+                <option value="unknown">Unclear</option>
+              </select>
+            </div>
+
+            <div class="nb-field">
+              <label class="nb-label" for="t-location">Crime Location</label>
+              <select class="nb-select" id="t-location" onchange="onFieldChange()">
+                <option value="">— Where did it happen? —</option>
+                <option value="harlow-alley">Harlow Street Alley</option>
+                <option value="blue-meridian">The Blue Meridian Bar</option>
+                <option value="creston-apt">14B Creston Apartments</option>
+                <option value="kessler-wharf">Kessler Warehouse District</option>
+                <option value="harbour-bay7">City Harbour — Bay 7</option>
+                <option value="marre-office">Marre Import Co.</option>
+                <option value="unknown">Unclear</option>
+              </select>
+            </div>
+
+            <!-- Section 2: Evidence -->
+            <span class="form-section">Supporting Evidence</span>
+            <div class="nb-field">
+              <span class="nb-label">Select evidence that supports this theory</span>
+              <span class="nb-hint">Only logged items can be selected · grey = not yet available</span>
+              <div class="ev-chips" id="ev-chips"></div>
+            </div>
+
+            <!-- Analyze button -->
+            <button id="analyze-btn" onclick="analyzeTheory()" disabled>
+              Analyze Theory
+            </button>
+
+          </div>
+        </div>
+
+        <!-- Analysis result -->
+        <div id="result-panel">
+          <div class="result-header">
+            <span class="result-title">Theory Confidence Analysis</span>
+            <span class="result-overall" id="result-pct">—</span>
+          </div>
+          <p class="result-verdict" id="result-verdict"></p>
+          <div class="cat-rows" id="cat-rows"></div>
+        </div>
+
+      </div>
+
+      <!-- ════ RIGHT: JOURNAL LOG ════ -->
+      <div id="log-pane">
+        <div class="log-header">
+          <span class="log-title">Past Theories</span>
+          <span class="log-count"><span id="log-count">0</span> entries</span>
+        </div>
+        <div id="log-list">
+          <div class="log-empty" id="log-empty">No theories submitted yet.<br/>Your entries will appear here.</div>
+        </div>
+        <button class="log-clear-btn" onclick="clearLog()">Clear all entries</button>
+      </div>
+
+    </div>
+  </div>
+
+  <audio id="bg-music" loop preload="auto">
+    <source src="Assets/Audio/Background music/Echoes_in_the_Concrete_Maze.mp3" type="audio/mpeg" />
+  </audio>
+
+  <script>
+    /* ════════════════════════════════════════════════
+       SOLUTION — matches report.html
+       Update these when you finalise the story answer.
+    ════════════════════════════════════════════════ */
+    const SOLUTION = {
+      suspect:    'victor-marre',
+      motive:     'silencing',
+      method:     'hired',
+      timeline:   '2130-22',
+      location:   'harlow-alley',
+      keyEvidence:['COL-001-A-E01','COL-001-A-E05','COL-001-A-E06'],
+    };
+
+    /* ════════════════════════════════════════════════
+       EVIDENCE — load released items only
+    ════════════════════════════════════════════════ */
+    const EVIDENCE_DEFS = [
+      { id:'COL-001-A-E01', name:'Cigarette Case' },
+      { id:'COL-001-A-E02', name:'Threatening Letter' },
+      { id:'COL-001-A-E03', name:'Burner Phone' },
+      { id:'COL-001-A-E04', name:'Bloodstained Cloth' },
+      { id:'COL-001-A-E05', name:'Ledger' },
+      { id:'COL-001-A-E06', name:'CCTV USB Drive' },
+      { id:'COL-001-A-E07', name:'Medicine Bottle' },
+      { id:'COL-001-A-E08', name:'Boot Print Cast' },
+    ];
+
+    let releasedEvidence = [];
+    let selectedEvidence = new Set();
+
+    function loadEvidence() {
+      try {
+        const savedStatus = JSON.parse(localStorage.getItem('col_evidence_status') || '{}');
+        const waveState   = JSON.parse(localStorage.getItem('col_evidence_waves')  || '{}');
+        const extraItems  = JSON.parse(localStorage.getItem('col_evidence_extra')  || '[]');
+
+        // Base items
+        EVIDENCE_DEFS.forEach(def => {
+          const waveKey  = 'released_' + def.id;
+          const released = !!waveState[waveKey] || !!savedStatus[def.id];
+          const status   = savedStatus[def.id] || 'pending';
+          if (released) releasedEvidence.push({ ...def, status });
+        });
+
+        // Extra lab-unlocked items
+        extraItems.forEach(ex => {
+          if (!releasedEvidence.find(e => e.id === ex.id)) {
+            releasedEvidence.push({ id:ex.id, name:ex.name, status: savedStatus[ex.id] || 'logged' });
+          }
+        });
+      } catch(_) {}
+    }
+    loadEvidence();
+
+    /* Build evidence chips */
+    function buildChips() {
+      const container = document.getElementById('ev-chips');
+      container.innerHTML = '';
+      if (releasedEvidence.length === 0) {
+        container.innerHTML = '<span style="font-size:9px;letter-spacing:.2em;color:rgba(58,40,8,.3);text-transform:uppercase;font-style:italic;">No evidence in locker yet</span>';
+        return;
+      }
+      releasedEvidence.forEach(item => {
+        const isLogged  = item.status === 'logged';
+        const chip = document.createElement('div');
+        chip.className = 'ev-chip' + (isLogged ? '' : ' unavail');
+        chip.textContent = item.name;
+        chip.dataset.id  = item.id;
+        if (isLogged) chip.onclick = () => toggleChip(chip, item.id);
+        container.appendChild(chip);
+      });
+    }
+    buildChips();
+
+    function toggleChip(chip, id) {
+      if (selectedEvidence.has(id)) {
+        selectedEvidence.delete(id);
+        chip.classList.remove('selected');
+      } else {
+        selectedEvidence.add(id);
+        chip.classList.add('selected');
+      }
+      onFieldChange();
+    }
+
+    /* ════════════════════════════════════════════════
+       FORM STATE
+    ════════════════════════════════════════════════ */
+    function onFieldChange() {
+      const hasSuspect = !!document.getElementById('t-suspect').value;
+      document.getElementById('analyze-btn').disabled = !hasSuspect;
+    }
+
+    /* ════════════════════════════════════════════════
+       JOURNAL LOG
+    ════════════════════════════════════════════════ */
+    let journalLog = [];
+
+    function loadLog() {
+      try { journalLog = JSON.parse(localStorage.getItem('col_journal_log') || '[]'); }
+      catch(_) { journalLog = []; }
+      renderLog();
+      // Set next entry number
+      document.getElementById('entry-num').textContent = '#' + (journalLog.length + 1);
+    }
+
+    function saveLog() {
+      localStorage.setItem('col_journal_log', JSON.stringify(journalLog));
+    }
+
+    function renderLog() {
+      const list  = document.getElementById('log-list');
+      const empty = document.getElementById('log-empty');
+      const count = document.getElementById('log-count');
+      count.textContent = journalLog.length;
+
+      list.querySelectorAll('.log-entry').forEach(e => e.remove());
+
+      if (journalLog.length === 0) {
+        empty.style.display = 'block';
+        return;
+      }
+      empty.style.display = 'none';
+
+      // Most recent first
+      [...journalLog].reverse().forEach((entry, i) => {
+        const scoreCls = entry.overall >= 70 ? 'high' : entry.overall >= 40 ? 'mid' : 'low';
+        const el = document.createElement('div');
+        el.className = 'log-entry';
+        el.innerHTML = `
+          <div class="log-entry-top">
+            <span class="log-entry-num">Entry #${entry.num}</span>
+            <span class="log-entry-score ${scoreCls}">${entry.overall}%</span>
+          </div>
+          <span class="log-entry-suspect">${entry.suspectLabel || 'No suspect named'}</span>
+          <span class="log-entry-date">${entry.timestamp}</span>
+        `;
+        el.onclick = () => loadEntry(entry, el);
+        list.appendChild(el);
+      });
+    }
+
+    function loadEntry(entry, el) {
+      document.querySelectorAll('.log-entry').forEach(e => e.classList.remove('active'));
+      el.classList.add('active');
+
+      document.getElementById('t-suspect').value  = entry.suspect  || '';
+      document.getElementById('t-motive').value   = entry.motive   || '';
+      document.getElementById('t-method').value   = entry.method   || '';
+      document.getElementById('t-timeline').value = entry.timeline || '';
+      document.getElementById('t-location').value = entry.location || '';
+
+      // Restore evidence chips
+      selectedEvidence.clear();
+      document.querySelectorAll('.ev-chip').forEach(c => c.classList.remove('selected'));
+      if (entry.evidence) {
+        entry.evidence.forEach(id => {
+          selectedEvidence.add(id);
+          const chip = document.querySelector(`.ev-chip[data-id="${id}"]`);
+          if (chip) chip.classList.add('selected');
+        });
+      }
+
+      // Show the result
+      displayResult(entry.scores, entry.overall);
+      onFieldChange();
+    }
+
+    function clearLog() {
+      if (!confirm('Clear all journal entries? This cannot be undone.')) return;
+      journalLog = [];
+      saveLog();
+      renderLog();
+      document.getElementById('result-panel').classList.remove('show');
+      document.getElementById('entry-num').textContent = '#1';
+    }
+
+    loadLog();
+
+    /* ════════════════════════════════════════════════
+       THEORY ANALYSIS ENGINE
+    ════════════════════════════════════════════════ */
+    const SUSPECT_LABELS = {
+      'victor-marre':'Victor Marre','bowen-ashford':'Bowen Ashford',
+      'raymond-cross':'Alderman Raymond Cross','diana-whitmore':'Diana Whitmore',
+      'elara-voss':'Elara Voss','isabelle-crane':'Isabelle Crane',
+      'patrick-lorne':'Patrick Lorne','unknown':'Unknown / Still investigating',
+    };
+
+    function analyzeTheory() {
+      const btn = document.getElementById('analyze-btn');
+      btn.classList.add('loading');
+      btn.textContent = 'Analyzing...';
+      btn.disabled = true;
+
+      // Simulate brief processing delay for effect
+      setTimeout(() => {
+        const answers = {
+          suspect:  document.getElementById('t-suspect').value,
+          motive:   document.getElementById('t-motive').value,
+          method:   document.getElementById('t-method').value,
+          timeline: document.getElementById('t-timeline').value,
+          location: document.getElementById('t-location').value,
+          evidence: [...selectedEvidence],
+        };
+
+        const scores = computeScores(answers);
+        const overall = computeOverall(scores);
+
+        displayResult(scores, overall);
+
+        // Save to log
+        const entry = {
+          num:          journalLog.length + 1,
+          timestamp:    new Date().toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}) + ' · ' + new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'}),
+          suspect:      answers.suspect,
+          suspectLabel: SUSPECT_LABELS[answers.suspect] || answers.suspect,
+          motive:       answers.motive,
+          method:       answers.method,
+          timeline:     answers.timeline,
+          location:     answers.location,
+          evidence:     answers.evidence,
+          scores,
+          overall,
+        };
+        journalLog.push(entry);
+        saveLog();
+        renderLog();
+
+        document.getElementById('entry-num').textContent = '#' + (journalLog.length + 1);
+
+        btn.classList.remove('loading');
+        btn.textContent = 'Analyze Theory';
+        btn.disabled = false;
+      }, 900);
+    }
+
+    /* ── Score each category 0–100 ── */
+    function computeScores(a) {
+      // Suspect: correct = 100, wrong named guess = 10, unknown/empty = 0
+      let suspectScore = 0;
+      if (a.suspect === SOLUTION.suspect) suspectScore = 100;
+      else if (a.suspect && a.suspect !== 'unknown') suspectScore = 10;
+
+      // Motive: correct = 100, wrong = 15, unknown/empty = 0
+      let motiveScore = 0;
+      if (a.motive === SOLUTION.motive) motiveScore = 100;
+      else if (a.motive && a.motive !== 'unknown') motiveScore = 15;
+
+      // Method: correct = 100, wrong = 15, unknown/empty = 0
+      let methodScore = 0;
+      if (a.method === SOLUTION.method) methodScore = 100;
+      else if (a.method && a.method !== 'unknown') methodScore = 15;
+
+      // Timeline: correct = 100, wrong = 10, unknown/empty = 0
+      let timelineScore = 0;
+      if (a.timeline === SOLUTION.timeline) timelineScore = 100;
+      else if (a.timeline && a.timeline !== 'unknown') timelineScore = 10;
+
+      // Location: correct = 100, wrong = 15, unknown/empty = 0
+      let locationScore = 0;
+      if (a.location === SOLUTION.location) locationScore = 100;
+      else if (a.location && a.location !== 'unknown') locationScore = 15;
+
+      // Evidence strength: % of key items attached
+      const keyHits = a.evidence.filter(id => SOLUTION.keyEvidence.includes(id)).length;
+      const evScore = SOLUTION.keyEvidence.length > 0
+        ? Math.round((keyHits / SOLUTION.keyEvidence.length) * 100) : 0;
+
+      // Overall case readiness: combination of
+      //   — how many fields are filled (not unknown/empty)
+      //   — how many evidence items have been logged (from locker)
+      //   — how many evidence items are attached to this theory
+      const filledFields = [a.suspect, a.motive, a.method, a.timeline, a.location]
+        .filter(v => v && v !== 'unknown').length;
+      const fieldReadiness = Math.round((filledFields / 5) * 100);
+
+      const totalReleased = releasedEvidence.length;
+      const totalLogged   = releasedEvidence.filter(e => e.status === 'logged').length;
+      const lockerReadiness = totalReleased > 0
+        ? Math.round((totalLogged / totalReleased) * 100) : 0;
+
+      const attachedAny    = a.evidence.length > 0 ? 100 : 0;
+      const readinessScore = Math.round(
+        fieldReadiness   * 0.40 +
+        lockerReadiness  * 0.40 +
+        attachedAny      * 0.20
+      );
+
+      return { suspectScore, motiveScore, methodScore, timelineScore, locationScore, evScore, readinessScore };
+    }
+
+    function computeOverall(s) {
+      // Equal weighting across all 7 categories
+      const total =
+        s.suspectScore   +
+        s.motiveScore    +
+        s.methodScore    +
+        s.timelineScore  +
+        s.locationScore  +
+        s.evScore        +
+        s.readinessScore;
+      return Math.round(total / 7);
+    }
+
+    /* ── Render result panel ── */
+    function displayResult(scores, overall) {
+      const panel    = document.getElementById('result-panel');
+      const pctEl    = document.getElementById('result-pct');
+      const verdictEl= document.getElementById('result-verdict');
+      const catsEl   = document.getElementById('cat-rows');
+
+      panel.classList.add('show');
+
+      const cls = overall >= 70 ? 'high' : overall >= 40 ? 'mid' : 'low';
+      pctEl.textContent = overall + '%';
+      pctEl.className   = 'result-overall ' + cls;
+
+      verdictEl.textContent =
+        overall >= 80 ? 'Strong theory. Your conclusions align closely with the evidence trail. This is ready to test in the Final Report.' :
+        overall >= 60 ? 'Developing theory. Several key elements are correct but gaps remain. Gather more evidence before filing.' :
+        overall >= 40 ? 'Partial theory. You have some pieces but important elements are missing or incorrect. Keep investigating.' :
+        overall >= 20 ? 'Weak theory. Most conclusions are unsupported. Review the evidence locker and revisit your assumptions.' :
+                        'Insufficient basis. Your current theory has little alignment with the available evidence. Start from the beginning.';
+
+      catsEl.innerHTML = '';
+      const cats = [
+        { label:'Suspect',         score:scores.suspectScore,   hint:scores.suspectScore===100?'Correct match':'Review evidence linking to crime scene' },
+        { label:'Motive',          score:scores.motiveScore,    hint:scores.motiveScore===100?'Correct':'Consider what the victim knew' },
+        { label:'Method',          score:scores.methodScore,    hint:scores.methodScore===100?'Correct':'Review the delivery testimony and burner phone data' },
+        { label:'Timeline',        score:scores.timelineScore,  hint:scores.timelineScore===100?'Correct':'Cross-reference CCTV timestamps with witness accounts' },
+        { label:'Location',        score:scores.locationScore,  hint:scores.locationScore===100?'Correct':'Physical evidence points to a specific scene' },
+        { label:'Evidence',        score:scores.evScore,        hint:`${scores.evScore}% of key evidence attached` },
+        { label:'Case Readiness',  score:scores.readinessScore, hint:'Based on form completion, evidence logged, and items attached' },
+      ];
+
+      cats.forEach(cat => {
+        const barCls = cat.score >= 70 ? 'bar-high' : cat.score >= 40 ? 'bar-mid' : 'bar-low';
+        const pctCls = cat.score >= 70 ? 'pct-high' : cat.score >= 40 ? 'pct-mid' : 'pct-low';
+        catsEl.innerHTML += `
+          <div>
+            <div class="cat-row">
+              <span class="cat-label">${cat.label}</span>
+              <div class="cat-bar-bg">
+                <div class="cat-bar-fill ${barCls}" style="width:0%" data-target="${cat.score}"></div>
+              </div>
+              <span class="cat-pct ${pctCls}">${cat.score}%</span>
+            </div>
+            <span class="cat-hint">${cat.hint}</span>
+          </div>
+        `;
+      });
+
+      // Animate bars after DOM paint
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          document.querySelectorAll('.cat-bar-fill').forEach(bar => {
+            bar.style.width = bar.dataset.target + '%';
+          });
+        });
+      });
+
+      // Scroll result into view
+      setTimeout(() => panel.scrollIntoView({ behavior:'smooth', block:'nearest' }), 100);
+    }
+
+    /* ════════════════════════════════════════════════
+       MUSIC RESUME
+    ════════════════════════════════════════════════ */
+    const music = document.getElementById('bg-music');
+    let musicEnabled = true;
+
+    (function resumeMusic() {
+      try {
+        const saved = JSON.parse(sessionStorage.getItem('col_music') || '{}');
+        musicEnabled = saved.enabled !== false;
+        if (!musicEnabled) return;
+        if (saved.time)   music.currentTime = saved.time;
+        music.volume = saved.volume ?? 0.42;
+        music.play().catch(() => {
+          const unlock = () => { music.play().catch(()=>{}); document.removeEventListener('click',unlock); document.removeEventListener('touchstart',unlock); };
+          document.addEventListener('click',unlock,{passive:true});
+          document.addEventListener('touchstart',unlock,{passive:true});
+        });
+      } catch(_) {}
+    })();
+
+    function saveMusicState() {
+      sessionStorage.setItem('col_music', JSON.stringify({
+        enabled: musicEnabled, time: music.currentTime,
+        volume: music.volume, src:'Assets/Audio/Background music/Echoes_in_the_Concrete_Maze.mp3'
+      }));
+    }
+
+    /* ════════════════════════════════════════════════
+       NAVIGATION
+    ════════════════════════════════════════════════ */
+    function goBack() {
+      saveMusicState();
+      window.location.href = 'game.html';
+    }
+
+    /* ════════════════════════════════════════════════
+       VERSION TAG
+    ════════════════════════════════════════════════ */
+    async function updateCommitHash() {
+      try {
+        const res  = await fetch('https://api.github.com/repos/jellybean1979/CityOfLies/commits?per_page=1');
+        if (!res.ok) throw new Error();
+        const data = await res.json();
+        const sha  = data[0]?.sha?.substring(0,7) ?? '-------';
+        document.getElementById('versionTag').textContent = `v0.1.0 · ${sha}`;
+      } catch { document.getElementById('versionTag').textContent = 'v0.1.0 · local'; }
+    }
+    updateCommitHash();
+  </script>
+</body>
+</html>
+
