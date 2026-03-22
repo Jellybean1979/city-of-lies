@@ -583,7 +583,7 @@
     <div id="evidence-list">
       <div id="empty-state">
         <span class="empty-icon">📦</span>
-        <span class="empty-text">No items match this filter</span>
+        <span class="empty-text" id="empty-text">No evidence has been logged for this case</span>
       </div>
     </div>
 
@@ -625,7 +625,7 @@
   </div>
 
   <audio id="bg-music" loop preload="auto">
-    <source src="Echoes_in_the_Concrete_Maze.mp3" type="audio/mpeg" />
+    <source src="Assets/Audio/Background music/Echoes_in_the_Concrete_Maze.mp3" type="audio/mpeg" />
   </audio>
 
   <script>
@@ -742,6 +742,9 @@
 
       if (filtered.length === 0) {
         empty.classList.add('show');
+        document.getElementById('empty-text').textContent = EVIDENCE.length === 0
+          ? 'No evidence has been logged for this case yet'
+          : 'No items match this filter';
         return;
       }
       empty.classList.remove('show');
@@ -851,7 +854,7 @@
         enabled: musicEnabled,
         time:    music.currentTime,
         volume:  music.volume,
-        src:     'Echoes_in_the_Concrete_Maze.mp3'
+        src:     'Assets/Audio/Background music/Echoes_in_the_Concrete_Maze.mp3'
       }));
     }
 
@@ -881,4 +884,3 @@
   </script>
 </body>
 </html>
-
