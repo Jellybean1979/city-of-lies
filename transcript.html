@@ -1,0 +1,837 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>City of Lies — Interrogation Transcript</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Special+Elite&family=Courier+Prime:ital,wght@0,400;0,700;1,400&family=Caveat:wght@400;600;700&family=Playfair+Display:ital,wght@0,700;1,400&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --ink:        #0a0806;
+      --amber:      #c47c1a;
+      --gold:       #a8832e;
+      --blood:      #7a1a1a;
+      --paper:      #e8dcc0;
+      --paper-dim:  #8a7a5a;
+      --paper-dark: #c8b48a;
+      --sepia:      #4a3218;
+      --green-lit:  #3a8a5a;
+      --red-lit:    #c43030;
+      --blue-lit:   #4080c0;
+    }
+
+    *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+
+    html, body {
+      width:100%; height:100%;
+      background:var(--ink);
+      font-family:'Courier Prime', monospace;
+      overflow:hidden;
+    }
+
+    body { animation:pageIn .6s ease forwards; }
+    @keyframes pageIn { from{opacity:0} to{opacity:1} }
+
+    /* ── BG ── */
+    #bg {
+      position:fixed; inset:0;
+      background-image:url('Assets/JPG/Backgrounds/background-mainUI.jpg');
+      background-size:cover; background-position:center;
+      filter:brightness(0.16) saturate(0.4) sepia(0.6);
+    }
+    #vignette {
+      position:fixed; inset:0; z-index:1; pointer-events:none;
+      box-shadow:inset 0 0 200px rgba(2,1,0,.99), inset 0 0 70px rgba(2,1,0,.7);
+    }
+    #grain {
+      position:fixed; inset:0; z-index:1; pointer-events:none; opacity:.03;
+      background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='220' height='220' filter='url(%23n)'/%3E%3C/svg%3E");
+      background-size:180px;
+    }
+
+    /* ── APP ── */
+    #app {
+      position:fixed; inset:0; z-index:10;
+      display:flex; flex-direction:column;
+    }
+
+    /* ── TOPBAR ── */
+    #topbar {
+      display:flex; align-items:center; gap:10px;
+      padding:0 clamp(14px,2.5vw,28px);
+      height:clamp(44px,7vh,56px);
+      background:rgba(6,4,2,.9);
+      border-bottom:1px solid rgba(168,131,46,.18);
+      flex-shrink:0; backdrop-filter:blur(8px);
+    }
+    #back-btn {
+      font-size:clamp(8px,1vw,10px); letter-spacing:.25em; text-transform:uppercase;
+      color:var(--paper-dim); background:none;
+      border:1px solid rgba(168,131,46,.18); padding:5px 12px;
+      cursor:pointer; transition:color .2s,border-color .2s,transform .15s;
+      white-space:nowrap; flex-shrink:0;
+    }
+    #back-btn:hover { color:var(--amber); border-color:rgba(168,131,46,.5); transform:translateX(-2px); }
+    .tb-div { width:1px; height:22px; background:rgba(168,131,46,.18); flex-shrink:0; }
+    .tb-title {
+      font-family:'Special Elite',cursive;
+      font-size:clamp(12px,1.8vw,17px); color:var(--paper);
+    }
+    .tb-sub {
+      font-size:clamp(7px,.85vw,9px); letter-spacing:.35em;
+      text-transform:uppercase; color:var(--amber); opacity:.7;
+    }
+    #tb-right { margin-left:auto; display:flex; align-items:center; gap:14px; }
+
+    /* ── METER STRIP ── */
+    #meter-strip {
+      display:flex; align-items:center; gap:clamp(8px,1.5vw,16px);
+      padding:clamp(6px,1.2vh,10px) clamp(14px,2.5vw,28px);
+      background:rgba(6,4,2,.7);
+      border-bottom:1px solid rgba(168,131,46,.12);
+      flex-shrink:0; flex-wrap:wrap;
+      backdrop-filter:blur(4px);
+    }
+    .meter-pill {
+      display:flex; align-items:center; gap:7px;
+      flex-shrink:0;
+    }
+    .meter-pill-label {
+      font-size:clamp(6px,.78vw,8px); letter-spacing:.3em;
+      text-transform:uppercase; color:var(--paper-dim);
+      white-space:nowrap;
+    }
+    .meter-pill-bar {
+      width:clamp(50px,8vw,90px); height:4px;
+      background:rgba(255,255,255,.06);
+      border:1px solid rgba(255,255,255,.06);
+      overflow:hidden;
+    }
+    .meter-pill-fill { height:100%; transition:width 1s ease; }
+    .fill-red   { background:linear-gradient(to right,#6a0a0a,var(--red-lit)); }
+    .fill-blue  { background:linear-gradient(to right,#0a1a4a,var(--blue-lit)); }
+    .fill-green { background:linear-gradient(to right,#0a2a18,var(--green-lit)); }
+    .meter-pill-val {
+      font-size:clamp(8px,1vw,10px); color:var(--amber);
+      font-family:'Special Elite',cursive; min-width:28px;
+    }
+
+    .meter-sep { width:1px; height:16px; background:rgba(168,131,46,.15); flex-shrink:0; }
+
+    /* Version indicator */
+    #version-indicator {
+      margin-left:auto;
+      display:flex; align-items:center; gap:8px;
+      flex-shrink:0;
+    }
+    .ver-dot {
+      width:7px; height:7px; border-radius:50%;
+      flex-shrink:0;
+    }
+    .ver-dot.cooperative { background:var(--green-lit); box-shadow:0 0 6px var(--green-lit); }
+    .ver-dot.hostile     { background:var(--red-lit);   box-shadow:0 0 6px var(--red-lit); }
+    .ver-dot.cracked     { background:var(--amber);     box-shadow:0 0 6px var(--amber); }
+    .ver-dot.stonewalling{ background:#555;             box-shadow:none; }
+    .ver-label {
+      font-size:clamp(7px,.85vw,9px); letter-spacing:.25em;
+      text-transform:uppercase;
+    }
+    .ver-label.cooperative { color:var(--green-lit); }
+    .ver-label.hostile     { color:var(--red-lit); }
+    .ver-label.cracked     { color:var(--amber); }
+    .ver-label.stonewalling{ color:#555; }
+
+    /* ── DOCUMENT AREA ── */
+    #doc-area {
+      flex:1; overflow-y:auto; overflow-x:hidden;
+      padding:clamp(16px,3vw,36px) clamp(14px,3vw,36px);
+      scrollbar-width:thin;
+      scrollbar-color:rgba(168,131,46,.2) transparent;
+      display:flex; justify-content:center;
+    }
+    #doc-area::-webkit-scrollbar { width:4px; }
+    #doc-area::-webkit-scrollbar-thumb { background:rgba(168,131,46,.2); border-radius:2px; }
+
+    /* ── THE DOCUMENT ── */
+    #document {
+      width:100%; max-width:680px;
+      position:relative;
+    }
+
+    /* Paper stack effect — extra sheets behind */
+    #document::before, #document::after {
+      content:'';
+      position:absolute;
+      background:var(--paper-dark);
+      border:1px solid rgba(100,80,30,.3);
+    }
+    #document::before { inset:4px -4px -4px 4px; z-index:-2; transform:rotate(.4deg); }
+    #document::after  { inset:2px -2px -2px 2px; z-index:-1; transform:rotate(.2deg); background:#d4c090; }
+
+    .doc-paper {
+      background:var(--paper);
+      padding:clamp(24px,4vw,48px) clamp(20px,4vw,48px);
+      position:relative;
+      /* ruled lines */
+      background-image:
+        repeating-linear-gradient(
+          to bottom,
+          transparent 0px, transparent 27px,
+          rgba(100,80,40,.06) 27px, rgba(100,80,40,.06) 28px
+        );
+      /* torn top edge */
+      box-shadow:0 4px 30px rgba(0,0,0,.6), 0 1px 4px rgba(0,0,0,.3);
+    }
+
+    /* Red margin line */
+    .doc-paper::before {
+      content:'';
+      position:absolute;
+      top:0; bottom:0;
+      left:clamp(52px,8vw,72px);
+      width:1px;
+      background:rgba(196,48,48,.2);
+      pointer-events:none;
+    }
+
+    /* Hole punches */
+    .doc-paper::after {
+      content:'';
+      position:absolute;
+      top:60px; left:clamp(10px,2vw,18px);
+      width:14px; height:14px; border-radius:50%;
+      background:var(--ink);
+      box-shadow:0 120px 0 var(--ink), 0 240px 0 var(--ink);
+      pointer-events:none;
+    }
+
+    /* ── DOCUMENT HEADER ── */
+    .doc-header {
+      text-align:center;
+      padding-bottom:clamp(12px,2vh,18px);
+      margin-bottom:clamp(12px,2vh,18px);
+      border-bottom:2px solid var(--sepia);
+    }
+    .doc-dept {
+      font-size:clamp(6px,.8vw,8px); letter-spacing:.55em;
+      text-transform:uppercase; color:var(--sepia);
+      display:block; margin-bottom:2px;
+    }
+    .doc-title {
+      font-family:'Special Elite',cursive;
+      font-size:clamp(16px,2.5vw,22px);
+      color:var(--ink); display:block; margin-bottom:2px;
+    }
+    .doc-subtitle {
+      font-size:clamp(7px,.85vw,9px); letter-spacing:.35em;
+      text-transform:uppercase; color:rgba(42,20,0,.55);
+      display:block;
+    }
+
+    /* ── META ROW ── */
+    .doc-meta {
+      display:grid;
+      grid-template-columns:repeat(auto-fill, minmax(140px,1fr));
+      gap:clamp(6px,1vw,10px);
+      margin-bottom:clamp(14px,2.5vh,22px);
+      padding:clamp(8px,1.5vw,14px);
+      background:rgba(80,50,0,.07);
+      border:1px solid rgba(80,50,0,.15);
+    }
+    .meta-field { }
+    .meta-label {
+      font-size:clamp(6px,.75vw,8px); letter-spacing:.3em;
+      text-transform:uppercase; color:rgba(42,20,0,.45);
+      display:block; margin-bottom:2px;
+    }
+    .meta-val {
+      font-size:clamp(9px,1.1vw,11px); color:var(--sepia);
+      line-height:1.3;
+    }
+
+    /* Classification stamp */
+    .doc-classification {
+      position:absolute;
+      top:clamp(24px,4vw,48px); right:clamp(20px,4vw,48px);
+      font-family:'Special Elite',cursive;
+      font-size:clamp(10px,1.4vw,14px);
+      border:2px solid;
+      padding:3px 10px;
+      transform:rotate(6deg);
+      letter-spacing:.1em;
+    }
+    .classification-suspect  { color:rgba(122,26,26,.55); border-color:rgba(122,26,26,.45); }
+    .classification-witness  { color:rgba(64,128,192,.55); border-color:rgba(64,128,192,.45); }
+
+    /* ── CONDITION BANNER ── */
+    .condition-banner {
+      display:none;
+      padding:clamp(8px,1.2vw,12px) clamp(12px,2vw,18px);
+      margin-bottom:clamp(12px,2vh,18px);
+      border:1px solid;
+      font-size:clamp(8px,1vw,10px);
+      letter-spacing:.2em; text-transform:uppercase;
+      line-height:1.5;
+    }
+    .condition-banner.show { display:block; }
+    .banner-cooperative { background:rgba(58,138,90,.08); border-color:rgba(58,138,90,.35); color:rgba(58,138,90,.9); }
+    .banner-hostile     { background:rgba(196,48,48,.08); border-color:rgba(196,48,48,.35); color:rgba(196,48,48,.9); }
+    .banner-cracked     { background:rgba(196,124,26,.08); border-color:rgba(196,124,26,.35); color:rgba(196,124,26,.9); }
+    .banner-stonewalling{ background:rgba(80,80,80,.08); border-color:rgba(80,80,80,.3);    color:rgba(160,150,130,.7); }
+
+    /* ── TRANSCRIPT BODY ── */
+    .transcript-section-title {
+      font-family:'Special Elite',cursive;
+      font-size:clamp(10px,1.3vw,13px);
+      color:rgba(42,20,0,.6); letter-spacing:.08em;
+      display:block; margin-bottom:clamp(10px,1.8vh,16px);
+      padding-bottom:4px;
+      border-bottom:1px solid rgba(80,50,0,.2);
+    }
+
+    .transcript-body {
+      margin-bottom:clamp(16px,3vh,28px);
+    }
+
+    /* Each exchange line */
+    .line {
+      display:grid;
+      grid-template-columns:clamp(100px,16vw,140px) 1fr;
+      gap:clamp(8px,1.5vw,16px);
+      margin-bottom:clamp(10px,1.8vh,16px);
+      align-items:baseline;
+      animation:lineIn .3s ease both;
+    }
+    @keyframes lineIn {
+      from{opacity:0;transform:translateX(-4px)}
+      to{opacity:1;transform:translateX(0)}
+    }
+
+    .speaker {
+      font-size:clamp(8px,1vw,10px); letter-spacing:.2em;
+      text-transform:uppercase; font-weight:700;
+      line-height:1.6; padding-top:1px;
+      flex-shrink:0;
+    }
+    .speaker.interrogator { color:var(--sepia); }
+    .speaker.suspect      { color:var(--blood); }
+    .speaker.witness      { color:rgba(64,128,192,.8); }
+
+    .dialogue {
+      font-size:clamp(10px,1.3vw,13px);
+      color:#2a1800; line-height:1.75;
+    }
+    .stage-dir {
+      font-size:clamp(8px,.95vw,10px);
+      color:rgba(42,20,0,.45); font-style:italic;
+      display:block; margin-bottom:3px;
+    }
+
+    /* Highlight on suspicious lines */
+    .line.flagged .dialogue {
+      background:rgba(196,124,26,.1);
+      border-left:2px solid rgba(196,124,26,.5);
+      padding-left:8px;
+      margin-left:-10px;
+    }
+    .line.flagged .stage-dir { color:rgba(196,124,26,.6); }
+
+    /* Redacted line */
+    .redacted {
+      background:var(--sepia);
+      color:transparent; user-select:none;
+      border-radius:1px;
+    }
+
+    /* ── FOOTER / SIGNATURES ── */
+    .doc-footer {
+      margin-top:clamp(18px,3vh,28px);
+      padding-top:clamp(14px,2.5vh,22px);
+      border-top:1px solid rgba(80,50,0,.25);
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:clamp(10px,2vw,20px);
+    }
+    .sig-block { }
+    .sig-label {
+      font-size:clamp(6px,.75vw,8px); letter-spacing:.3em;
+      text-transform:uppercase; color:rgba(42,20,0,.4);
+      display:block; margin-bottom:20px;
+    }
+    .sig-line {
+      border-bottom:1px solid rgba(80,50,0,.4);
+      margin-bottom:4px;
+    }
+    .sig-name {
+      font-family:'Caveat',cursive;
+      font-size:clamp(12px,1.8vw,17px);
+      color:rgba(42,20,0,.5);
+      display:block;
+    }
+
+    /* Witness/Suspect classification badge */
+    .session-type-badge {
+      display:inline-block;
+      font-size:clamp(7px,.85vw,9px);
+      letter-spacing:.3em; text-transform:uppercase;
+      padding:3px 12px; border:1px solid;
+      margin-bottom:clamp(12px,2vh,18px);
+    }
+    .badge-suspect { color:var(--blood); border-color:rgba(122,26,26,.4); }
+    .badge-witness { color:var(--blue-lit); border-color:rgba(64,128,192,.4); }
+
+    /* ── VERSION TAG ── */
+    #versionTag {
+      font-size:8px; letter-spacing:.2em;
+      color:rgba(120,100,60,.35); text-transform:uppercase;
+    }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width:520px) {
+      .line { grid-template-columns:80px 1fr; }
+      .doc-footer { grid-template-columns:1fr; }
+      #meter-strip { gap:6px; }
+    }
+  </style>
+</head>
+<body>
+
+  <div id="bg"></div>
+  <div id="grain"></div>
+  <div id="vignette"></div>
+
+  <div id="app">
+
+    <!-- TOPBAR -->
+    <div id="topbar">
+      <button id="back-btn" onclick="goBack()">← Board</button>
+      <div class="tb-div"></div>
+      <div>
+        <span class="tb-title">Interrogation Transcript</span>
+        <span class="tb-sub">Session Record · Case COL-001-A</span>
+      </div>
+      <div id="tb-right">
+        <span id="versionTag">v0.1.0 · local</span>
+      </div>
+    </div>
+
+    <!-- METER STRIP -->
+    <div id="meter-strip">
+      <div class="meter-pill">
+        <span class="meter-pill-label">Influence</span>
+        <div class="meter-pill-bar"><div class="meter-pill-fill fill-red" id="bar-influence" style="width:0%"></div></div>
+        <span class="meter-pill-val" id="val-influence">0</span>
+      </div>
+      <div class="meter-sep"></div>
+      <div class="meter-pill">
+        <span class="meter-pill-label">City Corruption</span>
+        <div class="meter-pill-bar"><div class="meter-pill-fill fill-blue" id="bar-city" style="width:0%"></div></div>
+        <span class="meter-pill-val" id="val-city">0</span>
+      </div>
+      <div class="meter-sep"></div>
+      <div class="meter-pill">
+        <span class="meter-pill-label">Street Cred</span>
+        <div class="meter-pill-bar"><div class="meter-pill-fill fill-green" id="bar-cred" style="width:0%"></div></div>
+        <span class="meter-pill-val" id="val-cred">0</span>
+      </div>
+      <div id="version-indicator">
+        <div class="ver-dot" id="ver-dot"></div>
+        <span class="ver-label" id="ver-label">Loading...</span>
+      </div>
+    </div>
+
+    <!-- DOCUMENT -->
+    <div id="doc-area">
+      <div id="document">
+        <div class="doc-paper">
+
+          <!-- Classification stamp — set by JS -->
+          <span class="doc-classification" id="doc-classification"></span>
+
+          <!-- Header -->
+          <div class="doc-header">
+            <span class="doc-dept">City of Lies Police Department — Interview Division</span>
+            <span class="doc-title">Interrogation Session Transcript</span>
+            <span class="doc-subtitle">Official Record — Not For Public Release</span>
+          </div>
+
+          <!-- Session type badge -->
+          <span class="session-type-badge" id="session-type-badge"></span>
+
+          <!-- Meta -->
+          <div class="doc-meta">
+            <div class="meta-field">
+              <span class="meta-label">Case No.</span>
+              <span class="meta-val">COL-001-A</span>
+            </div>
+            <div class="meta-field">
+              <span class="meta-label">Session No.</span>
+              <span class="meta-val">INT-001 / Session 1</span>
+            </div>
+            <div class="meta-field">
+              <span class="meta-label">Date</span>
+              <span class="meta-val">Mar 07 2026 · 14:30</span>
+            </div>
+            <div class="meta-field">
+              <span class="meta-label">Location</span>
+              <span class="meta-val">Interview Room 3 — Central Precinct</span>
+            </div>
+            <div class="meta-field">
+              <span class="meta-label">Subject</span>
+              <span class="meta-val" id="meta-subject"></span>
+            </div>
+            <div class="meta-field">
+              <span class="meta-label">Interviewer</span>
+              <span class="meta-val">Det. Gary Langley</span>
+            </div>
+            <div class="meta-field">
+              <span class="meta-label">Classification</span>
+              <span class="meta-val" id="meta-classification"></span>
+            </div>
+            <div class="meta-field">
+              <span class="meta-label">Outcome</span>
+              <span class="meta-val" id="meta-outcome"></span>
+            </div>
+          </div>
+
+          <!-- Condition banner — shown when thresholds explain why this version is active -->
+          <div class="condition-banner banner-cooperative" id="banner-cooperative">
+            ✓ Witness cooperative — City Corruption is below Street Credibility. Subject has chosen to assist the investigation.
+          </div>
+          <div class="condition-banner banner-hostile" id="banner-hostile">
+            ⚠ Witness uncooperative — City Corruption exceeds Street Credibility. Subject does not trust the department.
+          </div>
+          <div class="condition-banner banner-cracked" id="banner-cracked">
+            ✓ Suspect under pressure — Influence Level exceeds City Corruption. Subject is vulnerable to interrogation.
+          </div>
+          <div class="condition-banner banner-stonewalling" id="banner-stonewalling">
+            ✗ Suspect stonewalling — City Corruption equals or exceeds Influence Level. Subject is protected and unresponsive.
+          </div>
+
+          <!-- Transcript body — populated by JS -->
+          <span class="transcript-section-title">Transcript of Proceedings</span>
+          <div class="transcript-body" id="transcript-body"></div>
+
+          <!-- Footer / signatures -->
+          <div class="doc-footer">
+            <div class="sig-block">
+              <span class="sig-label">Interviewing Officer</span>
+              <div class="sig-line"></div>
+              <span class="sig-name">Det. Gary Langley</span>
+            </div>
+            <div class="sig-block">
+              <span class="sig-label">Supervising Officer</span>
+              <div class="sig-line"></div>
+              <span class="sig-name">— Pending —</span>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <audio id="bg-music" loop preload="auto">
+    <source src="Assets/Audio/Background music/Echoes_in_the_Concrete_Maze.mp3" type="audio/mpeg" />
+  </audio>
+
+  <script>
+    /* ════════════════════════════════════════════════
+       METER LOGIC
+       streetCred is always inverse of cityCorruption.
+       Read from localStorage col_save.
+    ════════════════════════════════════════════════ */
+    let save = {};
+    try { save = JSON.parse(localStorage.getItem('col_save') || '{}'); } catch(e) {}
+
+    const influence    = save.influence    ?? 0;
+    const cityCorrupt  = save.cityCorrupt  ?? 0;
+    // Street cred is always the inverse of city corruption
+    const streetCred   = 100 - cityCorrupt;
+
+    // Sync save so downstream pages can rely on streetCred too
+    save.streetCred = streetCred;
+    localStorage.setItem('col_save', JSON.stringify(save));
+
+    // Animate meter bars
+    setTimeout(() => {
+      document.getElementById('bar-influence').style.width = influence   + '%';
+      document.getElementById('bar-city').style.width      = cityCorrupt + '%';
+      document.getElementById('bar-cred').style.width      = streetCred  + '%';
+      document.getElementById('val-influence').textContent = influence;
+      document.getElementById('val-city').textContent      = cityCorrupt;
+      document.getElementById('val-cred').textContent      = streetCred;
+    }, 200);
+
+    /* ════════════════════════════════════════════════
+       TRANSCRIPT DEFINITIONS
+
+       Each transcript has:
+         type:    'witness' | 'suspect'
+         subject: Name of person being interviewed
+         versions:
+           For WITNESS:
+             cooperative (cityCorruption < streetCred)
+             hostile     (cityCorruption >= streetCred)
+           For SUSPECT:
+             cracked      (influence > cityCorruption)
+             stonewalling (influence <= cityCorruption)
+
+       Each version is an array of line objects:
+         { speaker, label, direction, text, flagged }
+         speaker:   'interrogator' | 'suspect' | 'witness'
+         label:     display name shown left of dialogue
+         direction: [optional] stage direction in italics
+         text:      the spoken line
+         flagged:   true = highlights line as suspicious
+    ════════════════════════════════════════════════ */
+    const TRANSCRIPTS = {
+
+      /* ──────────────────────────────
+         TRANSCRIPT 1 — WITNESS
+         Subject: Cass Delray (Bar Worker)
+         Condition: cityCorruption < streetCred → cooperative
+                    cityCorruption >= streetCred → hostile
+      ────────────────────────────── */
+      'witness-cass': {
+        type: 'witness',
+        subject: 'Cass Delray — Bartender, The Blue Meridian',
+        versions: {
+          cooperative: [
+            { speaker:'interrogator', label:'Det. Langley', direction:'calmly, setting a recorder on the table', text:"Thanks for coming in, Ms. Delray. I know you've been through this once already. I just need you to walk me through the night of March fourth one more time." },
+            { speaker:'witness',      label:'Cass Delray',  direction:'relaxed, makes eye contact', text:"Sure. I was on close that night. Just me and the glassware after eleven. But before that — maybe twenty to ten — I heard something outside the back." },
+            { speaker:'interrogator', label:'Det. Langley',  direction:'leaning forward slightly', text:"What kind of something?" },
+            { speaker:'witness',      label:'Cass Delray',  direction:'', text:"Voices. Two of them. One was calm — almost too calm — and one was scared. I've heard enough arguments to know the difference between drunk shouting and someone genuinely frightened." },
+            { speaker:'interrogator', label:'Det. Langley',  direction:'', text:"Could you make out any words?" },
+            { speaker:'witness',      label:'Cass Delray',  direction:'thinks for a moment', text:"Not clearly. But I heard the word 'envelope' at least twice. And then something like — 'you already took the money.' After that it went quiet. The scary kind of quiet.", flagged:true },
+            { speaker:'interrogator', label:'Det. Langley',  direction:'', text:"Did you look out?" },
+            { speaker:'witness',      label:'Cass Delray',  direction:'', text:"I cracked the back door. Saw a man walking away toward Canal Street — tall, dark jacket. Didn't see a face. Didn't see who he'd been talking to." },
+            { speaker:'interrogator', label:'Det. Langley',  direction:'', text:"And you didn't report it that night?" },
+            { speaker:'witness',      label:'Cass Delray',  direction:'a flicker of guilt', text:"I thought about it. But you hear things in this neighbourhood. Half the time the police don't come and the other half you wish they hadn't. I'm telling you now." },
+            { speaker:'interrogator', label:'Det. Langley',  direction:'quietly', text:"That's something. Is there anything else — anything you've remembered since?" },
+            { speaker:'witness',      label:'Cass Delray',  direction:'hesitates, then slides a folded paper across the table', text:"The man in the dark jacket. I've seen him in the bar before. Once with Victor Marre. I wrote down everything I remembered about him last night. It's not much but it's yours.", flagged:true },
+          ],
+          hostile: [
+            { speaker:'interrogator', label:'Det. Langley',  direction:'calmly, setting a recorder on the table', text:"Thanks for coming in, Ms. Delray. I just need you to walk me through the night of March fourth one more time." },
+            { speaker:'witness',      label:'Cass Delray',  direction:'arms crossed, not making eye contact', text:"I already told the other officer everything I know. Which isn't much." },
+            { speaker:'interrogator', label:'Det. Langley',  direction:'', text:"I'd still like to hear it from you directly." },
+            { speaker:'witness',      label:'Cass Delray',  direction:'flatly', text:"I was working. I heard noise out back. Couldn't tell you what it was. End of story." },
+            { speaker:'interrogator', label:'Det. Langley',  direction:'', text:"Witnesses have placed two individuals near the alley at approximately nine-forty. You were the only staff member in the back of house at that time." },
+            { speaker:'witness',      label:'Cass Delray',  direction:'sharply', text:"Then talk to those witnesses. I'm a bartender, not a surveillance camera.", flagged:true },
+            { speaker:'interrogator', label:'Det. Langley',  direction:'leaning forward', text:"Ms. Delray, somebody died that night. Anything you heard could matter." },
+            { speaker:'witness',      label:'Cass Delray',  direction:'long silence, jaw tight', text:"I've got nothing to add. And I'd like to know if I'm free to leave, because I've got a shift starting in two hours and I'd like to not lose my job on top of everything else." },
+            { speaker:'interrogator', label:'Det. Langley',  direction:'after a pause', text:"You're free to go. But Ms. Delray — if you remember something, we'd rather hear it from you than read it in a report that doesn't have your name on it." },
+            { speaker:'witness',      label:'Cass Delray',  direction:'standing, already turning away', text:"I'll keep that in mind." },
+          ]
+        }
+      },
+
+      /* ──────────────────────────────
+         TRANSCRIPT 2 — SUSPECT
+         Subject: Bowen Ashford (Security Guard)
+         Condition: influence > cityCorruption → cracked
+                    influence <= cityCorruption → stonewalling
+      ────────────────────────────── */
+      'suspect-bowen': {
+        type: 'suspect',
+        subject: 'Bowen Ashford — Night Security, City Harbour Authority Bay 7',
+        versions: {
+          cracked: [
+            { speaker:'interrogator', label:'Det. Langley',  direction:'calmly', text:"Let's begin. Tell me where you were between 9 and 10 PM on March fourth." },
+            { speaker:'suspect',      label:'Ashford',       direction:'nervous', text:"I… I already told you. I was on patrol. Bay 7. My usual route." },
+            { speaker:'interrogator', label:'Det. Langley',  direction:'skeptical', text:"That's interesting, because the CCTV footage shows someone matching your description near the alley entrance — well outside Bay 7 — at nine forty-eight." },
+            { speaker:'suspect',      label:'Ashford',       direction:'defensive', text:"That wasn't me. The cameras play tricks at night. The lighting out there is terrible." },
+            { speaker:'interrogator', label:'Det. Langley',  direction:'slides photograph across table', text:"Look at it. Take your time." },
+            { speaker:'suspect',      label:'Ashford',       direction:'long pause, swallows', text:"...That could be anyone." },
+            { speaker:'interrogator', label:'Det. Langley',  direction:'leans forward', text:"Then explain why your incident log for that night shows nothing unusual — when the footage shows two individuals in your patrol zone at nine forty-eight." },
+            { speaker:'suspect',      label:'Ashford',       direction:'voice cracks', text:"I'm telling you the truth!" },
+            { speaker:'interrogator', label:'Det. Langley',  direction:'quietly', text:"We also found four thousand dollars cash deposited into your account three days before the incident. Would you like to tell me about that?", flagged:true },
+            { speaker:'suspect',      label:'Ashford',       direction:'sharp intake of breath, long silence', text:"...Okay. Okay. I was there. But I didn't do anything to anybody. Someone paid me to look the other way. That's all. I walked my route on the far side and I didn't look at the alley entrance between nine-thirty and ten.", flagged:true },
+            { speaker:'interrogator', label:'Det. Langley',  direction:'evenly', text:"Who paid you?" },
+            { speaker:'suspect',      label:'Ashford',       direction:'genuinely distressed', text:"I don't know his name. I swear. It came through a message — anonymous account. The money was in my locker the next morning in an envelope. I knew it was wrong. I just — I needed it. My wife is sick and the bills—", flagged:true },
+            { speaker:'interrogator', label:'Det. Langley',  direction:'', text:"Did you keep the message?" },
+            { speaker:'suspect',      label:'Ashford',       direction:'barely audible', text:"I deleted it. He told me to. I'm sorry. I'm so sorry." },
+          ],
+          stonewalling: [
+            { speaker:'interrogator', label:'Det. Langley',  direction:'calmly', text:"Let's begin. Tell me where you were between 9 and 10 PM on March fourth." },
+            { speaker:'suspect',      label:'Ashford',       direction:'composed, coached', text:"I was on patrol. Bay 7. As documented in my incident log." },
+            { speaker:'interrogator', label:'Det. Langley',  direction:'', text:"CCTV footage places someone matching your description near the alley entrance at nine forty-eight." },
+            { speaker:'suspect',      label:'Ashford',       direction:'flat', text:"Camera quality in that area is poor. My log stands." },
+            { speaker:'interrogator', label:'Det. Langley',  direction:'slides photograph across table', text:"Look at the photograph." },
+            { speaker:'suspect',      label:'Ashford',       direction:'glances at it, says nothing', text:"I've looked at it." },
+            { speaker:'interrogator', label:'Det. Langley',  direction:'firm', text:"That's you." },
+            { speaker:'suspect',      label:'Ashford',       direction:'thin smile', text:"That's a low-resolution image of a person in a uniform in the dark. My attorney has already filed a challenge to its admissibility.", flagged:true },
+            { speaker:'interrogator', label:'Det. Langley',  direction:'leaning forward', text:"Four thousand dollars in your account three days before the incident. Where did that come from?" },
+            { speaker:'suspect',      label:'Ashford',       direction:'without missing a beat', text:"A personal loan from a family member. Fully documented. My attorney can provide the paperwork.", flagged:true },
+            { speaker:'interrogator', label:'Det. Langley',  direction:'quietly', text:"You're making this harder for yourself, Mr. Ashford." },
+            { speaker:'suspect',      label:'Ashford',       direction:'leaning back, arms crossed', text:"Am I free to go?" },
+            { speaker:'interrogator', label:'Det. Langley',  direction:'beat', text:"For now." },
+            { speaker:'suspect',      label:'Ashford',       direction:'standing, already turning away', text:"Then I'll see myself out. You know where my attorney is." },
+          ]
+        }
+      }
+
+    };
+
+    /* ════════════════════════════════════════════════
+       DETERMINE WHICH TRANSCRIPT + VERSION TO SHOW
+       URL param: ?t=witness-cass or ?t=suspect-bowen
+       Defaults to witness-cass if no param provided.
+    ════════════════════════════════════════════════ */
+    const params     = new URLSearchParams(window.location.search);
+    const transcriptKey = params.get('t') || 'witness-cass';
+    const transcript    = TRANSCRIPTS[transcriptKey] || TRANSCRIPTS['witness-cass'];
+
+    let activeVersion;
+    let versionName;
+
+    if (transcript.type === 'witness') {
+      if (cityCorrupt < streetCred) {
+        activeVersion = transcript.versions.cooperative;
+        versionName   = 'cooperative';
+      } else {
+        activeVersion = transcript.versions.hostile;
+        versionName   = 'hostile';
+      }
+    } else {
+      // suspect
+      if (influence > cityCorrupt) {
+        activeVersion = transcript.versions.cracked;
+        versionName   = 'cracked';
+      } else {
+        activeVersion = transcript.versions.stonewalling;
+        versionName   = 'stonewalling';
+      }
+    }
+
+    /* ════════════════════════════════════════════════
+       RENDER DOCUMENT METADATA
+    ════════════════════════════════════════════════ */
+    const versionLabels = {
+      cooperative:  { text:'Witness Cooperative',    dot:'cooperative', outcome:'Subject provided actionable intelligence' },
+      hostile:      { text:'Witness Uncooperative',  dot:'hostile',     outcome:'Subject declined to cooperate' },
+      cracked:      { text:'Suspect Under Pressure', dot:'cracked',     outcome:'Subject made partial admissions' },
+      stonewalling: { text:'Suspect Stonewalling',   dot:'stonewalling',outcome:'Subject refused to engage — legal counsel invoked' },
+    };
+
+    const vl = versionLabels[versionName];
+
+    // Version indicator in meter strip
+    document.getElementById('ver-dot').className   = `ver-dot ${versionName}`;
+    document.getElementById('ver-label').className = `ver-label ${versionName}`;
+    document.getElementById('ver-label').textContent = vl.text;
+
+    // Classification stamp
+    const stampEl = document.getElementById('doc-classification');
+    stampEl.textContent = transcript.type.toUpperCase();
+    stampEl.className   = `doc-classification classification-${transcript.type}`;
+
+    // Session type badge
+    const badgeEl = document.getElementById('session-type-badge');
+    badgeEl.textContent = transcript.type === 'witness' ? 'Witness Interview' : 'Suspect Interrogation';
+    badgeEl.className   = `session-type-badge badge-${transcript.type}`;
+
+    // Meta fields
+    document.getElementById('meta-subject').textContent        = transcript.subject;
+    document.getElementById('meta-classification').textContent = transcript.type.charAt(0).toUpperCase() + transcript.type.slice(1);
+    document.getElementById('meta-outcome').textContent        = vl.outcome;
+
+    // Show correct condition banner
+    document.getElementById(`banner-${versionName}`).classList.add('show');
+
+    /* ════════════════════════════════════════════════
+       RENDER TRANSCRIPT LINES
+    ════════════════════════════════════════════════ */
+    const body = document.getElementById('transcript-body');
+
+    activeVersion.forEach((line, i) => {
+      const div = document.createElement('div');
+      div.className = 'line' + (line.flagged ? ' flagged' : '');
+      div.style.animationDelay = (i * 0.04) + 's';
+
+      const speakerEl = document.createElement('span');
+      speakerEl.className = `speaker ${line.speaker}`;
+      speakerEl.textContent = line.label;
+
+      const dialogueEl = document.createElement('div');
+      dialogueEl.className = 'dialogue';
+
+      if (line.direction) {
+        const dir = document.createElement('span');
+        dir.className = 'stage-dir';
+        dir.textContent = `[${line.direction}]`;
+        dialogueEl.appendChild(dir);
+      }
+
+      const text = document.createTextNode(line.text);
+      dialogueEl.appendChild(text);
+
+      div.appendChild(speakerEl);
+      div.appendChild(dialogueEl);
+      body.appendChild(div);
+    });
+
+    /* ════════════════════════════════════════════════
+       MUSIC RESUME
+    ════════════════════════════════════════════════ */
+    const music = document.getElementById('bg-music');
+    let musicEnabled = true;
+
+    (function resumeMusic() {
+      try {
+        const saved = JSON.parse(sessionStorage.getItem('col_music') || '{}');
+        musicEnabled = saved.enabled !== false;
+        if (!musicEnabled) return;
+        if (saved.time)   music.currentTime = saved.time;
+        music.volume = saved.volume ?? 0.42;
+        music.play().catch(() => {
+          const unlock = () => {
+            music.play().catch(() => {});
+            document.removeEventListener('click',      unlock);
+            document.removeEventListener('touchstart', unlock);
+          };
+          document.addEventListener('click',      unlock, { passive: true });
+          document.addEventListener('touchstart', unlock, { passive: true });
+        });
+      } catch(e) {}
+    })();
+
+    function saveMusicState() {
+      sessionStorage.setItem('col_music', JSON.stringify({
+        enabled: musicEnabled,
+        time:    music.currentTime,
+        volume:  music.volume,
+        src:     'Assets/Audio/Background music/Echoes_in_the_Concrete_Maze.mp3'
+      }));
+    }
+
+    /* ════════════════════════════════════════════════
+       NAVIGATION
+    ════════════════════════════════════════════════ */
+    function goBack() {
+      saveMusicState();
+      window.location.href = 'board.html';
+    }
+
+    /* ════════════════════════════════════════════════
+       VERSION TAG
+    ════════════════════════════════════════════════ */
+    async function updateCommitHash() {
+      try {
+        const res  = await fetch('https://api.github.com/repos/jellybean1979/CityOfLies/commits?per_page=1');
+        if (!res.ok) throw new Error();
+        const data = await res.json();
+        const sha  = data[0]?.sha?.substring(0, 7) ?? '-------';
+        document.getElementById('versionTag').textContent = `v0.1.0 · ${sha}`;
+      } catch {
+        document.getElementById('versionTag').textContent = 'v0.1.0 · local';
+      }
+    }
+    updateCommitHash();
+  </script>
+</body>
+</html>
+
