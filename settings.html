@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>City of Lies — Settings</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Special+Elite&family=Courier+Prime:ital,wght@0,400;0,700;1,400&family=Caveat:wght@400;600;700&family=Playfair+Display:ital,wght@0,700;1,400&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --ink:        #1a1208;
+      --amber:      #c47c1a;
+      --gold:       #a8832e;
+      --blood:      #7a1a1a;
+      --cream:      #f2e8d0;
+      --paper:      #e8d9bb;
+      --paper-aged: #d4c09a;
+      --sepia-mid:  #6b4c2a;
+      --sepia-pale: #c8a97e;
+      --cork:       #8b6535;
+    }
+
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    html, body {
+      width: 100%; height: 100%;
+      overflow: hidden;
+      background: var(--ink);
+      font-family: 'Special Elite', cursive;
+    }
+
+    body { animation: pageIn 0.8s ease forwards; }
+    @keyframes pageIn { from { opacity: 0; } to { opacity: 1; } }
+
+    /* ── Background ── */
+    #board-bg {
+      position: fixed; inset: 0;
+      background-image: url('background-mainUI.jpg');
+      background-size: cover;
+      background-position: center;
+      filter: brightness(0.32) saturate(0.6) sepia(0.4);
+    }
+    #bg-tint {
+      position: fixed; inset: 0;
+      background:
+        radial-gradient(ellipse 60% 50% at 50% 25%, rgba(160,100,30,0.12) 0%, transparent 70%),
+        linear-gradient(to bottom, rgba(10,6,2,0.5) 0%, rgba(10,6,2,0.7) 100%);
+    }
+    #vignette {
+      position: fixed; inset: 0; z-index: 2; pointer-events: none;
+      box-shadow: inset 0 0 150px rgba(5,2,0,0.95), inset 0 0 50px rgba(5,2,0,0.5);
+    }
+    #grain {
+      position: fixed; inset: 0; z-index: 2; pointer-events: none; opacity: 0.03;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='250' height='250'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.78' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='250' height='250' filter='url(%23n)'/%3E%3C/svg%3E");
+      background-size: 200px;
+    }
+
+    /* ── MAIN PANEL — looks like a large pinned document ── */
+    #panel-wrap {
+      position: fixed; inset: 0; z-index: 10;
+      display: flex; align-items: center; justify-content: center;
+      padding: clamp(16px, 4vw, 40px);
+      overflow-y: auto;
+    }
+
+    #panel {
+      position: relative;
+      background: var(--paper);
+      width: 100%; max-width: 560px;
+      padding: clamp(24px, 5vw, 48px);
+      box-shadow: 4px 8px 40px rgba(0,0,0,0.8), 0 2px 8px rgba(0,0,0,0.5);
+      /* slight lean */
+      transform: rotate(-0.4deg);
+      /* paper texture via gradient */
+      background-image:
+        repeating-linear-gradient(
+          to bottom,
+          transparent 0px, transparent 27px,
+          rgba(100,80,40,0.07) 27px, rgba(100,80,40,0.07) 28px
+        );
+    }
+
+    /* Top torn edge */
+    #panel::before {
+      content: '';
+      position: absolute;
+      top: -8px; left: 0; right: 0; height: 10px;
+      background: var(--paper);
+      clip-path: polygon(0% 100%, 2% 10%, 5% 80%, 8% 20%, 11% 90%, 14% 15%, 17% 75%, 21% 30%, 25% 85%, 29% 10%, 33% 70%, 37% 25%, 41% 80%, 45% 15%, 49% 65%, 53% 20%, 57% 75%, 61% 10%, 65% 70%, 69% 25%, 73% 80%, 77% 15%, 81% 70%, 85% 20%, 89% 80%, 93% 10%, 97% 65%, 100% 30%, 100% 100%);
+    }
+
+    /* Coffee ring stain decoration */
+    #panel::after {
+      content: '';
+      position: absolute;
+      top: 20px; right: 24px;
+      width: 52px; height: 52px;
+      border-radius: 50%;
+      border: 3px solid rgba(100,60,10,0.12);
+      box-shadow: inset 0 0 0 6px rgba(100,60,10,0.05);
+    }
+
+    /* Pins */
+    .panel-pin {
+      position: absolute;
+      width: 16px; height: 16px;
+      border-radius: 50%;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.7), inset 0 -2px 3px rgba(0,0,0,0.3), inset 0 2px 3px rgba(255,255,255,0.2);
+      z-index: 5;
+    }
+    .panel-pin::after {
+      content: ''; position: absolute;
+      width: 5px; height: 12px;
+      background: rgba(0,0,0,0.35);
+      border-radius: 0 0 3px 3px;
+      top: 13px; left: 50%; transform: translateX(-50%);
+    }
+    .panel-pin.red    { background: radial-gradient(circle at 35% 35%, #f55, #8b1a1a); top: -8px; left: 18%; }
+    .panel-pin.blue   { background: radial-gradient(circle at 35% 35%, #6af, #1a3a8b); top: -8px; right: 22%; }
+    .panel-pin.yellow { background: radial-gradient(circle at 35% 35%, #ff8, #a87c00); top: -8px; left: 55%; }
+
+    /* ── HEADER ── */
+    .doc-eyebrow {
+      font-family: 'Courier Prime', monospace;
+      font-size: clamp(7px, 1.1vw, 10px);
+      letter-spacing: 0.5em;
+      text-transform: uppercase;
+      color: var(--sepia-mid);
+      display: block;
+      margin-bottom: 4px;
+    }
+    .doc-title {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(26px, 5vw, 42px);
+      font-weight: 700;
+      font-style: italic;
+      color: var(--ink);
+      line-height: 1;
+      display: block;
+    }
+    .doc-rule {
+      width: 100%; height: 2px;
+      background: linear-gradient(to right, var(--ink), rgba(26,18,8,0.1));
+      margin: clamp(12px, 2vw, 18px) 0;
+    }
+
+    /* ── SECTIONS ── */
+    .settings-section {
+      margin-bottom: clamp(18px, 3vw, 28px);
+    }
+    .section-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: clamp(10px, 1.8vw, 16px);
+    }
+    .section-icon {
+      font-size: clamp(14px, 2vw, 18px);
+      flex-shrink: 0;
+    }
+    .section-title {
+      font-family: 'Special Elite', cursive;
+      font-size: clamp(13px, 2vw, 17px);
+      color: var(--ink);
+      letter-spacing: 0.05em;
+    }
+    .section-rule {
+      flex: 1; height: 1px;
+      background: linear-gradient(to right, rgba(26,18,8,0.25), transparent);
+    }
+
+    /* ── SLIDER ROWS ── */
+    .setting-row {
+      display: flex;
+      align-items: center;
+      gap: clamp(8px, 1.5vw, 16px);
+      margin-bottom: clamp(10px, 1.5vw, 14px);
+    }
+    .setting-label {
+      font-family: 'Courier Prime', monospace;
+      font-size: clamp(9px, 1.2vw, 11px);
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--sepia-mid);
+      min-width: clamp(80px, 14vw, 120px);
+      flex-shrink: 0;
+    }
+    .slider-track {
+      flex: 1;
+      position: relative;
+      height: 20px;
+      display: flex;
+      align-items: center;
+    }
+    input[type="range"] {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 100%;
+      height: 3px;
+      background: transparent;
+      outline: none;
+      cursor: pointer;
+      position: relative;
+      z-index: 1;
+    }
+    /* Track fill — done via JS updating a CSS var */
+    input[type="range"]::-webkit-slider-runnable-track {
+      height: 3px;
+      border-radius: 2px;
+      background: linear-gradient(
+        to right,
+        var(--amber) 0%,
+        var(--amber) var(--val, 75%),
+        rgba(26,18,8,0.2) var(--val, 75%),
+        rgba(26,18,8,0.2) 100%
+      );
+    }
+    input[type="range"]::-moz-range-track {
+      height: 3px; border-radius: 2px;
+      background: rgba(26,18,8,0.2);
+    }
+    input[type="range"]::-moz-range-progress {
+      height: 3px; border-radius: 2px;
+      background: var(--amber);
+    }
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 16px; height: 16px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 35% 35%, #f0e0c0, var(--amber));
+      border: 2px solid var(--gold);
+      box-shadow: 0 1px 4px rgba(0,0,0,0.5);
+      margin-top: -6px;
+    }
+    input[type="range"]::-moz-range-thumb {
+      width: 16px; height: 16px;
+      border-radius: 50%;
+      background: var(--amber);
+      border: 2px solid var(--gold);
+      box-shadow: 0 1px 4px rgba(0,0,0,0.5);
+    }
+    .slider-val {
+      font-family: 'Courier Prime', monospace;
+      font-size: clamp(9px, 1.2vw, 11px);
+      color: var(--sepia-mid);
+      min-width: 30px;
+      text-align: right;
+    }
+
+    /* ── TOGGLE ROWS ── */
+    .toggle-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: clamp(10px, 1.5vw, 14px);
+      gap: 10px;
+    }
+    .toggle-label {
+      font-family: 'Courier Prime', monospace;
+      font-size: clamp(9px, 1.2vw, 11px);
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--sepia-mid);
+    }
+    .toggle-sub {
+      font-family: 'Courier Prime', monospace;
+      font-size: clamp(7px, 0.9vw, 9px);
+      letter-spacing: 0.1em;
+      color: rgba(107,76,42,0.55);
+      display: block;
+      margin-top: 1px;
+    }
+    /* Ink-stamp style toggle */
+    .toggle-switch {
+      position: relative;
+      width: 44px; height: 22px;
+      flex-shrink: 0;
+      cursor: pointer;
+    }
+    .toggle-switch input { opacity: 0; width: 0; height: 0; }
+    .toggle-bg {
+      position: absolute; inset: 0;
+      background: rgba(26,18,8,0.15);
+      border: 1px solid rgba(26,18,8,0.25);
+      border-radius: 11px;
+      transition: background 0.25s;
+    }
+    .toggle-switch input:checked + .toggle-bg {
+      background: var(--amber);
+      border-color: var(--gold);
+    }
+    .toggle-dot {
+      position: absolute;
+      top: 3px; left: 3px;
+      width: 14px; height: 14px;
+      background: var(--paper);
+      border-radius: 50%;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.4);
+      transition: transform 0.25s cubic-bezier(0.34,1.56,0.64,1);
+    }
+    .toggle-switch input:checked ~ .toggle-dot { transform: translateX(22px); }
+
+    /* ── SELECT ROW ── */
+    .select-row {
+      display: flex;
+      align-items: center;
+      gap: clamp(8px, 1.5vw, 16px);
+      margin-bottom: clamp(10px, 1.5vw, 14px);
+    }
+    .setting-select {
+      flex: 1;
+      font-family: 'Courier Prime', monospace;
+      font-size: clamp(9px, 1.2vw, 11px);
+      letter-spacing: 0.1em;
+      color: var(--ink);
+      background: rgba(26,18,8,0.06);
+      border: 1px solid rgba(26,18,8,0.2);
+      padding: 5px 10px;
+      border-radius: 0;
+      cursor: pointer;
+      appearance: none;
+      -webkit-appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%236b4c2a'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 10px center;
+      padding-right: 28px;
+    }
+    .setting-select:focus { outline: 1px solid var(--amber); }
+
+    /* ── BUTTON ROW ── */
+    .btn-row {
+      display: flex;
+      gap: clamp(8px, 1.5vw, 14px);
+      margin-top: clamp(18px, 3vw, 28px);
+      flex-wrap: wrap;
+    }
+    .doc-btn {
+      font-family: 'Special Elite', cursive;
+      font-size: clamp(11px, 1.6vw, 14px);
+      letter-spacing: 0.08em;
+      padding: clamp(8px, 1.2vw, 12px) clamp(16px, 2.5vw, 28px);
+      border: none;
+      cursor: pointer;
+      transition: transform 0.15s, filter 0.15s;
+      flex: 1;
+      min-width: 120px;
+    }
+    .doc-btn:hover { transform: translateY(-1px); filter: brightness(1.1); }
+    .doc-btn:active { transform: translateY(0); }
+    .doc-btn.primary {
+      background: var(--ink);
+      color: var(--paper);
+    }
+    .doc-btn.secondary {
+      background: transparent;
+      color: var(--sepia-mid);
+      border: 1px solid rgba(26,18,8,0.25);
+    }
+    .doc-btn.secondary:hover { color: var(--ink); border-color: var(--ink); }
+
+    /* Saved flash */
+    #saved-msg {
+      font-family: 'Caveat', cursive;
+      font-size: clamp(12px, 1.8vw, 16px);
+      color: var(--blood);
+      opacity: 0;
+      margin-left: 10px;
+      transition: opacity 0.3s;
+      align-self: center;
+    }
+    #saved-msg.show { opacity: 1; }
+
+    /* ── VERSION ── */
+    #version-bar {
+      position: fixed; bottom: 16px; right: 20px; z-index: 50;
+    }
+    #versionTag {
+      font-family: 'Courier Prime', monospace;
+      font-size: 9px; letter-spacing: 0.2em;
+      color: #2e2010; text-transform: uppercase;
+    }
+
+    /* ── Scroll on small screens ── */
+    @media (max-height: 700px) {
+      #panel-wrap { align-items: flex-start; padding-top: 24px; }
+    }
+    @media (max-width: 480px) {
+      .btn-row { flex-direction: column; }
+      .doc-btn { min-width: unset; }
+    }
+  </style>
+</head>
+<body>
+
+  <div id="board-bg"></div>
+  <div id="bg-tint"></div>
+  <div id="grain"></div>
+  <div id="vignette"></div>
+
+  <div id="panel-wrap">
+    <div id="panel">
+      <div class="panel-pin red"></div>
+      <div class="panel-pin yellow"></div>
+      <div class="panel-pin blue"></div>
+
+      <!-- Header -->
+      <span class="doc-eyebrow">City of Lies P.D. &nbsp;·&nbsp; Internal Config</span>
+      <span class="doc-title">Settings</span>
+      <div class="doc-rule"></div>
+
+      <!-- ── AUDIO ── -->
+      <div class="settings-section">
+        <div class="section-header">
+          <span class="section-icon">🔊</span>
+          <span class="section-title">Audio</span>
+          <div class="section-rule"></div>
+        </div>
+
+        <div class="setting-row">
+          <span class="setting-label">Music Vol.</span>
+          <div class="slider-track">
+            <input type="range" id="music-vol" min="0" max="100" value="42"
+              oninput="onMusicVol(this)" />
+          </div>
+          <span class="slider-val" id="music-vol-val">42%</span>
+        </div>
+
+        <div class="setting-row">
+          <span class="setting-label">SFX Vol.</span>
+          <div class="slider-track">
+            <input type="range" id="sfx-vol" min="0" max="100" value="75"
+              oninput="onSlider(this, 'sfx-vol-val')" />
+          </div>
+          <span class="slider-val" id="sfx-vol-val">75%</span>
+        </div>
+
+        <div class="toggle-row">
+          <div>
+            <span class="toggle-label">Music Enabled</span>
+            <span class="toggle-sub">Background atmosphere track</span>
+          </div>
+          <label class="toggle-switch">
+            <input type="checkbox" id="toggle-music" checked onchange="onMusicToggle(this)" />
+            <div class="toggle-bg"></div>
+            <div class="toggle-dot"></div>
+          </label>
+        </div>
+
+        <div class="toggle-row">
+          <div>
+            <span class="toggle-label">SFX Enabled</span>
+            <span class="toggle-sub">UI clicks, evidence sounds</span>
+          </div>
+          <label class="toggle-switch">
+            <input type="checkbox" id="toggle-sfx" checked onchange="savePrefs()" />
+            <div class="toggle-bg"></div>
+            <div class="toggle-dot"></div>
+          </label>
+        </div>
+      </div>
+
+      <!-- ── DISPLAY ── -->
+      <div class="settings-section">
+        <div class="section-header">
+          <span class="section-icon">🖥</span>
+          <span class="section-title">Display</span>
+          <div class="section-rule"></div>
+        </div>
+
+        <div class="toggle-row">
+          <div>
+            <span class="toggle-label">Scanlines</span>
+            <span class="toggle-sub">CRT scanline overlay effect</span>
+          </div>
+          <label class="toggle-switch">
+            <input type="checkbox" id="toggle-scanlines" checked onchange="savePrefs()" />
+            <div class="toggle-bg"></div>
+            <div class="toggle-dot"></div>
+          </label>
+        </div>
+
+        <div class="toggle-row">
+          <div>
+            <span class="toggle-label">Film Grain</span>
+            <span class="toggle-sub">Subtle noise texture overlay</span>
+          </div>
+          <label class="toggle-switch">
+            <input type="checkbox" id="toggle-grain" checked onchange="savePrefs()" />
+            <div class="toggle-bg"></div>
+            <div class="toggle-dot"></div>
+          </label>
+        </div>
+
+        <div class="toggle-row">
+          <div>
+            <span class="toggle-label">Vignette</span>
+            <span class="toggle-sub">Dark edge darkening</span>
+          </div>
+          <label class="toggle-switch">
+            <input type="checkbox" id="toggle-vignette" checked onchange="savePrefs()" />
+            <div class="toggle-bg"></div>
+            <div class="toggle-dot"></div>
+          </label>
+        </div>
+
+        <div class="select-row">
+          <span class="setting-label">UI Scale</span>
+          <select class="setting-select" id="sel-scale" onchange="savePrefs()">
+            <option value="small">Small</option>
+            <option value="normal" selected>Normal</option>
+            <option value="large">Large</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- ── PREFERENCES ── -->
+      <div class="settings-section">
+        <div class="section-header">
+          <span class="section-icon">📋</span>
+          <span class="section-title">Preferences</span>
+          <div class="section-rule"></div>
+        </div>
+
+        <div class="toggle-row">
+          <div>
+            <span class="toggle-label">Skip Intro</span>
+            <span class="toggle-sub">Always skip the intro video</span>
+          </div>
+          <label class="toggle-switch">
+            <input type="checkbox" id="toggle-skip-intro" onchange="savePrefs()" />
+            <div class="toggle-bg"></div>
+            <div class="toggle-dot"></div>
+          </label>
+        </div>
+
+        <div class="toggle-row">
+          <div>
+            <span class="toggle-label">Hint System</span>
+            <span class="toggle-sub">Show subtle investigation hints</span>
+          </div>
+          <label class="toggle-switch">
+            <input type="checkbox" id="toggle-hints" checked onchange="savePrefs()" />
+            <div class="toggle-bg"></div>
+            <div class="toggle-dot"></div>
+          </label>
+        </div>
+
+        <div class="toggle-row">
+          <div>
+            <span class="toggle-label">Autosave</span>
+            <span class="toggle-sub">Save progress automatically</span>
+          </div>
+          <label class="toggle-switch">
+            <input type="checkbox" id="toggle-autosave" checked onchange="savePrefs()" />
+            <div class="toggle-bg"></div>
+            <div class="toggle-dot"></div>
+          </label>
+        </div>
+
+        <div class="select-row">
+          <span class="setting-label">Language</span>
+          <select class="setting-select" id="sel-lang" onchange="savePrefs()">
+            <option value="en" selected>English</option>
+            <option value="es">Español</option>
+            <option value="fr">Français</option>
+            <option value="de">Deutsch</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Buttons -->
+      <div class="btn-row">
+        <button class="doc-btn primary" onclick="saveAndBack()">← Back to Menu</button>
+        <button class="doc-btn secondary" onclick="resetDefaults()">Reset Defaults</button>
+        <span id="saved-msg">✓ Saved</span>
+      </div>
+    </div>
+  </div>
+
+  <div id="version-bar"><span id="versionTag">v0.1.0 · local</span></div>
+
+  <audio id="bg-music" loop preload="auto">
+    <source src="Echoes_in_the_Concrete_Maze.mp3" type="audio/mpeg" />
+  </audio>
+
+  <script>
+    const music = document.getElementById('bg-music');
+    let musicEnabled = true;
+
+    /* ════════════════════════════
+       MUSIC — resume from session
+    ════════════════════════════ */
+    (function resumeMusic() {
+      try {
+        const saved = JSON.parse(sessionStorage.getItem('col_music') || '{}');
+        musicEnabled = saved.enabled !== false;
+
+        const toggle = document.getElementById('toggle-music');
+        toggle.checked = musicEnabled;
+
+        if (saved.volume !== undefined) {
+          const pct = Math.round(saved.volume * 100);
+          document.getElementById('music-vol').value = pct;
+          document.getElementById('music-vol-val').textContent = pct + '%';
+          updateSliderFill(document.getElementById('music-vol'));
+        }
+
+        if (!musicEnabled) return;
+
+        if (saved.time) music.currentTime = saved.time;
+        music.volume = (saved.volume !== undefined) ? saved.volume : 0.42;
+
+        music.play().catch(() => {
+          const unlock = () => {
+            music.play().catch(() => {});
+            document.removeEventListener('click',      unlock);
+            document.removeEventListener('touchstart', unlock);
+          };
+          document.addEventListener('click',      unlock, { passive: true });
+          document.addEventListener('touchstart', unlock, { passive: true });
+        });
+      } catch(e) {}
+    })();
+
+    /* ════════════════════════════
+       LOAD SAVED PREFS
+    ════════════════════════════ */
+    (function loadPrefs() {
+      try {
+        const p = JSON.parse(localStorage.getItem('col_prefs') || '{}');
+        if (p.sfxVol     !== undefined) { document.getElementById('sfx-vol').value = p.sfxVol; document.getElementById('sfx-vol-val').textContent = p.sfxVol + '%'; updateSliderFill(document.getElementById('sfx-vol')); }
+        if (p.sfxEnabled !== undefined)    document.getElementById('toggle-sfx').checked       = p.sfxEnabled;
+        if (p.scanlines  !== undefined)    document.getElementById('toggle-scanlines').checked  = p.scanlines;
+        if (p.grain      !== undefined)    document.getElementById('toggle-grain').checked      = p.grain;
+        if (p.vignette   !== undefined)    document.getElementById('toggle-vignette').checked   = p.vignette;
+        if (p.scale      !== undefined)    document.getElementById('sel-scale').value           = p.scale;
+        if (p.skipIntro  !== undefined)    document.getElementById('toggle-skip-intro').checked = p.skipIntro;
+        if (p.hints      !== undefined)    document.getElementById('toggle-hints').checked      = p.hints;
+        if (p.autosave   !== undefined)    document.getElementById('toggle-autosave').checked   = p.autosave;
+        if (p.lang       !== undefined)    document.getElementById('sel-lang').value            = p.lang;
+        // Init all slider fills
+        document.querySelectorAll('input[type="range"]').forEach(updateSliderFill);
+      } catch(e) {}
+    })();
+
+    /* ════════════════════════════
+       SLIDER HELPERS
+    ════════════════════════════ */
+    function updateSliderFill(el) {
+      const pct = ((el.value - el.min) / (el.max - el.min) * 100).toFixed(1) + '%';
+      el.style.setProperty('--val', pct);
+    }
+
+    function onSlider(el, valId) {
+      document.getElementById(valId).textContent = el.value + '%';
+      updateSliderFill(el);
+      savePrefs();
+    }
+
+    function onMusicVol(el) {
+      document.getElementById('music-vol-val').textContent = el.value + '%';
+      updateSliderFill(el);
+      if (musicEnabled) music.volume = el.value / 100;
+      savePrefs();
+    }
+
+    function onMusicToggle(el) {
+      musicEnabled = el.checked;
+      if (musicEnabled) {
+        music.volume = document.getElementById('music-vol').value / 100;
+        music.play().catch(() => {});
+      } else {
+        music.pause();
+      }
+      savePrefs();
+    }
+
+    /* ════════════════════════════
+       SAVE
+    ════════════════════════════ */
+    function savePrefs() {
+      const prefs = {
+        sfxVol:     parseInt(document.getElementById('sfx-vol').value),
+        sfxEnabled: document.getElementById('toggle-sfx').checked,
+        scanlines:  document.getElementById('toggle-scanlines').checked,
+        grain:      document.getElementById('toggle-grain').checked,
+        vignette:   document.getElementById('toggle-vignette').checked,
+        scale:      document.getElementById('sel-scale').value,
+        skipIntro:  document.getElementById('toggle-skip-intro').checked,
+        hints:      document.getElementById('toggle-hints').checked,
+        autosave:   document.getElementById('toggle-autosave').checked,
+        lang:       document.getElementById('sel-lang').value,
+      };
+      localStorage.setItem('col_prefs', JSON.stringify(prefs));
+
+      // Flash saved message
+      const msg = document.getElementById('saved-msg');
+      msg.classList.add('show');
+      setTimeout(() => msg.classList.remove('show'), 1800);
+    }
+
+    function saveMusicState() {
+      sessionStorage.setItem('col_music', JSON.stringify({
+        enabled: musicEnabled,
+        time:    music.currentTime,
+        volume:  music.volume,
+        src:     'Echoes_in_the_Concrete_Maze.mp3'
+      }));
+    }
+
+    function saveAndBack() {
+      savePrefs();
+      saveMusicState();
+      window.location.href = 'index.html';
+    }
+
+    function resetDefaults() {
+      localStorage.removeItem('col_prefs');
+      location.reload();
+    }
+
+    /* ════════════════════════════
+       VERSION TAG
+    ════════════════════════════ */
+    async function updateCommitHash() {
+      try {
+        const res  = await fetch('https://api.github.com/repos/jellybean1979/CityOfLies/commits?per_page=1');
+        if (!res.ok) throw new Error();
+        const data = await res.json();
+        const sha  = data[0]?.sha?.substring(0, 7) ?? '-------';
+        document.getElementById('versionTag').textContent = `v0.1.0 · ${sha}`;
+      } catch {
+        document.getElementById('versionTag').textContent = 'v0.1.0 · local';
+      }
+    }
+    updateCommitHash();
+  </script>
+</body>
+</html>
