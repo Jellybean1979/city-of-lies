@@ -926,6 +926,7 @@
     <div class="hud-left">
       <button class="hud-btn" onclick="goBack()">← Menu</button>
       <button class="hud-btn" onclick="navigate('settings.html')">Settings</button>
+      <button class="hud-btn" id="sound-toggle" onclick="toggleSound()">♪ On</button>
     </div>
     <div class="hud-center">
       <span class="hud-case">Case No. COL-001</span>
@@ -934,7 +935,70 @@
     <span id="versionTag">v0.1.0 · local</span>
   </div>
 
+  <!-- Background audio — same track as index.html -->
+  <audio id="bg-music" loop preload="auto">
+    <source src="Echoes_in_the_Concrete_Maze.mp3" type="audio/mpeg" />
+  </audio>
+
   <script>
+    /* ══════════════════════════════════════
+       MUSIC — resume from where index left off
+    ══════════════════════════════════════ */
+    const music = document.getElementById('bg-music');
+    let musicEnabled = true;
+
+    (function resumeMusic() {
+      try {
+        const saved = JSON.parse(sessionStorage.getItem('col_music') || '{}');
+        musicEnabled = saved.enabled !== false; // default on
+
+        if (!musicEnabled) {
+          document.getElementById('sound-toggle').textContent = '♪ Off';
+          return;
+        }
+
+        // Seek to saved position so it feels continuous
+        if (saved.time) music.currentTime = saved.time;
+
+        music.volume = 0.42;
+        music.play().catch(() => {
+          // Autoplay blocked — wait for first interaction
+          const unlock = () => {
+            music.play().catch(() => {});
+            document.removeEventListener('click',      unlock);
+            document.removeEventListener('touchstart', unlock);
+          };
+          document.addEventListener('click',      unlock, { passive: true });
+          document.addEventListener('touchstart', unlock, { passive: true });
+        });
+      } catch(e) {
+        // No saved state — just start playing
+        music.volume = 0.42;
+        music.play().catch(() => {});
+      }
+    })();
+
+    /* ── Save music state before leaving this page too ── */
+    function saveMusicState() {
+      sessionStorage.setItem('col_music', JSON.stringify({
+        enabled: musicEnabled,
+        time:    music.currentTime,
+        src:     'Echoes_in_the_Concrete_Maze.mp3'
+      }));
+    }
+
+    function toggleSound() {
+      musicEnabled = !musicEnabled;
+      const btn = document.getElementById('sound-toggle');
+      if (musicEnabled) {
+        music.play().catch(() => {});
+        btn.textContent = '♪ On';
+      } else {
+        music.pause();
+        btn.textContent = '♪ Off';
+      }
+    }
+
     /* ── Waveform bars ── */
     const wf = document.getElementById('waveform');
     const heights = [0.3,0.6,0.9,0.5,1.0,0.4,0.7,0.85,0.3,0.65,0.9,0.45,0.75,0.5,0.35];
@@ -994,11 +1058,13 @@
 
     /* ── Navigation ── */
     function navigate(page) {
+      saveMusicState();
       // Uncomment when pages exist:
       // window.location.href = page;
       console.log('[City of Lies] → Navigate to', page);
     }
     function goBack() {
+      saveMusicState();
       window.location.href = 'index.html';
     }
 
