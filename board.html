@@ -88,7 +88,7 @@
     .topbar-divider { width:1px; height:22px; background:var(--border); flex-shrink:0; }
 
     .topbar-title {
-      font-family:'Special Elite',cursive;
+      font-family:'Courier Prime',monospace;
       font-size:clamp(13px,2vw,18px);
       color:var(--paper); letter-spacing:.04em;
     }
@@ -151,7 +151,7 @@
     }
     .nav-icon { font-size:clamp(12px,1.6vw,15px); flex-shrink:0; width:20px; text-align:center; }
     .nav-label {
-      font-family:'Special Elite',cursive;
+      font-family:'Courier Prime',monospace;
       font-size:clamp(10px,1.3vw,13px);
       color:var(--paper-dim);
       transition:color .15s;
@@ -212,7 +212,7 @@
       gap:12px;
     }
     .panel-title {
-      font-family:'Special Elite',cursive;
+      font-family:'Courier Prime',monospace;
       font-size:clamp(18px,3vw,26px);
       color:var(--paper); line-height:1;
       display:block;
@@ -262,7 +262,7 @@
 
     .card-icon  { font-size:clamp(20px,3vw,28px); display:block; margin-bottom:8px; }
     .card-title {
-      font-family:'Special Elite',cursive;
+      font-family:'Courier Prime',monospace;
       font-size:clamp(12px,1.6vw,15px);
       color:var(--paper); display:block; margin-bottom:4px;
     }
@@ -335,7 +335,7 @@
     }
     .tl-feat-icon { font-size:16px; flex-shrink:0; margin-top:1px; }
     .tl-feat-title {
-      font-family:'Special Elite',cursive;
+      font-family:'Courier Prime',monospace;
       font-size:clamp(10px,1.3vw,13px);
       color:var(--paper); display:block; margin-bottom:3px;
     }
@@ -368,7 +368,7 @@
       font-size:clamp(14px,2vw,18px); flex-shrink:0;
     }
     .subject-name {
-      font-family:'Special Elite',cursive;
+      font-family:'Courier Prime',monospace;
       font-size:clamp(10px,1.3vw,13px);
       color:var(--paper); display:block;
     }
@@ -390,7 +390,7 @@
     .interr-sub:hover { border-color:var(--border-hi); transform:translateY(-1px); }
     .interr-sub-icon  { font-size:clamp(16px,2.2vw,20px); display:block; margin-bottom:6px; }
     .interr-sub-title {
-      font-family:'Special Elite',cursive;
+      font-family:'Courier Prime',monospace;
       font-size:clamp(11px,1.4vw,14px);
       color:var(--paper); display:block; margin-bottom:4px;
     }
@@ -421,7 +421,7 @@
     .lab-header { display:flex; align-items:center; gap:12px; margin-bottom:12px; }
     .lab-icon { font-size:clamp(24px,3.5vw,36px); }
     .lab-name {
-      font-family:'Special Elite',cursive;
+      font-family:'Courier Prime',monospace;
       font-size:clamp(16px,2.2vw,22px);
       color:var(--paper);
     }
@@ -500,7 +500,7 @@
       color:var(--paper-dim); display:block; margin-bottom:4px;
     }
     .step-title {
-      font-family:'Special Elite',cursive;
+      font-family:'Courier Prime',monospace;
       font-size:clamp(12px,1.6vw,15px);
       color:var(--paper); display:block; margin-bottom:6px;
     }
@@ -537,7 +537,7 @@
     }
     .theory-actions { display:flex; gap:clamp(8px,1.2vw,14px); flex-wrap:wrap; }
     .theory-btn {
-      font-family:'Special Elite',cursive;
+      font-family:'Courier Prime',monospace;
       font-size:clamp(10px,1.3vw,13px);
       letter-spacing:.06em;
       padding:clamp(8px,1.2vw,12px) clamp(16px,2.5vw,28px);
@@ -613,7 +613,7 @@
       color:var(--paper-dim);
     }
     .progress-pct {
-      font-family:'Special Elite',cursive;
+      font-family:'Courier Prime',monospace;
       font-size:clamp(14px,2vw,18px);
       color:var(--amber);
     }
@@ -672,7 +672,7 @@
       border-bottom:2px solid rgba(168,131,46,.2);
     }
     .notebook-title {
-      font-family:'Special Elite',cursive;
+      font-family:'Courier Prime',monospace;
       font-size:clamp(14px,2vw,18px);
       color:var(--paper);
     }
@@ -684,8 +684,8 @@
     #notes-area {
       width:100%; min-height:clamp(200px,35vh,360px);
       background:none; border:none;
-      font-family:'Caveat',cursive;
-      font-size:clamp(14px,1.8vw,18px);
+      font-family:'Courier Prime', monospace;
+      font-size:clamp(13px,1.6vw,16px);
       color:var(--paper);
       resize:none; outline:none;
       line-height:28px;
@@ -772,7 +772,7 @@
       </div>
       <div class="topbar-right">
         <button id="sidebar-toggle" onclick="toggleSidebar()">☰ Menu</button>
-        <span id="breadcrumb">Evidence <span>/</span> All Items</span>
+        <span id="breadcrumb">Investigation Files <span>/</span> All Items</span>
         <span id="versionTag">v0.1.0 · local</span>
       </div>
     </div>
@@ -783,36 +783,36 @@
       <!-- SIDEBAR -->
       <nav id="sidebar">
 
-        <!-- Evidence -->
+        <!-- Investigation Files -->
         <div class="nav-section">
-          <div class="nav-item" onclick="toggleNav(this,'panel-evidence','Evidence / All Items')">
+          <div class="nav-item" onclick="toggleNav(this,'panel-evidence','Investigation Files / All Items')">
             <span class="nav-icon">🗂</span>
-            <span class="nav-label">Evidence</span>
+            <span class="nav-label">Investigation Files</span>
             <span class="nav-arrow">›</span>
           </div>
           <div class="nav-subitems">
-            <div class="nav-subitem active" onclick="showPanel('panel-evidence','Evidence / All Items',this)">
+            <div class="nav-subitem active" onclick="showPanel('panel-evidence','Investigation Files / All Items',this)">
               <span class="nav-icon">📁</span><span class="nav-label">All Items</span>
             </div>
-            <div class="nav-subitem" onclick="showPanel('panel-cctv','Evidence / CCTV',this)">
+            <div class="nav-subitem" onclick="showPanel('panel-cctv','Investigation Files / CCTV',this)">
               <span class="nav-icon">📷</span><span class="nav-label">CCTV Thumbnails</span>
             </div>
-            <div class="nav-subitem" onclick="showPanel('panel-audio-files','Evidence / Audio Files',this)">
+            <div class="nav-subitem" onclick="showPanel('panel-audio-files','Investigation Files / Audio Files',this)">
               <span class="nav-icon">🎙</span><span class="nav-label">Audio Files</span>
             </div>
-            <div class="nav-subitem" onclick="showPanel('panel-spectrograms','Evidence / Spectrograms',this)">
+            <div class="nav-subitem" onclick="showPanel('panel-spectrograms','Investigation Files / Spectrograms',this)">
               <span class="nav-icon">📊</span><span class="nav-label">Spectrograms</span>
             </div>
-            <div class="nav-subitem" onclick="showPanel('panel-transcripts','Evidence / Transcripts',this)">
+            <div class="nav-subitem" onclick="showPanel('panel-transcripts','Investigation Files / Transcripts',this)">
               <span class="nav-icon">📄</span><span class="nav-label">Interrogation Transcripts</span>
             </div>
-            <div class="nav-subitem" onclick="showPanel('panel-portraits','Evidence / Portraits',this)">
+            <div class="nav-subitem" onclick="showPanel('panel-portraits','Investigation Files / Portraits',this)">
               <span class="nav-icon">🪪</span><span class="nav-label">Character Portraits</span>
             </div>
-            <div class="nav-subitem" onclick="showPanel('panel-metadata','Evidence / Metadata',this)">
+            <div class="nav-subitem" onclick="showPanel('panel-metadata','Investigation Files / Metadata',this)">
               <span class="nav-icon">🔎</span><span class="nav-label">Metadata Snippets</span>
             </div>
-            <div class="nav-subitem" onclick="showPanel('panel-documents','Evidence / Documents',this)">
+            <div class="nav-subitem" onclick="showPanel('panel-documents','Investigation Files / Documents',this)">
               <span class="nav-icon">📋</span><span class="nav-label">Documents</span>
             </div>
           </div>
@@ -898,48 +898,48 @@
         <!-- ══ EVIDENCE — ALL ITEMS ══ -->
         <div class="panel active" id="panel-evidence">
           <div class="panel-head">
-            <div><span class="panel-title">Evidence</span><span class="panel-sub">All collected items · Case COL-001-A</span></div>
+            <div><span class="panel-title">Investigation Files</span><span class="panel-sub">Investigative recordings, transcripts &amp; documents · COL-001-A</span></div>
             <span class="wip-badge">Items added as case progresses</span>
           </div>
           <div class="panel-rule"></div>
           <div class="card-grid" id="evidence-category-grid">
-            <div class="card" onclick="showPanel('panel-cctv','Evidence / CCTV',null)">
+            <div class="card" onclick="showPanel('panel-cctv','Investigation Files / CCTV',null)">
               <span class="card-count">0 items</span>
               <span class="card-icon">📷</span>
               <span class="card-title">CCTV Thumbnails</span>
               <span class="card-desc">Surveillance footage stills from key locations and time windows.</span>
             </div>
-            <div class="card" onclick="showPanel('panel-audio-files','Evidence / Audio Files',null)">
+            <div class="card" onclick="showPanel('panel-audio-files','Investigation Files / Audio Files',null)">
               <span class="card-count">0 items</span>
               <span class="card-icon">🎙</span>
               <span class="card-title">Audio Files</span>
               <span class="card-desc">Intercepted recordings, ambient audio, and voice samples.</span>
             </div>
-            <div class="card" onclick="showPanel('panel-spectrograms','Evidence / Spectrograms',null)">
+            <div class="card" onclick="showPanel('panel-spectrograms','Investigation Files / Spectrograms',null)">
               <span class="card-count">0 items</span>
               <span class="card-icon">📊</span>
               <span class="card-title">Spectrograms</span>
               <span class="card-desc">Visual frequency analysis of audio evidence from the lab.</span>
             </div>
-            <div class="card" onclick="showPanel('panel-transcripts','Evidence / Transcripts',null)">
+            <div class="card" onclick="showPanel('panel-transcripts','Investigation Files / Transcripts',null)">
               <span class="card-count">0 items</span>
               <span class="card-icon">📄</span>
               <span class="card-title">Interrogation Transcripts</span>
               <span class="card-desc">Full typed transcripts of all conducted interrogation sessions.</span>
             </div>
-            <div class="card" onclick="showPanel('panel-portraits','Evidence / Portraits',null)">
+            <div class="card" onclick="showPanel('panel-portraits','Investigation Files / Portraits',null)">
               <span class="card-count">0 items</span>
               <span class="card-icon">🪪</span>
               <span class="card-title">Character Portraits</span>
               <span class="card-desc">Profile images, sketches, and identification photographs.</span>
             </div>
-            <div class="card" onclick="showPanel('panel-metadata','Evidence / Metadata',null)">
+            <div class="card" onclick="showPanel('panel-metadata','Investigation Files / Metadata',null)">
               <span class="card-count">0 items</span>
               <span class="card-icon">🔎</span>
               <span class="card-title">Metadata Snippets</span>
               <span class="card-desc">File timestamps, GPS coordinates, EXIF data, and digital trails.</span>
             </div>
-            <div class="card" onclick="showPanel('panel-documents','Evidence / Documents',null)">
+            <div class="card" onclick="showPanel('panel-documents','Investigation Files / Documents',null)">
               <span class="card-count">0 items</span>
               <span class="card-icon">📋</span>
               <span class="card-title">Documents</span>
@@ -983,7 +983,7 @@
             </div>
           </div>
         </div>
-        <div class="panel active" id="panel-portraits">
+        <div class="panel" id="panel-portraits">
           <div class="panel-head"><div><span class="panel-title">Character Portraits</span><span class="panel-sub">Person identification · Case COL-001-A</span></div><span class="wip-badge">19 characters on file</span></div>
           <div class="panel-rule"></div>
           <div class="evidence-empty" style="display:flex;flex-direction:column;align-items:center;gap:14px;min-height:160px;justify-content:center;">
@@ -1053,7 +1053,7 @@
             </div>
           </div>
           <div class="interr-subcategories">
-            <div class="interr-sub" onclick="showPanel('panel-transcripts','Evidence / Transcripts',null)">
+            <div class="interr-sub" onclick="showPanel('panel-transcripts','Investigation Files / Transcripts',null)">
               <span class="interr-sub-icon">📄</span>
               <span class="interr-sub-title">Transcripts</span>
               <span class="interr-sub-desc">Full text records of every interrogation session, searchable and annotatable.</span>
@@ -1116,13 +1116,13 @@
                 <span class="lab-icon">🔬</span>
                 <div><span class="lab-name">Forensics Lab</span><span class="lab-name-sub">Physical Evidence Analysis</span></div>
               </div>
-              <p class="lab-desc">Analyse physical evidence collected from crime scenes. Process fingerprints, blood samples, fibre analysis, and boot print comparisons. Results feed directly into your Evidence Locker.</p>
+              <p class="lab-desc">Analyse physical evidence collected from crime scenes. Submit items for specialist lab analysis — DNA, toxicology, trace evidence, ballistics, digital forensics and more.</p>
               <div class="lab-capabilities">
-                <span class="lab-cap">Fingerprint matching &amp; comparison</span>
-                <span class="lab-cap">Blood type &amp; DNA sample analysis</span>
-                <span class="lab-cap">Fibre &amp; textile origin identification</span>
-                <span class="lab-cap">Boot print cast comparison</span>
-                <span class="lab-cap">Document authentication</span>
+                <span class="lab-cap">DNA &amp; biological sample analysis</span>
+                <span class="lab-cap">Trace evidence &amp; latent prints</span>
+                <span class="lab-cap">Ballistics &amp; digital forensics</span>
+                <span class="lab-cap">Document &amp; toxicology analysis</span>
+                <span class="lab-cap">11 specialist lab divisions</span>
               </div>
               <button class="lab-btn">Enter Forensics Lab →</button>
             </div>
