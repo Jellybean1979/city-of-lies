@@ -864,13 +864,13 @@
       <div class="note-label">Evidence Locker</div>
     </div>
 
-    <!-- 3. SUSPECTS — Polaroid -->
-    <div class="note" id="note-suspects" onclick="navigate('suspects.html')" title="Suspects">
+    <!-- 3. SUSPECTS — Polaroid — links to portraits filtered to suspects -->
+    <div class="note" id="note-suspects" onclick="navigate('portraits.html?filter=suspect')" title="Suspects">
       <div class="pin yellow"></div>
       <div class="note-inner">
         <div class="polaroid-img"></div>
         <span class="polaroid-caption">Suspects</span>
-        <span class="polaroid-sub">Persons of Interest</span>
+        <span class="polaroid-sub">Classified by player</span>
       </div>
       <div class="note-label">Suspects</div>
     </div>
@@ -901,18 +901,18 @@
       <div class="note-label">Journal / Notes</div>
     </div>
 
-    <!-- 6. AUDIO LAB — Dark panel -->
-    <div class="note" id="note-audio" onclick="navigate('audiolab.html')" title="Audio Lab">
+    <!-- 6. FORENSICS LAB — Dark panel -->
+    <div class="note" id="note-audio" onclick="navigate('board.html')" title="Forensics Lab">
       <div class="pin teal"></div>
       <div class="note-inner">
-        <span class="audio-title">Audio Lab</span>
-        <span class="audio-sub">Signal Analysis</span>
+        <span class="audio-title">Forensics Lab</span>
+        <span class="audio-sub">Evidence Analysis</span>
         <div class="waveform" id="waveform"></div>
         <span class="audio-status">
-          <span class="audio-dot"></span>Recording available
+          <span class="audio-dot"></span>Lab open
         </span>
       </div>
-      <div class="note-label">Audio Lab</div>
+      <div class="note-label">Forensics Lab</div>
     </div>
 
     <!-- 7. FINAL REPORT — Official stamped doc -->
