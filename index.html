@@ -657,7 +657,30 @@
     /* ── Video setup ── */
     const hasSrc = introVideo.getAttribute('src') && introVideo.getAttribute('src').trim() !== '';
 
-    if (hasSrc) {
+    /* ── If returning from game, skip intro and resume music directly ── */
+    const returning = sessionStorage.getItem('col_music') !== null;
+
+    if (returning) {
+      // Skip the intro entirely — go straight to the main menu
+      introComplete  = true;
+      musicUnlocked  = true;
+      introScreen.style.display = 'none';
+      mainUI.classList.add('visible');
+
+      try {
+        const saved = JSON.parse(sessionStorage.getItem('col_music') || '{}');
+        musicEnabled = saved.enabled !== false;
+        if (musicEnabled) {
+          if (saved.time) music.currentTime = saved.time;
+          music.volume = 0.42;
+          music.play().catch(() => {});
+          document.getElementById('sound-toggle').textContent = '♪ Music: On';
+        } else {
+          document.getElementById('sound-toggle').textContent = '♪ Music: Off';
+        }
+      } catch(e) {}
+
+    } else if (hasSrc) {
       fallback.style.display = 'none';
       introVideo.addEventListener('ended', launchMainUI);
       introVideo.addEventListener('error', () => setTimeout(launchMainUI, 500));
@@ -729,6 +752,15 @@
       }
     })();
 
+    /* ── Save music state then navigate ── */
+    function saveMusicState() {
+      sessionStorage.setItem('col_music', JSON.stringify({
+        enabled:  musicEnabled,
+        time:     music.currentTime,
+        src:      'Echoes_in_the_Concrete_Maze.mp3'
+      }));
+    }
+
     /* ── Menu actions ── */
     function handleMenu(action) {
       if (action === 'continue' && document.getElementById('btn-continue').classList.contains('disabled')) return;
@@ -739,7 +771,10 @@
         settings: 'settings.html',
         credits:  'credits.html'
       };
-      if (routes[action]) window.location.href = routes[action];
+      if (routes[action]) {
+        saveMusicState();
+        window.location.href = routes[action];
+      }
     }
 
     /* ── Commit hash ── */
