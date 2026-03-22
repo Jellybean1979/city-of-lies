@@ -1,0 +1,884 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>City of Lies — Evidence Locker</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Special+Elite&family=Courier+Prime:ital,wght@0,400;0,700;1,400&family=Playfair+Display:ital,wght@0,700;1,400&family=Caveat:wght@400;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --ink:         #0e0c09;
+      --steel:       #1c2028;
+      --steel-light: #262d38;
+      --steel-mid:   #3a4455;
+      --amber:       #c47c1a;
+      --gold:        #a8832e;
+      --paper:       #d4c9a8;
+      --paper-dim:   #8a7d60;
+      --blood:       #7a1a1a;
+      --green-tag:   #2a4a2a;
+      --green-lit:   #4a8a4a;
+      --red-tag:     #4a1a1a;
+      --red-lit:     #c43030;
+      --rule:        rgba(168,131,46,0.18);
+    }
+
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    html, body {
+      width: 100%; height: 100%;
+      background: var(--ink);
+      font-family: 'Courier Prime', monospace;
+      overflow: hidden;
+    }
+
+    body { animation: pageIn 0.7s ease forwards; }
+    @keyframes pageIn { from { opacity: 0; } to { opacity: 1; } }
+
+    /* ════════════════════════════
+       BACKGROUND
+    ════════════════════════════ */
+    #room-bg {
+      position: fixed; inset: 0;
+      background-image: url('evidence-locker-room.jpg');
+      background-size: cover;
+      background-position: center;
+      filter: brightness(0.28) saturate(0.5);
+    }
+    #room-tint {
+      position: fixed; inset: 0;
+      background:
+        linear-gradient(to bottom,
+          rgba(14,12,9,0.55) 0%,
+          rgba(14,12,9,0.2)  30%,
+          rgba(14,12,9,0.2)  70%,
+          rgba(14,12,9,0.85) 100%
+        );
+    }
+    #vignette {
+      position: fixed; inset: 0; z-index: 1; pointer-events: none;
+      box-shadow: inset 0 0 140px rgba(0,0,0,0.9), inset 0 0 40px rgba(0,0,0,0.5);
+    }
+    #grain {
+      position: fixed; inset: 0; z-index: 1; pointer-events: none; opacity: 0.04;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='250' height='250'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.78' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='250' height='250' filter='url(%23n)'/%3E%3C/svg%3E");
+      background-size: 200px;
+    }
+
+    /* Overhead fluorescent flicker */
+    @keyframes flicker {
+      0%,100%       { opacity: 1; }
+      41%           { opacity: 1; }
+      42%           { opacity: 0.92; }
+      43%           { opacity: 1; }
+      78%           { opacity: 1; }
+      78.5%         { opacity: 0.88; }
+      79%           { opacity: 1; }
+      79.5%         { opacity: 0.95; }
+      80%           { opacity: 1; }
+    }
+    #room-bg { animation: flicker 9s infinite; }
+
+    /* ════════════════════════════
+       LAYOUT
+    ════════════════════════════ */
+    #layout {
+      position: fixed; inset: 0; z-index: 10;
+      display: flex; flex-direction: column;
+      padding: clamp(14px, 2.5vw, 28px) clamp(14px, 3vw, 32px);
+      gap: 0;
+      overflow: hidden;
+    }
+
+    /* ════════════════════════════
+       HEADER
+    ════════════════════════════ */
+    #header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+      flex-shrink: 0;
+      margin-bottom: clamp(10px, 1.8vh, 18px);
+    }
+
+    #header-left { flex: 1; }
+
+    .dept-badge {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 4px;
+    }
+    .badge-icon {
+      font-size: clamp(16px, 2.5vw, 22px);
+      flex-shrink: 0;
+    }
+    .dept-text {
+      font-size: clamp(7px, 1vw, 9px);
+      letter-spacing: 0.45em;
+      text-transform: uppercase;
+      color: var(--paper-dim);
+      line-height: 1.5;
+    }
+    .dept-text strong {
+      display: block;
+      color: var(--paper);
+      letter-spacing: 0.3em;
+      font-size: clamp(8px, 1.1vw, 10px);
+    }
+
+    .page-title {
+      font-family: 'Special Elite', cursive;
+      font-size: clamp(22px, 4.5vw, 42px);
+      color: var(--paper);
+      letter-spacing: 0.04em;
+      line-height: 1;
+      display: block;
+    }
+    .page-sub {
+      font-size: clamp(7px, 0.9vw, 9px);
+      letter-spacing: 0.35em;
+      text-transform: uppercase;
+      color: var(--paper-dim);
+      display: block;
+      margin-top: 3px;
+    }
+
+    #header-right {
+      text-align: right;
+      flex-shrink: 0;
+    }
+    .case-id-label {
+      font-size: clamp(7px, 0.9vw, 9px);
+      letter-spacing: 0.4em;
+      text-transform: uppercase;
+      color: var(--paper-dim);
+      display: block;
+      margin-bottom: 2px;
+    }
+    .case-id {
+      font-family: 'Special Elite', cursive;
+      font-size: clamp(14px, 2.2vw, 22px);
+      color: var(--amber);
+      letter-spacing: 0.1em;
+      display: block;
+    }
+    .case-status {
+      display: inline-block;
+      margin-top: 4px;
+      font-size: clamp(7px, 0.85vw, 9px);
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      padding: 2px 8px;
+      border: 1px solid var(--red-lit);
+      color: var(--red-lit);
+    }
+
+    /* ── Header rule ── */
+    .h-rule {
+      width: 100%; height: 1px;
+      background: linear-gradient(to right, var(--amber), rgba(168,131,46,0.1));
+      opacity: 0.4;
+      flex-shrink: 0;
+      margin-bottom: clamp(8px, 1.5vh, 14px);
+    }
+
+    /* ════════════════════════════
+       TOOLBAR
+    ════════════════════════════ */
+    #toolbar {
+      display: flex;
+      align-items: center;
+      gap: clamp(8px, 1.5vw, 16px);
+      flex-shrink: 0;
+      margin-bottom: clamp(8px, 1.5vh, 14px);
+      flex-wrap: wrap;
+    }
+
+    .toolbar-stat {
+      font-size: clamp(7px, 0.9vw, 9px);
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: var(--paper-dim);
+      padding: 4px 10px;
+      border: 1px solid rgba(168,131,46,0.15);
+      white-space: nowrap;
+    }
+    .toolbar-stat span {
+      color: var(--amber);
+      font-weight: 700;
+    }
+
+    .toolbar-sep {
+      width: 1px; height: 18px;
+      background: rgba(168,131,46,0.2);
+      flex-shrink: 0;
+    }
+
+    /* Filter buttons */
+    .filter-btn {
+      font-family: 'Courier Prime', monospace;
+      font-size: clamp(7px, 0.9vw, 9px);
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: var(--paper-dim);
+      background: none;
+      border: 1px solid rgba(168,131,46,0.15);
+      padding: 4px 10px;
+      cursor: pointer;
+      transition: color 0.2s, border-color 0.2s;
+    }
+    .filter-btn:hover, .filter-btn.active {
+      color: var(--amber);
+      border-color: rgba(168,131,46,0.5);
+    }
+
+    .toolbar-right { margin-left: auto; }
+
+    /* ════════════════════════════
+       TABLE HEADER
+    ════════════════════════════ */
+    #table-head {
+      display: grid;
+      grid-template-columns: 90px 1fr 120px 100px 110px 130px;
+      gap: 0 clamp(8px, 1.2vw, 16px);
+      padding: 6px clamp(10px, 1.5vw, 16px);
+      background: rgba(26,28,40,0.6);
+      border: 1px solid rgba(168,131,46,0.15);
+      border-bottom: none;
+      flex-shrink: 0;
+    }
+
+    .th {
+      font-size: clamp(6px, 0.8vw, 8px);
+      letter-spacing: 0.35em;
+      text-transform: uppercase;
+      color: var(--paper-dim);
+      white-space: nowrap;
+      overflow: hidden;
+    }
+
+    /* ════════════════════════════
+       EVIDENCE LIST (scrollable)
+    ════════════════════════════ */
+    #evidence-list {
+      flex: 1;
+      overflow-y: auto;
+      overflow-x: hidden;
+      border: 1px solid rgba(168,131,46,0.15);
+      background: rgba(14,12,9,0.65);
+      /* custom scrollbar */
+      scrollbar-width: thin;
+      scrollbar-color: rgba(168,131,46,0.3) transparent;
+    }
+    #evidence-list::-webkit-scrollbar { width: 4px; }
+    #evidence-list::-webkit-scrollbar-track { background: transparent; }
+    #evidence-list::-webkit-scrollbar-thumb { background: rgba(168,131,46,0.3); border-radius: 2px; }
+
+    /* ── Evidence row ── */
+    .ev-row {
+      display: grid;
+      grid-template-columns: 90px 1fr 120px 100px 110px 130px;
+      gap: 0 clamp(8px, 1.2vw, 16px);
+      padding: clamp(10px, 1.5vh, 16px) clamp(10px, 1.5vw, 16px);
+      border-bottom: 1px solid rgba(168,131,46,0.08);
+      cursor: pointer;
+      transition: background 0.18s;
+      animation: rowIn 0.4s ease both;
+      position: relative;
+    }
+    .ev-row:nth-child(odd)  { background: rgba(26,28,40,0.2); }
+    .ev-row:nth-child(even) { background: rgba(14,12,9,0.2); }
+    .ev-row:hover { background: rgba(168,131,46,0.07); }
+    .ev-row.selected { background: rgba(168,131,46,0.1); border-left: 2px solid var(--amber); }
+
+    @keyframes rowIn {
+      from { opacity: 0; transform: translateX(-6px); }
+      to   { opacity: 1; transform: translateX(0); }
+    }
+
+    /* Stagger rows */
+    .ev-row:nth-child(1)  { animation-delay: 0.05s; }
+    .ev-row:nth-child(2)  { animation-delay: 0.10s; }
+    .ev-row:nth-child(3)  { animation-delay: 0.15s; }
+    .ev-row:nth-child(4)  { animation-delay: 0.20s; }
+    .ev-row:nth-child(5)  { animation-delay: 0.25s; }
+    .ev-row:nth-child(6)  { animation-delay: 0.30s; }
+    .ev-row:nth-child(7)  { animation-delay: 0.35s; }
+    .ev-row:nth-child(8)  { animation-delay: 0.40s; }
+
+    /* ── Cell types ── */
+    .cell { overflow: hidden; }
+
+    .ev-id {
+      font-size: clamp(8px, 1vw, 10px);
+      letter-spacing: 0.15em;
+      color: var(--amber);
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .ev-item-name {
+      font-family: 'Special Elite', cursive;
+      font-size: clamp(11px, 1.4vw, 14px);
+      color: var(--paper);
+      display: block;
+      line-height: 1.2;
+    }
+    .ev-item-why {
+      font-size: clamp(7px, 0.85vw, 9px);
+      color: var(--paper-dim);
+      display: block;
+      margin-top: 2px;
+      line-height: 1.4;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .ev-location {
+      font-size: clamp(8px, 1vw, 10px);
+      color: var(--paper-dim);
+      line-height: 1.4;
+    }
+
+    .ev-date {
+      font-size: clamp(8px, 0.95vw, 10px);
+      color: var(--paper-dim);
+      white-space: nowrap;
+    }
+
+    .ev-owner {
+      font-size: clamp(8px, 0.95vw, 10px);
+      color: var(--paper-dim);
+    }
+    .ev-owner.unknown { color: rgba(138,125,96,0.45); font-style: italic; }
+
+    /* Status tag */
+    .ev-status {
+      display: inline-block;
+      font-size: clamp(6px, 0.8vw, 8px);
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      padding: 2px 7px;
+      border: 1px solid;
+      white-space: nowrap;
+      align-self: flex-start;
+    }
+    .ev-status.logged   { color: var(--green-lit); border-color: var(--green-lit); }
+    .ev-status.analysis { color: var(--amber);     border-color: var(--amber); }
+    .ev-status.critical { color: var(--red-lit);   border-color: var(--red-lit); }
+    .ev-status.pending  { color: var(--paper-dim); border-color: rgba(138,125,96,0.3); }
+
+    /* ── Empty state ── */
+    #empty-state {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      gap: 12px;
+      color: var(--paper-dim);
+      opacity: 0.5;
+    }
+    #empty-state.show { display: flex; }
+    .empty-icon { font-size: 36px; }
+    .empty-text {
+      font-size: clamp(9px, 1.2vw, 11px);
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+    }
+
+    /* ════════════════════════════
+       DETAIL PANEL (slide in)
+    ════════════════════════════ */
+    #detail-panel {
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      z-index: 40;
+      background: rgba(14,12,9,0.97);
+      border-top: 1px solid rgba(168,131,46,0.3);
+      padding: clamp(14px, 2.5vw, 24px) clamp(16px, 3vw, 32px);
+      transform: translateY(100%);
+      transition: transform 0.3s cubic-bezier(0.34,1.1,0.64,1);
+      max-height: 45vh;
+      overflow-y: auto;
+    }
+    #detail-panel.open { transform: translateY(0); }
+
+    #detail-close {
+      position: absolute;
+      top: 12px; right: 16px;
+      font-family: 'Courier Prime', monospace;
+      font-size: 10px;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: var(--paper-dim);
+      background: none;
+      border: none;
+      cursor: pointer;
+      transition: color 0.2s;
+    }
+    #detail-close:hover { color: var(--amber); }
+
+    .detail-id {
+      font-size: clamp(7px, 0.9vw, 9px);
+      letter-spacing: 0.4em;
+      text-transform: uppercase;
+      color: var(--amber);
+      display: block;
+      margin-bottom: 4px;
+    }
+    .detail-name {
+      font-family: 'Special Elite', cursive;
+      font-size: clamp(16px, 2.5vw, 24px);
+      color: var(--paper);
+      display: block;
+      margin-bottom: clamp(10px, 1.5vh, 16px);
+    }
+    .detail-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: clamp(10px, 1.5vw, 18px);
+    }
+    .detail-field { }
+    .detail-field-label {
+      font-size: clamp(6px, 0.8vw, 8px);
+      letter-spacing: 0.35em;
+      text-transform: uppercase;
+      color: var(--paper-dim);
+      display: block;
+      margin-bottom: 3px;
+    }
+    .detail-field-val {
+      font-size: clamp(10px, 1.3vw, 13px);
+      color: var(--paper);
+      line-height: 1.5;
+    }
+    .detail-why {
+      margin-top: clamp(10px, 1.5vh, 16px);
+      padding-top: clamp(10px, 1.5vh, 16px);
+      border-top: 1px solid rgba(168,131,46,0.15);
+    }
+    .detail-why-text {
+      font-size: clamp(10px, 1.3vw, 13px);
+      color: var(--paper-dim);
+      line-height: 1.7;
+    }
+
+    /* ════════════════════════════
+       FOOTER
+    ════════════════════════════ */
+    #footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
+      margin-top: clamp(8px, 1.2vh, 12px);
+      gap: 10px;
+    }
+
+    #back-btn {
+      font-family: 'Courier Prime', monospace;
+      font-size: clamp(9px, 1.2vw, 11px);
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: var(--paper-dim);
+      background: rgba(14,12,9,0.6);
+      border: 1px solid rgba(168,131,46,0.25);
+      padding: clamp(7px, 1.2vw, 10px) clamp(14px, 2.5vw, 22px);
+      cursor: pointer;
+      transition: color 0.2s, border-color 0.2s, transform 0.15s;
+      backdrop-filter: blur(4px);
+    }
+    #back-btn:hover {
+      color: var(--amber);
+      border-color: rgba(168,131,46,0.6);
+      transform: translateX(-2px);
+    }
+
+    #versionTag {
+      font-size: 9px;
+      letter-spacing: 0.2em;
+      color: rgba(138,125,96,0.3);
+      text-transform: uppercase;
+    }
+
+    /* ════════════════════════════
+       RESPONSIVE — mobile stacks
+    ════════════════════════════ */
+    @media (max-width: 640px) {
+      #table-head { display: none; }
+
+      .ev-row {
+        grid-template-columns: 1fr;
+        gap: 4px;
+        padding: clamp(10px, 2vw, 14px);
+      }
+      .ev-id    { font-size: 9px; }
+      .ev-location, .ev-date, .ev-owner { font-size: 8px; }
+      .cell.hide-mobile { display: none; }
+
+      .detail-grid { grid-template-columns: 1fr 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <div id="room-bg"></div>
+  <div id="room-tint"></div>
+  <div id="grain"></div>
+  <div id="vignette"></div>
+
+  <div id="layout">
+
+    <!-- ── HEADER ── -->
+    <div id="header">
+      <div id="header-left">
+        <div class="dept-badge">
+          <span class="badge-icon">🔒</span>
+          <span class="dept-text">
+            <strong>City of Lies Police Department</strong>
+            Evidence Control Division · Secure Storage
+          </span>
+        </div>
+        <span class="page-title">Evidence Locker</span>
+        <span class="page-sub">Chain of Custody Log — Restricted Access</span>
+      </div>
+      <div id="header-right">
+        <span class="case-id-label">Active Case</span>
+        <span class="case-id" id="active-case-id">COL-001-A</span>
+        <span class="case-status">Open Investigation</span>
+      </div>
+    </div>
+
+    <div class="h-rule"></div>
+
+    <!-- ── TOOLBAR ── -->
+    <div id="toolbar">
+      <div class="toolbar-stat">Items: <span id="count-total">0</span></div>
+      <div class="toolbar-stat">Critical: <span id="count-critical">0</span></div>
+      <div class="toolbar-sep"></div>
+      <button class="filter-btn active" onclick="filterItems('all', this)">All</button>
+      <button class="filter-btn" onclick="filterItems('critical', this)">Critical</button>
+      <button class="filter-btn" onclick="filterItems('analysis', this)">In Analysis</button>
+      <button class="filter-btn" onclick="filterItems('logged', this)">Logged</button>
+      <button class="filter-btn" onclick="filterItems('pending', this)">Pending</button>
+    </div>
+
+    <!-- ── TABLE HEAD ── -->
+    <div id="table-head">
+      <div class="th">Item ID</div>
+      <div class="th">Description / Relevance</div>
+      <div class="th">Location Found</div>
+      <div class="th">Date Found</div>
+      <div class="th">Belongs To</div>
+      <div class="th">Status</div>
+    </div>
+
+    <!-- ── EVIDENCE LIST ── -->
+    <div id="evidence-list">
+      <div id="empty-state">
+        <span class="empty-icon">📦</span>
+        <span class="empty-text">No items match this filter</span>
+      </div>
+    </div>
+
+    <!-- ── FOOTER ── -->
+    <div id="footer">
+      <button id="back-btn" onclick="goBack()">← Investigation Board</button>
+      <span id="versionTag">v0.1.0 · local</span>
+    </div>
+
+  </div>
+
+  <!-- ── DETAIL PANEL ── -->
+  <div id="detail-panel">
+    <button id="detail-close" onclick="closeDetail()">✕ Close</button>
+    <span class="detail-id" id="dp-id"></span>
+    <span class="detail-name" id="dp-name"></span>
+    <div class="detail-grid">
+      <div class="detail-field">
+        <span class="detail-field-label">Location Found</span>
+        <span class="detail-field-val" id="dp-location"></span>
+      </div>
+      <div class="detail-field">
+        <span class="detail-field-label">Date / Time Found</span>
+        <span class="detail-field-val" id="dp-date"></span>
+      </div>
+      <div class="detail-field">
+        <span class="detail-field-label">Belongs To</span>
+        <span class="detail-field-val" id="dp-owner"></span>
+      </div>
+      <div class="detail-field">
+        <span class="detail-field-label">Status</span>
+        <span class="detail-field-val" id="dp-status"></span>
+      </div>
+    </div>
+    <div class="detail-why">
+      <span class="detail-field-label">Why It Is In Evidence</span>
+      <span class="detail-why-text" id="dp-why"></span>
+    </div>
+  </div>
+
+  <audio id="bg-music" loop preload="auto">
+    <source src="Echoes_in_the_Concrete_Maze.mp3" type="audio/mpeg" />
+  </audio>
+
+  <script>
+    /* ════════════════════════════════════════
+       CASE ID CONVENTION
+       Format: COL-[3-digit number]-[letter]
+         COL = City of Lies
+         001 = Case number
+         A   = Sub-case or chapter variant
+       Examples: COL-001-A, COL-002-B, COL-003-A
+    ════════════════════════════════════════ */
+    const CURRENT_CASE = 'COL-001-A';
+    document.getElementById('active-case-id').textContent = CURRENT_CASE;
+
+    /* ════════════════════════════════════════
+       EVIDENCE DATA
+       Each item: id, name, location, date,
+       owner, why, status (logged|analysis|critical|pending)
+       
+       Placeholder items — replace/extend as
+       the game's story develops.
+    ════════════════════════════════════════ */
+    const EVIDENCE = [
+      {
+        id:       `${CURRENT_CASE}-E01`,
+        name:     'Monogrammed Cigarette Case',
+        location: 'Harlow Street Alley, near dumpster behind The Blue Meridian bar',
+        date:     'Mar 04 2026 · 22:14',
+        owner:    'Victor Marre',
+        why:      'Found at the primary crime scene. Monogram "V.M." matches Victor Marre. Suggests Marre was present within hours of the incident. Partial fingerprint on inner lid sent to lab.',
+        status:   'analysis'
+      },
+      {
+        id:       `${CURRENT_CASE}-E02`,
+        name:     'Unsigned Threatening Letter',
+        location: 'Victim\'s desk drawer — 14B Creston Apartments',
+        date:     'Mar 05 2026 · 09:30',
+        owner:    'Unknown',
+        why:      'Letter warns the victim to "stop digging or face the same fate as the others." Written on a typewriter — font analysis in progress. No prints recovered. May indicate premeditation.',
+        status:   'critical'
+      },
+      {
+        id:       `${CURRENT_CASE}-E03`,
+        name:     'Burner Mobile Phone',
+        location: 'Storm drain — intersection of 4th Ave and Canal St',
+        date:     'Mar 05 2026 · 14:45',
+        owner:    'Unknown',
+        why:      'Recovered during canal sweep. SIM card removed but internal memory partially intact. Forensics recovered 3 fragmented call logs and a deleted photo. Device is being imaged.',
+        status:   'analysis'
+      },
+      {
+        id:       `${CURRENT_CASE}-E04`,
+        name:     'Bloodstained Cloth Fragment',
+        location: 'Chain-link fence — rear of Kessler Warehouse District',
+        date:     'Mar 06 2026 · 07:10',
+        owner:    'Unknown',
+        why:      'Fabric snagged on fence consistent with a struggle. Blood type matches victim. Textile analysis may identify garment origin. No DNA results yet.',
+        status:   'critical'
+      },
+      {
+        id:       `${CURRENT_CASE}-E05`,
+        name:     'Ledger — Handwritten Accounts',
+        location: 'Hidden compartment beneath floorboard — Marre Import Co. Office',
+        date:     'Mar 06 2026 · 11:55',
+        owner:    'Victor Marre',
+        why:      'Ledger records irregular cash transactions totalling $340,000 over six months. Entries use coded names. Cross-referencing with known associates. Possible motive documentation.',
+        status:   'logged'
+      },
+      {
+        id:       `${CURRENT_CASE}-E06`,
+        name:     'Security Footage — USB Drive',
+        location: 'City Harbour CCTV Office, Bay 7',
+        date:     'Mar 06 2026 · 16:00',
+        owner:    'City Harbour Authority',
+        why:      'Footage covers the night of the incident. Partial view of the alley entrance. A figure matching suspect description observed at 21:48. Awaiting enhancement.',
+        status:   'analysis'
+      },
+      {
+        id:       `${CURRENT_CASE}-E07`,
+        name:     'Prescription Medicine Bottle',
+        location: 'Victim\'s bathroom cabinet — 14B Creston Apartments',
+        date:     'Mar 07 2026 · 10:20',
+        owner:    'Elara Voss',
+        why:      'Bottle prescribed to Elara Voss, not the victim. Suggests Voss had access to the apartment. Relationship between victim and Voss under investigation.',
+        status:   'logged'
+      },
+      {
+        id:       `${CURRENT_CASE}-E08`,
+        name:     'Partial Boot Print Cast',
+        location: 'Muddy lot — adjacent to Harlow Street Alley',
+        date:     'Mar 07 2026 · 08:05',
+        owner:    'Unknown',
+        why:      'Size 11 boot print taken in plaster. Distinctive tread pattern consistent with military-issue footwear. Checking against suspect profiles.',
+        status:   'pending'
+      },
+    ];
+
+    /* ════════════════════════════════════════
+       RENDER
+    ════════════════════════════════════════ */
+    let activeFilter  = 'all';
+    let selectedIndex = null;
+
+    function renderList(filter) {
+      const list = document.getElementById('evidence-list');
+      const empty = document.getElementById('empty-state');
+
+      // Clear existing rows
+      list.querySelectorAll('.ev-row').forEach(r => r.remove());
+
+      const filtered = filter === 'all'
+        ? EVIDENCE
+        : EVIDENCE.filter(e => e.status === filter);
+
+      if (filtered.length === 0) {
+        empty.classList.add('show');
+        return;
+      }
+      empty.classList.remove('show');
+
+      filtered.forEach((item, i) => {
+        const row = document.createElement('div');
+        row.className = 'ev-row' + (selectedIndex === i ? ' selected' : '');
+        row.setAttribute('data-index', i);
+        row.onclick = () => openDetail(item, row);
+
+        row.innerHTML = `
+          <div class="cell ev-id">${item.id}</div>
+          <div class="cell">
+            <span class="ev-item-name">${item.name}</span>
+            <span class="ev-item-why">${item.why}</span>
+          </div>
+          <div class="cell ev-location hide-mobile">${item.location.split('—')[0].trim()}</div>
+          <div class="cell ev-date hide-mobile">${item.date.split('·')[0].trim()}</div>
+          <div class="cell ev-owner ${item.owner === 'Unknown' ? 'unknown' : ''} hide-mobile">
+            ${item.owner}
+          </div>
+          <div class="cell">
+            <span class="ev-status ${item.status}">${statusLabel(item.status)}</span>
+          </div>
+        `;
+        list.appendChild(row);
+      });
+
+      // Update counts
+      document.getElementById('count-total').textContent    = EVIDENCE.length;
+      document.getElementById('count-critical').textContent = EVIDENCE.filter(e => e.status === 'critical').length;
+    }
+
+    function statusLabel(s) {
+      return { logged: 'Logged', analysis: 'In Analysis', critical: 'Critical', pending: 'Pending' }[s] || s;
+    }
+
+    function filterItems(filter, btn) {
+      activeFilter = filter;
+      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      closeDetail();
+      renderList(filter);
+    }
+
+    /* ════════════════════════════════════════
+       DETAIL PANEL
+    ════════════════════════════════════════ */
+    function openDetail(item, row) {
+      document.querySelectorAll('.ev-row').forEach(r => r.classList.remove('selected'));
+      row.classList.add('selected');
+
+      document.getElementById('dp-id').textContent       = item.id;
+      document.getElementById('dp-name').textContent     = item.name;
+      document.getElementById('dp-location').textContent = item.location;
+      document.getElementById('dp-date').textContent     = item.date;
+      document.getElementById('dp-owner').textContent    = item.owner;
+      document.getElementById('dp-status').textContent   = statusLabel(item.status);
+      document.getElementById('dp-why').textContent      = item.why;
+
+      document.getElementById('detail-panel').classList.add('open');
+    }
+
+    function closeDetail() {
+      document.getElementById('detail-panel').classList.remove('open');
+      document.querySelectorAll('.ev-row').forEach(r => r.classList.remove('selected'));
+      selectedIndex = null;
+    }
+
+    // Close on backdrop click
+    document.getElementById('evidence-list').addEventListener('click', e => {
+      if (!e.target.closest('.ev-row')) closeDetail();
+    });
+
+    /* ════════════════════════════════════════
+       INITIAL RENDER
+    ════════════════════════════════════════ */
+    renderList('all');
+
+    /* ════════════════════════════════════════
+       MUSIC RESUME
+    ════════════════════════════════════════ */
+    const music = document.getElementById('bg-music');
+    let musicEnabled = true;
+
+    (function resumeMusic() {
+      try {
+        const saved = JSON.parse(sessionStorage.getItem('col_music') || '{}');
+        musicEnabled = saved.enabled !== false;
+        if (!musicEnabled) return;
+        if (saved.time)   music.currentTime = saved.time;
+        music.volume = saved.volume ?? 0.42;
+        music.play().catch(() => {
+          const unlock = () => {
+            music.play().catch(() => {});
+            document.removeEventListener('click',      unlock);
+            document.removeEventListener('touchstart', unlock);
+          };
+          document.addEventListener('click',      unlock, { passive: true });
+          document.addEventListener('touchstart', unlock, { passive: true });
+        });
+      } catch(e) {}
+    })();
+
+    function saveMusicState() {
+      sessionStorage.setItem('col_music', JSON.stringify({
+        enabled: musicEnabled,
+        time:    music.currentTime,
+        volume:  music.volume,
+        src:     'Echoes_in_the_Concrete_Maze.mp3'
+      }));
+    }
+
+    /* ════════════════════════════════════════
+       NAVIGATION
+    ════════════════════════════════════════ */
+    function goBack() {
+      saveMusicState();
+      window.location.href = 'game.html';
+    }
+
+    /* ════════════════════════════════════════
+       VERSION TAG
+    ════════════════════════════════════════ */
+    async function updateCommitHash() {
+      try {
+        const res  = await fetch('https://api.github.com/repos/jellybean1979/CityOfLies/commits?per_page=1');
+        if (!res.ok) throw new Error();
+        const data = await res.json();
+        const sha  = data[0]?.sha?.substring(0, 7) ?? '-------';
+        document.getElementById('versionTag').textContent = `v0.1.0 · ${sha}`;
+      } catch {
+        document.getElementById('versionTag').textContent = 'v0.1.0 · local';
+      }
+    }
+    updateCommitHash();
+  </script>
+</body>
+</html>
+
