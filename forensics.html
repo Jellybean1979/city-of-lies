@@ -1,0 +1,1021 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>City of Lies — Forensics Lab</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Special+Elite&family=Courier+Prime:ital,wght@0,400;0,700;1,400&family=Playfair+Display:ital,wght@0,700;1,400&family=Caveat:wght@400;600&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --ink:        #08090c;
+      --steel:      #111520;
+      --surface:    #161b28;
+      --border:     rgba(100,160,220,0.15);
+      --border-hi:  rgba(100,160,220,0.45);
+      --amber:      #c47c1a;
+      --gold:       #a8832e;
+      --paper:      #c8d8e8;
+      --paper-dim:  #607080;
+      --teal:       #1a9a8a;
+      --teal-lit:   #2dd4bf;
+      --blue-lit:   #60a8e0;
+      --green-lit:  #3a9a5a;
+      --red-lit:    #c43030;
+      --purple-lit: #9060c0;
+      --orange-lit: #e07030;
+      --yellow-lit: #c0a020;
+    }
+
+    *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+
+    html, body {
+      width:100%; height:100%;
+      background: var(--ink);
+      font-family: 'Courier Prime', monospace;
+      overflow: hidden;
+    }
+
+    body { animation: pageIn .6s ease forwards; }
+    @keyframes pageIn { from{opacity:0} to{opacity:1} }
+
+    /* ── BG ── */
+    #bg {
+      position:fixed; inset:0;
+      background-image: url('Assets/JPG/Backgrounds/background-mainUI.jpg');
+      background-size:cover; background-position:center;
+      filter: brightness(0.12) saturate(0.3) hue-rotate(180deg);
+    }
+    #bg-grid {
+      position:fixed; inset:0;
+      background-image:
+        linear-gradient(rgba(100,160,220,.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(100,160,220,.04) 1px, transparent 1px);
+      background-size:40px 40px;
+      pointer-events:none;
+    }
+    #vignette {
+      position:fixed; inset:0; z-index:1; pointer-events:none;
+      box-shadow: inset 0 0 180px rgba(0,2,8,.98), inset 0 0 60px rgba(0,2,8,.7);
+    }
+
+    /* Scanlines */
+    #scanlines {
+      position:fixed; inset:0; z-index:1; pointer-events:none;
+      background: repeating-linear-gradient(
+        to bottom, transparent 0, transparent 3px,
+        rgba(0,0,0,.04) 3px, rgba(0,0,0,.04) 4px
+      );
+    }
+
+    /* ── APP SHELL ── */
+    #app {
+      position:fixed; inset:0; z-index:10;
+      display:flex; flex-direction:column;
+    }
+
+    /* ── TOPBAR ── */
+    #topbar {
+      display:flex; align-items:center; gap:12px;
+      padding:0 clamp(14px,2.5vw,28px);
+      height:clamp(44px,7vh,56px);
+      background: rgba(4,6,12,.92);
+      border-bottom:1px solid var(--border);
+      flex-shrink:0; backdrop-filter:blur(8px);
+    }
+    #back-btn {
+      font-size:clamp(8px,1vw,10px); letter-spacing:.25em; text-transform:uppercase;
+      color:var(--paper-dim); background:none;
+      border:1px solid var(--border); padding:5px 12px;
+      cursor:pointer; transition:color .2s, border-color .2s, transform .15s;
+      white-space:nowrap; flex-shrink:0;
+    }
+    #back-btn:hover { color:var(--teal-lit); border-color:var(--border-hi); transform:translateX(-2px); }
+    .tb-div { width:1px; height:22px; background:var(--border); flex-shrink:0; }
+    .tb-title {
+      font-family:'Special Elite',cursive;
+      font-size:clamp(13px,2vw,18px); color:var(--paper);
+    }
+    .tb-sub {
+      font-size:clamp(7px,.85vw,9px); letter-spacing:.35em;
+      text-transform:uppercase; color:var(--teal-lit); opacity:.6;
+    }
+    #tb-right { margin-left:auto; display:flex; align-items:center; gap:10px; }
+    #versionTag {
+      font-size:8px; letter-spacing:.2em;
+      color:rgba(100,160,220,.2); text-transform:uppercase;
+    }
+
+    /* ── STATUS BAR ── */
+    #statusbar {
+      display:flex; align-items:center; gap:clamp(8px,1.5vw,16px);
+      padding:clamp(6px,1vh,10px) clamp(14px,2.5vw,28px);
+      background:rgba(4,6,12,.7);
+      border-bottom:1px solid var(--border);
+      flex-shrink:0; flex-wrap:wrap;
+      backdrop-filter:blur(4px);
+    }
+    .status-pill {
+      display:flex; align-items:center; gap:6px;
+      font-size:clamp(7px,.85vw,9px); letter-spacing:.2em;
+      text-transform:uppercase;
+    }
+    .status-dot {
+      width:6px; height:6px; border-radius:50%; flex-shrink:0;
+      animation:pulse 2s ease infinite;
+    }
+    @keyframes pulse {
+      0%,100%{opacity:1;transform:scale(1)}
+      50%{opacity:.5;transform:scale(.8)}
+    }
+    .dot-green { background:var(--green-lit); box-shadow:0 0 5px var(--green-lit); }
+    .dot-amber { background:var(--amber); box-shadow:0 0 5px var(--amber); }
+    .status-pill-label { color:var(--paper-dim); }
+    .status-pill-val { color:var(--teal-lit); }
+    .status-sep { width:1px; height:14px; background:var(--border); flex-shrink:0; }
+
+    /* ── MAIN SCROLL AREA ── */
+    #main {
+      flex:1; overflow-y:auto; overflow-x:hidden;
+      padding:clamp(16px,2.5vw,28px) clamp(14px,2.5vw,28px);
+      scrollbar-width:thin;
+      scrollbar-color:rgba(100,160,220,.2) transparent;
+    }
+    #main::-webkit-scrollbar { width:4px; }
+    #main::-webkit-scrollbar-thumb { background:rgba(100,160,220,.2); border-radius:2px; }
+
+    /* ── SECTION HEADER ── */
+    .section-head {
+      display:flex; align-items:center; gap:12px;
+      margin-bottom:clamp(14px,2.5vh,22px);
+    }
+    .section-title {
+      font-family:'Special Elite',cursive;
+      font-size:clamp(15px,2.2vw,20px); color:var(--paper);
+    }
+    .section-rule {
+      flex:1; height:1px;
+      background:linear-gradient(to right, var(--border), transparent);
+    }
+
+    /* ── EVIDENCE QUEUE ── */
+    #evidence-queue {
+      background:rgba(4,6,12,.7);
+      border:1px solid var(--border);
+      padding:clamp(12px,2vw,20px);
+      margin-bottom:clamp(18px,3vh,28px);
+    }
+    .queue-header {
+      display:flex; align-items:center; justify-content:space-between;
+      margin-bottom:clamp(10px,1.8vh,16px); flex-wrap:wrap; gap:8px;
+    }
+    .queue-title {
+      font-size:clamp(7px,.85vw,9px); letter-spacing:.4em;
+      text-transform:uppercase; color:var(--paper-dim);
+    }
+    .queue-count {
+      font-size:clamp(7px,.85vw,9px); letter-spacing:.2em;
+      text-transform:uppercase;
+    }
+    .queue-count span { color:var(--teal-lit); }
+    .queue-grid {
+      display:flex; gap:clamp(8px,1.2vw,14px);
+      flex-wrap:wrap;
+    }
+    .queue-item {
+      background:rgba(100,160,220,.06);
+      border:1px solid rgba(100,160,220,.2);
+      padding:clamp(6px,1vw,10px) clamp(10px,1.5vw,14px);
+      cursor:pointer; transition:border-color .2s, background .2s;
+    }
+    .queue-item:hover { border-color:var(--border-hi); background:rgba(100,160,220,.1); }
+    .queue-item-id {
+      font-size:clamp(7px,.85vw,9px); letter-spacing:.2em;
+      color:var(--amber); display:block; margin-bottom:2px;
+    }
+    .queue-item-name {
+      font-family:'Special Elite',cursive;
+      font-size:clamp(10px,1.3vw,13px); color:var(--paper);
+      display:block;
+    }
+    .queue-item-tag {
+      font-size:clamp(6px,.75vw,8px); letter-spacing:.2em;
+      text-transform:uppercase; color:var(--teal-lit);
+      display:block; margin-top:2px;
+    }
+    .queue-empty {
+      font-size:clamp(8px,1vw,10px); letter-spacing:.25em;
+      text-transform:uppercase; color:var(--paper-dim);
+      opacity:.4; padding:10px 0;
+    }
+
+    /* ── LAB GRID ── */
+    .lab-grid {
+      display:grid;
+      grid-template-columns:repeat(auto-fill, minmax(clamp(240px,28vw,320px),1fr));
+      gap:clamp(10px,1.5vw,16px);
+    }
+
+    /* ── LAB CARD ── */
+    .lab-card {
+      background: rgba(16,21,32,.85);
+      border:1px solid var(--border);
+      cursor:pointer;
+      transition:border-color .22s, transform .22s, background .22s;
+      position:relative; overflow:hidden;
+    }
+    .lab-card::before {
+      content:'';
+      position:absolute; top:0; left:0; right:0;
+      height:2px; opacity:0;
+      transition:opacity .22s;
+    }
+    .lab-card:hover {
+      border-color:var(--border-hi);
+      background:rgba(20,28,44,.95);
+      transform:translateY(-2px);
+    }
+    .lab-card:hover::before { opacity:1; }
+
+    /* accent bar colour per lab */
+    .lab-dna::before        { background:var(--red-lit); }
+    .lab-tox::before        { background:var(--purple-lit); }
+    .lab-trace::before      { background:var(--orange-lit); }
+    .lab-ballistics::before { background:var(--yellow-lit); }
+    .lab-digital::before    { background:var(--blue-lit); }
+    .lab-chemistry::before  { background:var(--teal-lit); }
+    .lab-latent::before     { background:var(--amber); }
+    .lab-document::before   { background:#a09070; }
+    .lab-anthro::before     { background:var(--green-lit); }
+    .lab-bio::before        { background:#c040a0; }
+    .lab-metal::before      { background:#8090a0; }
+
+    .lab-inner {
+      padding:clamp(14px,2vw,22px);
+    }
+    .lab-header {
+      display:flex; align-items:flex-start; gap:12px;
+      margin-bottom:clamp(8px,1.5vh,12px);
+    }
+    .lab-icon { font-size:clamp(22px,3vw,32px); flex-shrink:0; line-height:1; }
+    .lab-name-wrap { flex:1; }
+    .lab-name {
+      font-family:'Special Elite',cursive;
+      font-size:clamp(12px,1.6vw,16px); color:var(--paper);
+      display:block; line-height:1.2; margin-bottom:2px;
+    }
+    .lab-acronym {
+      font-size:clamp(6px,.75vw,8px); letter-spacing:.3em;
+      text-transform:uppercase; color:var(--paper-dim);
+      display:block;
+    }
+
+    /* Available / Busy badge */
+    .lab-status-badge {
+      font-size:clamp(6px,.7vw,8px); letter-spacing:.2em;
+      text-transform:uppercase; padding:2px 7px;
+      border:1px solid; flex-shrink:0; align-self:flex-start;
+    }
+    .badge-available { color:var(--green-lit); border-color:var(--green-lit); }
+    .badge-busy      { color:var(--amber);     border-color:var(--amber); }
+    .badge-restricted{ color:var(--red-lit);   border-color:var(--red-lit); }
+
+    .lab-desc {
+      font-size:clamp(9px,1.1vw,11px);
+      color:var(--paper-dim); line-height:1.7;
+      margin-bottom:clamp(10px,1.8vh,14px);
+    }
+
+    /* Capabilities list */
+    .lab-caps {
+      display:flex; flex-direction:column; gap:4px;
+      margin-bottom:clamp(10px,1.8vh,14px);
+    }
+    .lab-cap {
+      display:flex; align-items:baseline; gap:7px;
+      font-size:clamp(8px,.95vw,10px); color:var(--paper-dim);
+      line-height:1.4;
+    }
+    .lab-cap::before { content:'›'; color:var(--teal-lit); flex-shrink:0; }
+
+    /* Database tag */
+    .lab-db {
+      display:inline-flex; align-items:center; gap:5px;
+      font-size:clamp(6px,.75vw,8px); letter-spacing:.2em;
+      text-transform:uppercase; color:var(--blue-lit);
+      border:1px solid rgba(96,168,224,.25);
+      padding:2px 8px; margin-bottom:clamp(8px,1.5vh,12px);
+    }
+    .lab-db-dot {
+      width:5px; height:5px; border-radius:50%;
+      background:var(--blue-lit); flex-shrink:0;
+    }
+
+    /* Submit button */
+    .lab-submit {
+      width:100%;
+      font-family:'Courier Prime',monospace;
+      font-size:clamp(8px,1vw,10px); letter-spacing:.25em;
+      text-transform:uppercase; color:var(--paper-dim);
+      background:rgba(100,160,220,.06);
+      border:1px solid var(--border);
+      padding:clamp(7px,1.2vw,10px);
+      cursor:pointer; transition:color .2s, border-color .2s, background .2s;
+      display:flex; align-items:center; justify-content:center; gap:8px;
+    }
+    .lab-submit:hover {
+      color:var(--teal-lit); border-color:var(--border-hi);
+      background:rgba(100,160,220,.12);
+    }
+    .lab-submit:disabled {
+      opacity:.3; cursor:default;
+    }
+
+    /* ── SUBMIT MODAL ── */
+    #submit-modal-overlay {
+      position:fixed; inset:0; z-index:50;
+      background:rgba(0,2,8,.8);
+      display:flex; align-items:center; justify-content:center;
+      padding:clamp(16px,4vw,40px);
+      opacity:0; pointer-events:none;
+      transition:opacity .2s;
+      backdrop-filter:blur(4px);
+    }
+    #submit-modal-overlay.open { opacity:1; pointer-events:all; }
+
+    #submit-modal {
+      background:rgba(16,21,32,.98);
+      border:1px solid var(--border-hi);
+      width:100%; max-width:480px;
+      padding:clamp(20px,3.5vw,36px);
+      transform:scale(.95);
+      transition:transform .25s cubic-bezier(.34,1.2,.64,1);
+    }
+    #submit-modal-overlay.open #submit-modal { transform:scale(1); }
+
+    .modal-lab-name {
+      font-family:'Special Elite',cursive;
+      font-size:clamp(16px,2.5vw,22px); color:var(--paper);
+      display:block; margin-bottom:4px;
+    }
+    .modal-lab-sub {
+      font-size:clamp(7px,.85vw,9px); letter-spacing:.3em;
+      text-transform:uppercase; color:var(--teal-lit); opacity:.7;
+      display:block; margin-bottom:clamp(14px,2.5vh,20px);
+    }
+    .modal-rule {
+      width:100%; height:1px;
+      background:linear-gradient(to right, var(--border-hi), transparent);
+      margin-bottom:clamp(14px,2.5vh,20px);
+    }
+    .modal-label {
+      font-size:clamp(7px,.85vw,9px); letter-spacing:.35em;
+      text-transform:uppercase; color:var(--paper-dim);
+      display:block; margin-bottom:clamp(8px,1.4vh,12px);
+    }
+    .modal-evidence-list {
+      display:flex; flex-direction:column; gap:6px;
+      max-height:200px; overflow-y:auto;
+      scrollbar-width:thin; scrollbar-color:rgba(100,160,220,.2) transparent;
+      margin-bottom:clamp(14px,2.5vh,20px);
+    }
+    .modal-evidence-list::-webkit-scrollbar { width:3px; }
+    .modal-evidence-list::-webkit-scrollbar-thumb { background:rgba(100,160,220,.2); }
+
+    .modal-ev-item {
+      display:flex; align-items:center; gap:10px;
+      padding:clamp(7px,1.2vw,10px) clamp(10px,1.5vw,14px);
+      background:rgba(100,160,220,.04);
+      border:1px solid rgba(100,160,220,.12);
+      cursor:pointer; transition:border-color .2s, background .2s;
+    }
+    .modal-ev-item.selected {
+      background:rgba(100,160,220,.1);
+      border-color:rgba(100,160,220,.4);
+    }
+    .modal-ev-checkbox {
+      width:14px; height:14px;
+      border:1px solid rgba(100,160,220,.3);
+      flex-shrink:0; display:flex; align-items:center; justify-content:center;
+      font-size:10px; color:var(--teal-lit);
+    }
+    .modal-ev-checkbox.checked::after { content:'✓'; }
+    .modal-ev-id {
+      font-size:clamp(7px,.85vw,9px); letter-spacing:.15em;
+      color:var(--amber); flex-shrink:0;
+    }
+    .modal-ev-name {
+      font-family:'Special Elite',cursive;
+      font-size:clamp(10px,1.3vw,13px); color:var(--paper); flex:1;
+    }
+    .modal-ev-status {
+      font-size:clamp(6px,.75vw,8px); letter-spacing:.15em;
+      text-transform:uppercase; flex-shrink:0;
+    }
+    .modal-ev-status.analysis { color:var(--amber); }
+    .modal-ev-status.logged   { color:var(--paper-dim); }
+    .modal-ev-status.pending  { color:var(--paper-dim); opacity:.5; }
+
+    .modal-note-label {
+      font-size:clamp(7px,.85vw,9px); letter-spacing:.3em;
+      text-transform:uppercase; color:var(--paper-dim);
+      display:block; margin-bottom:6px;
+    }
+    .modal-note {
+      width:100%; background:rgba(4,6,12,.8);
+      border:1px solid rgba(100,160,220,.15);
+      font-family:'Caveat',cursive;
+      font-size:clamp(12px,1.6vw,15px);
+      color:var(--paper); padding:8px 12px;
+      resize:none; outline:none; height:70px;
+      margin-bottom:clamp(14px,2.5vh,20px);
+      caret-color:var(--teal-lit);
+    }
+    .modal-note::placeholder { color:rgba(100,160,220,.2); font-style:italic; }
+
+    .modal-actions { display:flex; gap:10px; }
+    .modal-btn {
+      font-family:'Courier Prime',monospace;
+      font-size:clamp(8px,1vw,10px); letter-spacing:.25em;
+      text-transform:uppercase; padding:clamp(8px,1.3vw,12px) clamp(16px,2.5vw,24px);
+      border:none; cursor:pointer; flex:1;
+      transition:filter .15s, transform .15s;
+    }
+    .modal-btn:hover { filter:brightness(1.1); transform:translateY(-1px); }
+    .modal-btn.primary   { background:var(--teal-lit); color:var(--ink); }
+    .modal-btn.secondary { background:none; color:var(--paper-dim); border:1px solid var(--border); }
+    .modal-btn.secondary:hover { color:var(--paper); border-color:var(--border-hi); }
+
+    /* Submission confirmation flash */
+    #submit-confirm {
+      position:fixed; bottom:24px; left:50%; transform:translateX(-50%);
+      z-index:60; background:rgba(16,21,32,.96);
+      border:1px solid rgba(45,212,191,.4);
+      padding:10px 24px; white-space:nowrap;
+      font-size:clamp(8px,1vw,10px); letter-spacing:.3em;
+      text-transform:uppercase; color:var(--teal-lit);
+      opacity:0; pointer-events:none;
+      transition:opacity .3s;
+    }
+    #submit-confirm.show { opacity:1; }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width:560px) {
+      .lab-grid { grid-template-columns:1fr; }
+      .modal-actions { flex-direction:column; }
+    }
+  </style>
+</head>
+<body>
+
+  <div id="bg"></div>
+  <div id="bg-grid"></div>
+  <div id="scanlines"></div>
+  <div id="vignette"></div>
+
+  <div id="app">
+
+    <!-- TOPBAR -->
+    <div id="topbar">
+      <button id="back-btn" onclick="goBack()">← Board</button>
+      <div class="tb-div"></div>
+      <div>
+        <span class="tb-title">Forensics Lab</span>
+        <span class="tb-sub">City of Lies P.D. — Scientific Analysis Division</span>
+      </div>
+      <div id="tb-right">
+        <span id="versionTag">v0.1.0 · local</span>
+      </div>
+    </div>
+
+    <!-- STATUS BAR -->
+    <div id="statusbar">
+      <div class="status-pill">
+        <div class="status-dot dot-green"></div>
+        <span class="status-pill-label">Labs Online:</span>
+        <span class="status-pill-val">11 / 11</span>
+      </div>
+      <div class="status-sep"></div>
+      <div class="status-pill">
+        <div class="status-dot dot-amber"></div>
+        <span class="status-pill-label">In Analysis:</span>
+        <span class="status-pill-val" id="stat-in-analysis">0</span>
+      </div>
+      <div class="status-sep"></div>
+      <div class="status-pill">
+        <span class="status-pill-label">Case:</span>
+        <span class="status-pill-val">COL-001-A</span>
+      </div>
+    </div>
+
+    <!-- MAIN -->
+    <div id="main">
+
+      <!-- Evidence queue -->
+      <div id="evidence-queue">
+        <div class="queue-header">
+          <span class="queue-title">Evidence Awaiting Analysis</span>
+          <span class="queue-count">Items in queue: <span id="queue-count">0</span></span>
+        </div>
+        <div class="queue-grid" id="queue-grid">
+          <span class="queue-empty" id="queue-empty">No evidence currently submitted for analysis</span>
+        </div>
+      </div>
+
+      <!-- Lab divisions -->
+      <div class="section-head">
+        <span class="section-title">Laboratory Divisions</span>
+        <div class="section-rule"></div>
+      </div>
+
+      <div class="lab-grid">
+
+        <!-- 1. DNA -->
+        <div class="lab-card lab-dna" onclick="openSubmit('dna')">
+          <div class="lab-inner">
+            <div class="lab-header">
+              <span class="lab-icon">🧬</span>
+              <div class="lab-name-wrap">
+                <span class="lab-name">Forensic DNA Lab</span>
+                <span class="lab-acronym">CODIS-linked · Biological ID</span>
+              </div>
+              <span class="lab-status-badge badge-available">Available</span>
+            </div>
+            <p class="lab-desc">Examines biological samples — blood, hair, saliva, and skin cells — for genetic identification. Profiles are cross-referenced against CODIS to identify known offenders or link scenes.</p>
+            <div class="lab-caps">
+              <span class="lab-cap">Blood typing &amp; full DNA profiling</span>
+              <span class="lab-cap">Hair follicle mitochondrial analysis</span>
+              <span class="lab-cap">Saliva &amp; touch DNA recovery</span>
+              <span class="lab-cap">Scene-to-suspect genetic linking</span>
+            </div>
+            <div class="lab-db"><div class="lab-db-dot"></div>Database: CODIS</div>
+            <button class="lab-submit">Submit Evidence →</button>
+          </div>
+        </div>
+
+        <!-- 2. Toxicology -->
+        <div class="lab-card lab-tox" onclick="openSubmit('tox')">
+          <div class="lab-inner">
+            <div class="lab-header">
+              <span class="lab-icon">🧪</span>
+              <div class="lab-name-wrap">
+                <span class="lab-name">Forensic Toxicology Lab</span>
+                <span class="lab-acronym">Substance Detection · Fluids &amp; Tissue</span>
+              </div>
+              <span class="lab-status-badge badge-available">Available</span>
+            </div>
+            <p class="lab-desc">Analyses bodily fluids and tissue samples to identify the presence of drugs, alcohol, prescription medications, or poisons. Used in both cause-of-death and victim impairment investigations.</p>
+            <div class="lab-caps">
+              <span class="lab-cap">Blood alcohol &amp; narcotics screening</span>
+              <span class="lab-cap">Prescription drug identification</span>
+              <span class="lab-cap">Poison &amp; heavy metal detection</span>
+              <span class="lab-cap">Post-mortem toxicological panel</span>
+            </div>
+            <button class="lab-submit">Submit Evidence →</button>
+          </div>
+        </div>
+
+        <!-- 3. Trace Evidence -->
+        <div class="lab-card lab-trace" onclick="openSubmit('trace')">
+          <div class="lab-inner">
+            <div class="lab-header">
+              <span class="lab-icon">🔍</span>
+              <div class="lab-name-wrap">
+                <span class="lab-name">Trace Evidence Lab</span>
+                <span class="lab-acronym">Micro-material Analysis</span>
+              </div>
+              <span class="lab-status-badge badge-available">Available</span>
+            </div>
+            <p class="lab-desc">Analyses tiny materials transferred between people, objects, and environments. Locard's Exchange Principle: every contact leaves a trace. Fibres, glass, soil, paint, and fire debris are examined to link suspects to scenes.</p>
+            <div class="lab-caps">
+              <span class="lab-cap">Fibre origin &amp; textile matching</span>
+              <span class="lab-cap">Glass fracture &amp; composition analysis</span>
+              <span class="lab-cap">Soil &amp; botanical comparison</span>
+              <span class="lab-cap">Paint chip layering &amp; vehicle matching</span>
+              <span class="lab-cap">Fire debris accelerant detection</span>
+            </div>
+            <button class="lab-submit">Submit Evidence →</button>
+          </div>
+        </div>
+
+        <!-- 4. Ballistics -->
+        <div class="lab-card lab-ballistics" onclick="openSubmit('ballistics')">
+          <div class="lab-inner">
+            <div class="lab-header">
+              <span class="lab-icon">🔫</span>
+              <div class="lab-name-wrap">
+                <span class="lab-name">Ballistics &amp; Firearms Lab</span>
+                <span class="lab-acronym">NIBIN-linked · Weapons Analysis</span>
+              </div>
+              <span class="lab-status-badge badge-available">Available</span>
+            </div>
+            <p class="lab-desc">Examines firearms, bullets, cartridge casings, and gunshot residue. Firing patterns are matched against NIBIN to link weapons across multiple incidents or identify unregistered firearms.</p>
+            <div class="lab-caps">
+              <span class="lab-cap">Bullet &amp; casing ballistic comparison</span>
+              <span class="lab-cap">Gunshot residue analysis (GSR)</span>
+              <span class="lab-cap">Weapon condition &amp; origin tracing</span>
+              <span class="lab-cap">Entry/exit wound trajectory analysis</span>
+            </div>
+            <div class="lab-db"><div class="lab-db-dot"></div>Database: NIBIN</div>
+            <button class="lab-submit">Submit Evidence →</button>
+          </div>
+        </div>
+
+        <!-- 5. Digital -->
+        <div class="lab-card lab-digital" onclick="openSubmit('digital')">
+          <div class="lab-inner">
+            <div class="lab-header">
+              <span class="lab-icon">💻</span>
+              <div class="lab-name-wrap">
+                <span class="lab-name">Digital &amp; Multimedia Lab</span>
+                <span class="lab-acronym">Digital Forensics · Data Recovery</span>
+              </div>
+              <span class="lab-status-badge badge-busy">In Use</span>
+            </div>
+            <p class="lab-desc">Recovers and analyses data from computers, smartphones, USB drives, and surveillance systems. Deleted files, encrypted communications, and metadata are all within scope.</p>
+            <div class="lab-caps">
+              <span class="lab-cap">Mobile device imaging &amp; extraction</span>
+              <span class="lab-cap">Deleted file recovery &amp; carving</span>
+              <span class="lab-cap">CCTV enhancement &amp; frame analysis</span>
+              <span class="lab-cap">Encrypted communication decryption</span>
+              <span class="lab-cap">Metadata &amp; geolocation extraction</span>
+            </div>
+            <button class="lab-submit">Submit Evidence →</button>
+          </div>
+        </div>
+
+        <!-- 6. Chemistry -->
+        <div class="lab-card lab-chemistry" onclick="openSubmit('chemistry')">
+          <div class="lab-inner">
+            <div class="lab-header">
+              <span class="lab-icon">⚗️</span>
+              <div class="lab-name-wrap">
+                <span class="lab-name">Forensic Chemistry Lab</span>
+                <span class="lab-acronym">Drug Analysis · Arson Investigation</span>
+              </div>
+              <span class="lab-status-badge badge-available">Available</span>
+            </div>
+            <p class="lab-desc">Identifies unknown substances and analyses arson evidence. Controlled substance profiling, cutting agent identification, and detection of ignition accelerants in fire debris all fall under this division.</p>
+            <div class="lab-caps">
+              <span class="lab-cap">Controlled substance identification &amp; purity</span>
+              <span class="lab-cap">Cutting agent &amp; adulterant profiling</span>
+              <span class="lab-cap">Ignition accelerant detection (arson)</span>
+              <span class="lab-cap">Unknown liquid &amp; powder composition</span>
+            </div>
+            <button class="lab-submit">Submit Evidence →</button>
+          </div>
+        </div>
+
+        <!-- 7. Latent Prints -->
+        <div class="lab-card lab-latent" onclick="openSubmit('latent')">
+          <div class="lab-inner">
+            <div class="lab-header">
+              <span class="lab-icon">👆</span>
+              <div class="lab-name-wrap">
+                <span class="lab-name">Latent Print Lab</span>
+                <span class="lab-acronym">AFIS-linked · Friction Ridge Analysis</span>
+              </div>
+              <span class="lab-status-badge badge-available">Available</span>
+            </div>
+            <p class="lab-desc">Processes, develops, and analyses fingerprints and palm prints recovered from crime scenes and physical evidence. Identified prints are compared against AFIS for positive identification.</p>
+            <div class="lab-caps">
+              <span class="lab-cap">Latent print development (powder, chemical)</span>
+              <span class="lab-cap">Fingerprint &amp; palmprint comparison</span>
+              <span class="lab-cap">Partial print enhancement &amp; matching</span>
+              <span class="lab-cap">AFIS database search &amp; cold hit reporting</span>
+            </div>
+            <div class="lab-db"><div class="lab-db-dot"></div>Database: AFIS</div>
+            <button class="lab-submit">Submit Evidence →</button>
+          </div>
+        </div>
+
+        <!-- 8. Document Analysis -->
+        <div class="lab-card lab-document" onclick="openSubmit('document')">
+          <div class="lab-inner">
+            <div class="lab-header">
+              <span class="lab-icon">📝</span>
+              <div class="lab-name-wrap">
+                <span class="lab-name">Document Analysis Lab</span>
+                <span class="lab-acronym">Questioned Documents · Handwriting</span>
+              </div>
+              <span class="lab-status-badge badge-available">Available</span>
+            </div>
+            <p class="lab-desc">Examines handwriting, ink composition, paper origin, and document alteration. Used to authenticate or challenge the origin of written evidence, identify forgeries, and analyse anonymous communications.</p>
+            <div class="lab-caps">
+              <span class="lab-cap">Handwriting comparison &amp; author attribution</span>
+              <span class="lab-cap">Ink dating &amp; composition analysis</span>
+              <span class="lab-cap">Paper fibre &amp; watermark identification</span>
+              <span class="lab-cap">Typewriter font &amp; printer matching</span>
+              <span class="lab-cap">Erasure, alteration &amp; forgery detection</span>
+            </div>
+            <button class="lab-submit">Submit Evidence →</button>
+          </div>
+        </div>
+
+        <!-- 9. Anthropology -->
+        <div class="lab-card lab-anthro" onclick="openSubmit('anthro')">
+          <div class="lab-inner">
+            <div class="lab-header">
+              <span class="lab-icon">🦴</span>
+              <div class="lab-name-wrap">
+                <span class="lab-name">Forensic Anthropology Lab</span>
+                <span class="lab-acronym">Human Remains · Biological Evidence</span>
+              </div>
+              <span class="lab-status-badge badge-available">Available</span>
+            </div>
+            <p class="lab-desc">Identifies human remains and analyses biological scene evidence. Also covers forensic entomology (insect activity to estimate time of death) and forensic botany (plant material as evidence).</p>
+            <div class="lab-caps">
+              <span class="lab-cap">Skeletal identification — age, sex, ancestry</span>
+              <span class="lab-cap">Trauma pattern analysis on bone</span>
+              <span class="lab-cap">Insect colonisation — post-mortem interval</span>
+              <span class="lab-cap">Plant material &amp; pollen evidence analysis</span>
+            </div>
+            <button class="lab-submit">Submit Evidence →</button>
+          </div>
+        </div>
+
+        <!-- 10. Biocontainment -->
+        <div class="lab-card lab-bio" onclick="openSubmit('bio')">
+          <div class="lab-inner">
+            <div class="lab-header">
+              <span class="lab-icon">☣️</span>
+              <div class="lab-name-wrap">
+                <span class="lab-name">Biocontainment Lab</span>
+                <span class="lab-acronym">NBFAC · Hazardous Biological Evidence</span>
+              </div>
+              <span class="lab-status-badge badge-restricted">Restricted</span>
+            </div>
+            <p class="lab-desc">Specialises in the analysis of hazardous or contaminated biological evidence under strict containment protocols. Handles potential pathogens, biological weapons components, and high-risk materials. Access requires special clearance.</p>
+            <div class="lab-caps">
+              <span class="lab-cap">Pathogen identification &amp; containment</span>
+              <span class="lab-cap">Biological agent characterisation</span>
+              <span class="lab-cap">Contaminated evidence processing</span>
+              <span class="lab-cap">Chain-of-custody under BSL-3/4 protocol</span>
+            </div>
+            <button class="lab-submit" disabled>Clearance Required</button>
+          </div>
+        </div>
+
+        <!-- 11. Metallurgy -->
+        <div class="lab-card lab-metal" onclick="openSubmit('metal')">
+          <div class="lab-inner">
+            <div class="lab-header">
+              <span class="lab-icon">⚙️</span>
+              <div class="lab-name-wrap">
+                <span class="lab-name">Metallurgy Lab</span>
+                <span class="lab-acronym">Metal Composition · Structural Analysis</span>
+              </div>
+              <span class="lab-status-badge badge-available">Available</span>
+            </div>
+            <p class="lab-desc">Analyses metal evidence to investigate structural failures, weapon composition, and tool marks. Can identify the origin and manufacture of metal objects and determine whether tampering or deliberate failure occurred.</p>
+            <div class="lab-caps">
+              <span class="lab-cap">Elemental composition &amp; alloy identification</span>
+              <span class="lab-cap">Tool mark comparison &amp; origin</span>
+              <span class="lab-cap">Fracture &amp; stress failure analysis</span>
+              <span class="lab-cap">Weapon manufacture &amp; modification tracing</span>
+            </div>
+            <button class="lab-submit">Submit Evidence →</button>
+          </div>
+        </div>
+
+      </div><!-- /lab-grid -->
+    </div><!-- /main -->
+  </div><!-- /app -->
+
+  <!-- SUBMIT MODAL -->
+  <div id="submit-modal-overlay" onclick="handleModalOverlay(event)">
+    <div id="submit-modal">
+      <span class="modal-lab-name" id="modal-lab-name"></span>
+      <span class="modal-lab-sub" id="modal-lab-sub"></span>
+      <div class="modal-rule"></div>
+      <span class="modal-label">Select evidence item(s) to submit</span>
+      <div class="modal-evidence-list" id="modal-evidence-list"></div>
+      <span class="modal-note-label">Notes for analyst (optional)</span>
+      <textarea class="modal-note" id="modal-note"
+        placeholder="Describe what you need analysed and why..."></textarea>
+      <div class="modal-actions">
+        <button class="modal-btn primary"   onclick="confirmSubmit()">Submit to Lab</button>
+        <button class="modal-btn secondary" onclick="closeModal()">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Confirmation toast -->
+  <div id="submit-confirm">✓ Evidence submitted — status updated to In Analysis</div>
+
+  <audio id="bg-music" loop preload="auto">
+    <source src="Assets/Audio/Background music/Echoes_in_the_Concrete_Maze.mp3" type="audio/mpeg" />
+  </audio>
+
+  <script>
+    /* ════════════════════════════════════════
+       LAB CONFIG
+    ════════════════════════════════════════ */
+    const LAB_CONFIG = {
+      dna:        { name:'Forensic DNA Lab',                sub:'Biological sample analysis' },
+      tox:        { name:'Forensic Toxicology Lab',         sub:'Substance detection' },
+      trace:      { name:'Trace Evidence Lab',              sub:'Micro-material analysis' },
+      ballistics: { name:'Ballistics & Firearms Lab',       sub:'Weapons & casing comparison' },
+      digital:    { name:'Digital & Multimedia Lab',        sub:'Data recovery & CCTV analysis' },
+      chemistry:  { name:'Forensic Chemistry Lab',          sub:'Drug ID & arson investigation' },
+      latent:     { name:'Latent Print Lab',                sub:'Fingerprint & palmprint analysis' },
+      document:   { name:'Document Analysis Lab',           sub:'Handwriting & ink analysis' },
+      anthro:     { name:'Forensic Anthropology Lab',       sub:'Remains & biological evidence' },
+      bio:        { name:'Biocontainment Lab (NBFAC)',       sub:'Hazardous biological evidence' },
+      metal:      { name:'Metallurgy Lab',                  sub:'Metal composition & tool marks' },
+    };
+
+    /* ════════════════════════════════════════
+       EVIDENCE — read from same data as evidence.html
+       In production this would come from a shared
+       store. Here we mirror the evidence array and
+       apply any localStorage status overrides.
+    ════════════════════════════════════════ */
+    const EVIDENCE = [
+      { id:'COL-001-A-E01', name:'Monogrammed Cigarette Case',   status:'analysis' },
+      { id:'COL-001-A-E02', name:'Unsigned Threatening Letter',  status:'analysis' },
+      { id:'COL-001-A-E03', name:'Burner Mobile Phone',          status:'analysis' },
+      { id:'COL-001-A-E04', name:'Bloodstained Cloth Fragment',  status:'analysis' },
+      { id:'COL-001-A-E05', name:'Ledger — Handwritten Accounts',status:'logged'   },
+      { id:'COL-001-A-E06', name:'Security Footage — USB Drive', status:'analysis' },
+      { id:'COL-001-A-E07', name:'Prescription Medicine Bottle', status:'logged'   },
+      { id:'COL-001-A-E08', name:'Partial Boot Print Cast',      status:'pending'  },
+    ];
+
+    // Apply localStorage status overrides from evidence.html
+    (function applyOverrides() {
+      try {
+        const saved = JSON.parse(localStorage.getItem('col_evidence_status') || '{}');
+        EVIDENCE.forEach(e => { if (saved[e.id]) e.status = saved[e.id]; });
+      } catch(_) {}
+    })();
+
+    /* ════════════════════════════════════════
+       UPDATE STATUS BAR & QUEUE
+    ════════════════════════════════════════ */
+    function refreshUI() {
+      const inAnalysis = EVIDENCE.filter(e => e.status === 'analysis');
+      document.getElementById('stat-in-analysis').textContent = inAnalysis.length;
+
+      const queueGrid  = document.getElementById('queue-grid');
+      const queueEmpty = document.getElementById('queue-empty');
+      const queueCount = document.getElementById('queue-count');
+
+      queueGrid.querySelectorAll('.queue-item').forEach(el => el.remove());
+      queueCount.textContent = inAnalysis.length;
+
+      if (inAnalysis.length === 0) {
+        queueEmpty.style.display = '';
+      } else {
+        queueEmpty.style.display = 'none';
+        inAnalysis.forEach(item => {
+          const el = document.createElement('div');
+          el.className = 'queue-item';
+          el.innerHTML = `
+            <span class="queue-item-id">${item.id}</span>
+            <span class="queue-item-name">${item.name}</span>
+            <span class="queue-item-tag">⬤ In Analysis</span>
+          `;
+          queueGrid.appendChild(el);
+        });
+      }
+    }
+    refreshUI();
+
+    /* ════════════════════════════════════════
+       SUBMIT MODAL
+    ════════════════════════════════════════ */
+    let currentLab = null;
+    let selectedEvidence = new Set();
+
+    function openSubmit(labKey) {
+      if (labKey === 'bio') return; // restricted
+      const lab = LAB_CONFIG[labKey];
+      currentLab = labKey;
+      selectedEvidence.clear();
+
+      document.getElementById('modal-lab-name').textContent = lab.name;
+      document.getElementById('modal-lab-sub').textContent  = lab.sub;
+      document.getElementById('modal-note').value = '';
+
+      // Populate evidence list
+      const list = document.getElementById('modal-evidence-list');
+      list.innerHTML = '';
+      EVIDENCE.forEach(item => {
+        const el = document.createElement('div');
+        el.className = 'modal-ev-item';
+        el.dataset.id = item.id;
+        el.onclick = () => toggleEvItem(el, item.id);
+        el.innerHTML = `
+          <div class="modal-ev-checkbox" data-cb="${item.id}"></div>
+          <span class="modal-ev-id">${item.id}</span>
+          <span class="modal-ev-name">${item.name}</span>
+          <span class="modal-ev-status ${item.status}">${statusLabel(item.status)}</span>
+        `;
+        list.appendChild(el);
+      });
+
+      document.getElementById('submit-modal-overlay').classList.add('open');
+    }
+
+    function toggleEvItem(el, id) {
+      if (selectedEvidence.has(id)) {
+        selectedEvidence.delete(id);
+        el.classList.remove('selected');
+        el.querySelector('.modal-ev-checkbox').classList.remove('checked');
+      } else {
+        selectedEvidence.add(id);
+        el.classList.add('selected');
+        el.querySelector('.modal-ev-checkbox').classList.add('checked');
+      }
+    }
+
+    function closeModal() {
+      document.getElementById('submit-modal-overlay').classList.remove('open');
+      currentLab = null;
+      selectedEvidence.clear();
+    }
+
+    function handleModalOverlay(e) {
+      if (e.target === document.getElementById('submit-modal-overlay')) closeModal();
+    }
+
+    function confirmSubmit() {
+      if (selectedEvidence.size === 0) return;
+
+      // Update status to 'analysis' for selected items
+      const saved = JSON.parse(localStorage.getItem('col_evidence_status') || '{}');
+      selectedEvidence.forEach(id => {
+        const item = EVIDENCE.find(e => e.id === id);
+        if (item) item.status = 'analysis';
+        saved[id] = 'analysis';
+      });
+      localStorage.setItem('col_evidence_status', JSON.stringify(saved));
+
+      closeModal();
+      refreshUI();
+
+      // Show toast
+      const toast = document.getElementById('submit-confirm');
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 3000);
+    }
+
+    function statusLabel(s) {
+      return { logged:'Logged', analysis:'In Analysis', pending:'Pending' }[s] || s;
+    }
+
+    /* ════════════════════════════════════════
+       MUSIC RESUME
+    ════════════════════════════════════════ */
+    const music = document.getElementById('bg-music');
+    let musicEnabled = true;
+
+    (function resumeMusic() {
+      try {
+        const saved = JSON.parse(sessionStorage.getItem('col_music') || '{}');
+        musicEnabled = saved.enabled !== false;
+        if (!musicEnabled) return;
+        if (saved.time)   music.currentTime = saved.time;
+        music.volume = saved.volume ?? 0.42;
+        music.play().catch(() => {
+          const unlock = () => { music.play().catch(()=>{}); document.removeEventListener('click',unlock); document.removeEventListener('touchstart',unlock); };
+          document.addEventListener('click',unlock,{passive:true});
+          document.addEventListener('touchstart',unlock,{passive:true});
+        });
+      } catch(_) {}
+    })();
+
+    function saveMusicState() {
+      sessionStorage.setItem('col_music', JSON.stringify({
+        enabled: musicEnabled, time: music.currentTime,
+        volume: music.volume, src: 'Assets/Audio/Background music/Echoes_in_the_Concrete_Maze.mp3'
+      }));
+    }
+
+    /* ════════════════════════════════════════
+       NAVIGATION
+    ════════════════════════════════════════ */
+    function goBack() {
+      saveMusicState();
+      window.location.href = 'board.html';
+    }
+
+    /* ════════════════════════════════════════
+       VERSION TAG
+    ════════════════════════════════════════ */
+    async function updateCommitHash() {
+      try {
+        const res  = await fetch('https://api.github.com/repos/jellybean1979/CityOfLies/commits?per_page=1');
+        if (!res.ok) throw new Error();
+        const data = await res.json();
+        const sha  = data[0]?.sha?.substring(0,7) ?? '-------';
+        document.getElementById('versionTag').textContent = `v0.1.0 · ${sha}`;
+      } catch { document.getElementById('versionTag').textContent = 'v0.1.0 · local'; }
+    }
+    updateCommitHash();
+  </script>
+</body>
+</html>
+
