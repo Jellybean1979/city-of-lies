@@ -462,15 +462,28 @@
 
     /* Close button */
     #dossier-close {
-      position:absolute; top:clamp(36px,6vh,46px); right:-4px;
-      font-family:'Courier Prime',monospace;
-      font-size:clamp(8px,1vw,10px); letter-spacing:.2em;
-      text-transform:uppercase; color:rgba(42,20,0,.5);
-      background:none; border:none; cursor:pointer;
-      transition:color .2s; z-index:10;
-      writing-mode:vertical-rl;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: clamp(12px,2vh,18px);
+      font-family: 'Courier Prime', monospace;
+      font-size: clamp(9px,1.2vw,11px);
+      letter-spacing: .25em;
+      text-transform: uppercase;
+      color: var(--paper-dim);
+      background: rgba(14,10,6,0.7);
+      border: 1px solid rgba(168,131,46,.25);
+      padding: 7px 16px;
+      cursor: pointer;
+      transition: color .2s, border-color .2s, transform .15s;
+      width: 100%;
+      justify-content: flex-start;
     }
-    #dossier-close:hover { color:#2a1400; }
+    #dossier-close:hover {
+      color: var(--amber);
+      border-color: rgba(168,131,46,.55);
+      transform: translateX(-2px);
+    }
 
     /* Click outside hint */
     .overlay-hint {
@@ -588,6 +601,7 @@
   <!-- DOSSIER MODAL -->
   <div id="dossier-overlay" onclick="handleOverlayClick(event)">
     <div id="dossier">
+      <button id="dossier-close" onclick="closeDossier()">← Back to Portraits</button>
       <div class="folder-wrap">
         <div class="folder-tab-bar">
           <span class="folder-tab-text">City of Lies P.D. — Personnel Dossier</span>
@@ -666,8 +680,7 @@
 
         </div>
       </div>
-      <button id="dossier-close" onclick="closeDossier()">Close ✕</button>
-    </div>
+    </div><!-- /dossier -->
     <span class="overlay-hint">Tap outside to close</span>
   </div>
 
