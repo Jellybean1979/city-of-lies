@@ -6,7 +6,7 @@
   <title>City of Lies — Evidence Locker</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Special+Elite&family=Courier+Prime:ital,wght@0,400;0,700;1,400&family=Playfair+Display:ital,wght@0,700;1,400&family=Caveat:wght@400;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Special+Elite&family=Courier+Prime:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet" />
   <style>
     :root {
       --ink:         #0e0c09;
@@ -677,11 +677,11 @@
       <span class="detail-blocked-text">This item has been submitted to the Forensics Lab. Full case details will be available once analysis is complete and the item is returned to the Evidence Locker.</span>
     </div>
 
-    <!-- Shown when status is Pending -->
+    <!-- Shown when status is Pending (results processing, about to become Logged) -->
     <div class="detail-blocked" id="dp-blocked-pending" style="display:none;">
       <span class="detail-blocked-icon">⏳</span>
-      <span class="detail-blocked-title">Awaiting Processing</span>
-      <span class="detail-blocked-text">This item is logged but has not yet been processed. Submit it to the Forensics Lab to begin analysis, or wait for it to be assigned to a case file.</span>
+      <span class="detail-blocked-title">Results Processing</span>
+      <span class="detail-blocked-text">Analysis is complete. Results are being compiled and will be available in the Evidence Locker shortly. This item will be returned to Logged status within one minute.</span>
     </div>
   </div>
 
@@ -909,37 +909,213 @@
       if (!e.target.closest('.ev-row')) closeDetail();
     });
 
+    /* ════════════════════════════════════════
+       LAB TIMER SYSTEM
+       Uses timestamps in localStorage so timers
+       survive page navigation and refresh.
+
+       Keys used:
+         col_evidence_status   — { id: status }
+         col_lab_timers        — { id: { lab, analysisEnd, pendingEnd } }
+         col_lab_used          — { id: [lab1, lab2] }  (locked labs per item)
+         col_evidence_extra    — [ ...extra items added by lab results ]
+    ════════════════════════════════════════ */
+
+    const ANALYSIS_MIN_MS = 5  * 60 * 1000;   // 5 minutes
+    const ANALYSIS_MAX_MS = 10 * 60 * 1000;   // 10 minutes
+    const PENDING_MS      = 1  * 60 * 1000;   // 1 minute
+
+    /* New evidence that can be unlocked by lab analysis (60% chance on return).
+       Each entry: triggered when a specific item is analysed.
+       Add more entries as the story develops.                               */
+    const LAB_NEW_EVIDENCE = {
+      [`${CURRENT_CASE}-E01`]: {
+        id:       `${CURRENT_CASE}-E09`,
+        name:     'Partial Fingerprint — Cigarette Case Lid',
+        location: 'Recovered during lab analysis of E01',
+        date:     'Lab result — Mar 2026',
+        owner:    'Unknown — AFIS search in progress',
+        why:      'A latent partial print was lifted from the inner lid of the cigarette case during forensic processing. The ridge detail is sufficient for comparison. AFIS returned no immediate match but the print is now on file.',
+        status:   'logged'
+      },
+      [`${CURRENT_CASE}-E02`]: {
+        id:       `${CURRENT_CASE}-E10`,
+        name:     'Typewriter Font Sample — Threatening Letter',
+        location: 'Recovered during lab analysis of E02',
+        date:     'Lab result — Mar 2026',
+        owner:    'Unknown',
+        why:      'Document analysis identified the typeface as consistent with a Hermes 3000 portable typewriter, manufactured between 1958 and 1967. The specific wear pattern on the letter "e" may allow individual machine identification.',
+        status:   'logged'
+      },
+      [`${CURRENT_CASE}-E03`]: {
+        id:       `${CURRENT_CASE}-E11`,
+        name:     'Recovered Photo Fragment — Burner Phone',
+        location: 'Recovered during digital analysis of E03',
+        date:     'Lab result — Mar 2026',
+        owner:    'Unknown',
+        why:      'A partially overwritten image file was recovered from the phone\'s internal memory. The fragment shows what appears to be the exterior of a building. Metadata places it at 21:12 on Mar 04 — approximately 30 minutes before the incident.',
+        status:   'logged'
+      },
+      [`${CURRENT_CASE}-E04`]: {
+        id:       `${CURRENT_CASE}-E12`,
+        name:     'Fibre Sample — Bloodstained Cloth',
+        location: 'Recovered during trace analysis of E04',
+        date:     'Lab result — Mar 2026',
+        owner:    'Unknown',
+        why:      'Trace fibres embedded in the cloth fragment were identified as consistent with the interior lining of a high-end vehicle — specifically a dark grey or black saloon. Cross-reference with Agnes Whittle\'s vehicle sketch is recommended.',
+        status:   'logged'
+      },
+      [`${CURRENT_CASE}-E06`]: {
+        id:       `${CURRENT_CASE}-E13`,
+        name:     'Enhanced CCTV Still — Bay 7 Figure',
+        location: 'Recovered during digital analysis of E06',
+        date:     'Lab result — Mar 2026',
+        owner:    'Unknown',
+        why:      'Digital enhancement of the Bay 7 footage produced a single usable still of the unidentified figure at 21:48. Resolution is sufficient for facial comparison. The image has been forwarded to the portrait identification queue.',
+        status:   'logged'
+      },
+    };
+
+    /* ── Load all persisted data on startup ── */
+    let labTimers  = {};
+    let labUsed    = {};
+    let extraItems = [];
+
+    (function loadPersistedData() {
+      try {
+        const savedStatus = JSON.parse(localStorage.getItem('col_evidence_status') || '{}');
+        labTimers  = JSON.parse(localStorage.getItem('col_lab_timers')    || '{}');
+        labUsed    = JSON.parse(localStorage.getItem('col_lab_used')       || '{}');
+        extraItems = JSON.parse(localStorage.getItem('col_evidence_extra') || '[]');
+
+        // Apply status overrides to base EVIDENCE array
+        EVIDENCE.forEach(item => {
+          if (savedStatus[item.id]) item.status = savedStatus[item.id];
+        });
+
+        // Merge any extra items unlocked by lab results
+        extraItems.forEach(extra => {
+          if (!EVIDENCE.find(e => e.id === extra.id)) {
+            EVIDENCE.push(extra);
+          }
+        });
+      } catch(e) {}
+    })();
+
+    /* ── Persist all status data ── */
+    function persistStatus() {
+      const statusMap = {};
+      EVIDENCE.forEach(e => { statusMap[e.id] = e.status; });
+      localStorage.setItem('col_evidence_status', JSON.stringify(statusMap));
+    }
+
     /* ── Send to Lab ── */
-    function sendToLab(itemId) {
+    function sendToLab(itemId, labKey) {
       const item = EVIDENCE.find(e => e.id === itemId);
       if (!item || item.status === 'analysis') return;
 
+      // Mark used lab for this item
+      if (!labUsed[itemId]) labUsed[itemId] = [];
+      if (labKey) labUsed[itemId].push(labKey);
+      localStorage.setItem('col_lab_used', JSON.stringify(labUsed));
+
+      // Set status to analysis
       item.status = 'analysis';
 
-      // Persist to localStorage
-      const saved = JSON.parse(localStorage.getItem('col_evidence_status') || '{}');
-      saved[itemId] = 'analysis';
-      localStorage.setItem('col_evidence_status', JSON.stringify(saved));
+      // Store timestamps
+      const now         = Date.now();
+      const analysisMs  = ANALYSIS_MIN_MS + Math.random() * (ANALYSIS_MAX_MS - ANALYSIS_MIN_MS);
+      const analysisEnd = now + analysisMs;
+      const pendingEnd  = analysisEnd + PENDING_MS;
 
-      // Re-render the current filter view
+      labTimers[itemId] = { lab: labKey || 'unknown', analysisEnd, pendingEnd };
+      localStorage.setItem('col_lab_timers', JSON.stringify(labTimers));
+
+      persistStatus();
       renderList(activeFilter);
 
-      // Show brief confirmation in detail panel if open
       const dp = document.getElementById('dp-status');
       if (dp && document.getElementById('detail-panel').classList.contains('open')) {
         dp.textContent = 'In Analysis';
       }
     }
 
-    /* ── Load persisted status overrides on startup ── */
-    (function loadStatusOverrides() {
-      try {
-        const saved = JSON.parse(localStorage.getItem('col_evidence_status') || '{}');
-        EVIDENCE.forEach(item => {
-          if (saved[item.id]) item.status = saved[item.id];
-        });
-      } catch(e) {}
-    })();
+    /* ── Tick: check all timers every 5 seconds ── */
+    function tickTimers() {
+      const now     = Date.now();
+      let   changed = false;
+
+      Object.keys(labTimers).forEach(itemId => {
+        const t    = labTimers[itemId];
+        const item = EVIDENCE.find(e => e.id === itemId);
+        if (!item) return;
+
+        if (item.status === 'analysis' && now >= t.analysisEnd) {
+          // Move to pending
+          item.status = 'pending';
+          changed = true;
+        } else if (item.status === 'pending' && now >= t.pendingEnd) {
+          // Move to logged — run new evidence check
+          item.status = 'logged';
+          delete labTimers[itemId];
+          changed = true;
+          tryUnlockNewEvidence(itemId);
+        }
+      });
+
+      if (changed) {
+        localStorage.setItem('col_lab_timers', JSON.stringify(labTimers));
+        persistStatus();
+        renderList(activeFilter);
+        closeDetail();
+      }
+    }
+
+    /* ── 60% chance to unlock new evidence on lab return ── */
+    function tryUnlockNewEvidence(itemId) {
+      if (Math.random() > 0.6) return;                      // 40% — nothing new
+      const template = LAB_NEW_EVIDENCE[itemId];
+      if (!template) return;                                 // no template for this item
+      if (EVIDENCE.find(e => e.id === template.id)) return; // already exists
+
+      const newItem = { ...template };
+      EVIDENCE.push(newItem);
+
+      // Persist extra items
+      extraItems.push(newItem);
+      localStorage.setItem('col_evidence_extra', JSON.stringify(extraItems));
+
+      // Flash a notification
+      showNewEvidenceToast(newItem.name);
+    }
+
+    /* ── New evidence toast notification ── */
+    function showNewEvidenceToast(name) {
+      let toast = document.getElementById('new-evidence-toast');
+      if (!toast) {
+        toast = document.createElement('div');
+        toast.id = 'new-evidence-toast';
+        toast.style.cssText = `
+          position:fixed; bottom:80px; left:50%; transform:translateX(-50%);
+          z-index:60; background:rgba(16,28,20,.97);
+          border:1px solid rgba(58,154,90,.5);
+          padding:10px 20px; white-space:nowrap;
+          font-family:'Courier Prime',monospace;
+          font-size:clamp(8px,1vw,10px); letter-spacing:.25em;
+          text-transform:uppercase; color:#3a9a5a;
+          opacity:0; transition:opacity .4s; pointer-events:none;
+          max-width:90vw; white-space:normal; text-align:center;
+        `;
+        document.body.appendChild(toast);
+      }
+      toast.textContent = `✓ New Evidence Unlocked: ${name}`;
+      toast.style.opacity = '1';
+      setTimeout(() => { toast.style.opacity = '0'; }, 5000);
+    }
+
+    /* Start the tick interval */
+    setInterval(tickTimers, 5000);
+    tickTimers(); // run immediately on load
     renderList('all');
 
     /* ════════════════════════════════════════
