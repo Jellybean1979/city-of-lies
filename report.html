@@ -1,0 +1,1199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>City of Lies — Final Report</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Courier+Prime:ital,wght@0,400;0,700;1,400&family=Special+Elite&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --ink:        #0e0c09;
+      --paper:      #e2d4b4;
+      --paper-dim:  #8a7a58;
+      --paper-dark: #c8b488;
+      --folder:     #c4a454;
+      --sepia:      #3a2808;
+      --amber:      #c47c1a;
+      --gold:       #a8832e;
+      --blood:      #7a1a1a;
+      --green-lit:  #2a7a3a;
+      --red-lit:    #c43030;
+      --blue-lit:   #3060a0;
+      --border:     rgba(58,40,8,0.2);
+      --border-hi:  rgba(58,40,8,0.45);
+    }
+
+    *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+
+    html, body {
+      width:100%; height:100%;
+      background: var(--ink);
+      font-family: 'Courier Prime', monospace;
+      overflow: hidden;
+    }
+
+    body { animation: pageIn .6s ease forwards; }
+    @keyframes pageIn { from{opacity:0} to{opacity:1} }
+
+    /* ── BG ── */
+    #bg {
+      position:fixed; inset:0;
+      background-image: url('Assets/JPG/Backgrounds/background-mainUI.jpg');
+      background-size:cover; background-position:center;
+      filter: brightness(0.15) saturate(0.4) sepia(0.6);
+    }
+    #vignette {
+      position:fixed; inset:0; z-index:1; pointer-events:none;
+      box-shadow: inset 0 0 200px rgba(4,2,0,.99), inset 0 0 80px rgba(4,2,0,.7);
+    }
+
+    /* ── APP ── */
+    #app {
+      position:fixed; inset:0; z-index:10;
+      display:flex; flex-direction:column;
+    }
+
+    /* ── TOPBAR ── */
+    #topbar {
+      display:flex; align-items:center; gap:12px;
+      padding:0 clamp(14px,2.5vw,28px);
+      height:clamp(44px,7vh,56px);
+      background:rgba(6,4,2,.9);
+      border-bottom:1px solid rgba(58,40,8,.25);
+      flex-shrink:0; backdrop-filter:blur(8px);
+    }
+    #back-btn {
+      font-size:clamp(8px,1vw,10px); letter-spacing:.25em; text-transform:uppercase;
+      color:var(--paper-dim); background:none;
+      border:1px solid rgba(58,40,8,.3); padding:5px 12px;
+      cursor:pointer; transition:color .2s, border-color .2s, transform .15s;
+      white-space:nowrap; flex-shrink:0;
+    }
+    #back-btn:hover { color:var(--amber); border-color:rgba(168,131,46,.5); transform:translateX(-2px); }
+    .tb-div { width:1px; height:22px; background:rgba(58,40,8,.3); flex-shrink:0; }
+    .tb-title {
+      font-family:'Courier Prime',monospace;
+      font-size:clamp(13px,2vw,18px); color:var(--paper); letter-spacing:.04em;
+    }
+    .tb-sub {
+      font-size:clamp(7px,.85vw,9px); letter-spacing:.35em;
+      text-transform:uppercase; color:var(--amber); opacity:.7;
+    }
+    #tb-right { margin-left:auto; display:flex; align-items:center; gap:12px; }
+    #versionTag { font-size:8px; letter-spacing:.2em; color:rgba(120,100,60,.3); text-transform:uppercase; }
+
+    /* ── SCROLL AREA ── */
+    #scroll-area {
+      flex:1; overflow-y:auto; overflow-x:hidden;
+      padding: clamp(16px,3vw,36px) clamp(14px,3vw,36px);
+      scrollbar-width:thin;
+      scrollbar-color:rgba(168,131,46,.2) transparent;
+      display:flex; justify-content:center;
+    }
+    #scroll-area::-webkit-scrollbar { width:4px; }
+    #scroll-area::-webkit-scrollbar-thumb { background:rgba(168,131,46,.2); border-radius:2px; }
+
+    /* ── DOCUMENT WRAPPER ── */
+    #doc-wrap {
+      width:100%; max-width:700px;
+      display:flex; flex-direction:column; gap:clamp(16px,2.5vh,24px);
+      padding-bottom: clamp(30px,5vh,60px);
+    }
+
+    /* ── DOCUMENT PAPER ── */
+    .doc-page {
+      background: var(--paper);
+      position:relative;
+      box-shadow: 3px 5px 24px rgba(0,0,0,.7), 0 1px 4px rgba(0,0,0,.3);
+      /* paper ruled lines */
+      background-image:
+        repeating-linear-gradient(
+          to bottom,
+          transparent 0px, transparent 27px,
+          rgba(58,40,8,.06) 27px, rgba(58,40,8,.06) 28px
+        );
+    }
+    /* Red margin line */
+    .doc-page::before {
+      content:''; position:absolute;
+      top:0; bottom:0; left:clamp(48px,7vw,64px);
+      width:1px; background:rgba(196,48,48,.18);
+      pointer-events:none;
+    }
+    /* Hole punches */
+    .doc-page::after {
+      content:''; position:absolute;
+      top:56px; left:clamp(10px,2vw,16px);
+      width:12px; height:12px; border-radius:50%;
+      background: var(--ink);
+      box-shadow: 0 110px 0 var(--ink), 0 220px 0 var(--ink);
+      pointer-events:none;
+    }
+
+    /* paper stack shadow */
+    .doc-page + .doc-page { margin-top:0; }
+
+    .page-inner {
+      padding: clamp(24px,4vw,44px) clamp(24px,4vw,44px) clamp(24px,4vw,44px) clamp(60px,9vw,80px);
+    }
+
+    /* ── DOC HEADER ── */
+    .doc-header {
+      text-align:center;
+      padding-bottom:clamp(12px,2vh,18px);
+      margin-bottom:clamp(14px,2.5vh,20px);
+      border-bottom:2px solid var(--sepia);
+      position:relative;
+    }
+    .doc-dept {
+      font-size:clamp(6px,.8vw,8px); letter-spacing:.55em;
+      text-transform:uppercase; color:var(--sepia);
+      display:block; margin-bottom:2px; opacity:.7;
+    }
+    .doc-form-title {
+      font-family:'Courier Prime',monospace;
+      font-size:clamp(18px,3vw,26px); font-weight:700;
+      color:var(--sepia); display:block; margin-bottom:2px;
+      letter-spacing:.06em;
+    }
+    .doc-form-sub {
+      font-size:clamp(7px,.85vw,9px); letter-spacing:.3em;
+      text-transform:uppercase; color:rgba(58,40,8,.5);
+      display:block;
+    }
+    /* Stamp */
+    .doc-stamp {
+      position:absolute;
+      top:4px; right:0;
+      font-size:clamp(9px,1.2vw,12px);
+      letter-spacing:.12em; text-transform:uppercase;
+      border:2px solid; padding:3px 10px;
+      transform:rotate(5deg);
+    }
+    .stamp-pending  { color:rgba(196,124,26,.55); border-color:rgba(196,124,26,.4); }
+    .stamp-submitted{ color:rgba(122,26,26,.6);   border-color:rgba(122,26,26,.5); }
+
+    /* ── META ROW ── */
+    .doc-meta {
+      display:grid;
+      grid-template-columns:repeat(auto-fill, minmax(140px,1fr));
+      gap:clamp(6px,1vw,10px);
+      margin-bottom:clamp(16px,2.8vh,24px);
+      padding:clamp(8px,1.5vw,14px);
+      background:rgba(58,40,8,.06);
+      border:1px solid var(--border);
+    }
+    .meta-label {
+      font-size:clamp(6px,.75vw,8px); letter-spacing:.3em;
+      text-transform:uppercase; color:rgba(58,40,8,.45);
+      display:block; margin-bottom:2px;
+    }
+    .meta-val {
+      font-size:clamp(9px,1.1vw,11px); color:var(--sepia); line-height:1.3;
+    }
+
+    /* ── SECTION TITLE ── */
+    .form-section-title {
+      font-size:clamp(7px,.85vw,9px); letter-spacing:.45em;
+      text-transform:uppercase; color:var(--amber);
+      display:block; margin-bottom:clamp(12px,2vh,18px);
+      padding-bottom:4px;
+      border-bottom:1px solid rgba(168,131,46,.25);
+    }
+
+    /* ── FORM FIELD ── */
+    .form-field {
+      margin-bottom:clamp(14px,2.5vh,22px);
+    }
+    .field-label {
+      font-size:clamp(7px,.85vw,9px); letter-spacing:.3em;
+      text-transform:uppercase; color:rgba(58,40,8,.5);
+      display:block; margin-bottom:4px;
+    }
+    .field-required::after {
+      content:' *'; color:var(--red-lit); opacity:.7;
+    }
+    .field-hint {
+      font-size:clamp(7px,.8vw,9px); letter-spacing:.1em;
+      color:rgba(58,40,8,.35); display:block;
+      margin-bottom:5px; font-style:italic;
+    }
+
+    /* Select */
+    .field-select {
+      width:100%;
+      font-family:'Courier Prime',monospace;
+      font-size:clamp(10px,1.3vw,13px); color:var(--sepia);
+      background:rgba(58,40,8,.04);
+      border:none; border-bottom:1px solid var(--border-hi);
+      padding:6px 4px;
+      appearance:none; -webkit-appearance:none;
+      cursor:pointer; outline:none;
+      background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%233a2808'/%3E%3C/svg%3E");
+      background-repeat:no-repeat; background-position:right 8px center;
+      padding-right:28px;
+      transition:border-color .2s;
+    }
+    .field-select:focus { border-bottom-color:var(--amber); }
+    .field-select option { background:#f0e4c8; color:var(--sepia); }
+
+    /* Textarea */
+    .field-textarea {
+      width:100%; min-height:clamp(60px,10vh,90px);
+      font-family:'Courier Prime',monospace;
+      font-size:clamp(10px,1.3vw,13px); color:var(--sepia);
+      background:transparent;
+      border:none; border-bottom:1px solid var(--border-hi);
+      padding:6px 4px; resize:vertical; outline:none;
+      line-height:1.7; caret-color:var(--amber);
+      transition:border-color .2s;
+    }
+    .field-textarea:focus { border-bottom-color:var(--amber); }
+    .field-textarea::placeholder { color:rgba(58,40,8,.25); font-style:italic; }
+
+    /* ── EVIDENCE PICKER ── */
+    .evidence-picker {
+      display:flex; flex-direction:column; gap:5px;
+      max-height:200px; overflow-y:auto;
+      border:1px solid var(--border); padding:6px;
+      background:rgba(58,40,8,.03);
+      scrollbar-width:thin; scrollbar-color:rgba(168,131,46,.2) transparent;
+    }
+    .evidence-picker::-webkit-scrollbar { width:3px; }
+    .ev-pick-item {
+      display:flex; align-items:center; gap:10px;
+      padding:6px 8px; cursor:pointer;
+      transition:background .15s;
+      border:1px solid transparent;
+    }
+    .ev-pick-item:hover { background:rgba(58,40,8,.07); }
+    .ev-pick-item.selected {
+      background:rgba(168,131,46,.1);
+      border-color:rgba(168,131,46,.3);
+    }
+    .ev-pick-item.unavailable {
+      opacity:.3; cursor:default;
+    }
+    .ev-cb {
+      width:14px; height:14px; flex-shrink:0;
+      border:1px solid var(--border-hi);
+      display:flex; align-items:center; justify-content:center;
+      font-size:9px; color:var(--amber);
+    }
+    .ev-cb.checked::after { content:'✓'; }
+    .ev-pick-id {
+      font-size:clamp(7px,.85vw,9px); letter-spacing:.15em;
+      color:var(--amber); flex-shrink:0;
+    }
+    .ev-pick-name {
+      font-size:clamp(9px,1.1vw,12px); color:var(--sepia); flex:1;
+    }
+    .ev-pick-status {
+      font-size:clamp(6px,.75vw,8px); letter-spacing:.15em;
+      text-transform:uppercase; flex-shrink:0;
+    }
+    .ev-pick-status.logged   { color:var(--green-lit); }
+    .ev-pick-status.analysis { color:var(--amber); }
+    .ev-pick-status.pending  { color:var(--paper-dim); }
+
+    /* ── PROGRESS INDICATOR ── */
+    #completion-bar-wrap {
+      background:rgba(58,40,8,.08); border:1px solid var(--border);
+      padding:clamp(10px,1.8vw,16px);
+      margin-bottom:clamp(14px,2.5vh,22px);
+    }
+    .completion-label {
+      display:flex; justify-content:space-between;
+      margin-bottom:6px;
+    }
+    .completion-text {
+      font-size:clamp(7px,.85vw,9px); letter-spacing:.25em;
+      text-transform:uppercase; color:var(--paper-dim);
+    }
+    .completion-pct {
+      font-size:clamp(10px,1.4vw,14px); color:var(--amber);
+      font-weight:700;
+    }
+    .completion-bar-bg {
+      height:4px; background:rgba(58,40,8,.15); overflow:hidden;
+    }
+    .completion-bar-fill {
+      height:100%;
+      background:linear-gradient(to right, #6a3a00, var(--amber));
+      transition:width .5s ease;
+    }
+    .completion-fields {
+      display:flex; gap:6px; margin-top:8px; flex-wrap:wrap;
+    }
+    .cf-dot {
+      width:8px; height:8px; border-radius:50%;
+      flex-shrink:0; transition:background .3s;
+    }
+    .cf-dot.done   { background:var(--green-lit); }
+    .cf-dot.empty  { background:rgba(58,40,8,.2); }
+
+    /* ── SUBMIT BUTTON ── */
+    #submit-section {
+      padding:clamp(16px,3vw,28px);
+      background:rgba(58,40,8,.06);
+      border:1px solid var(--border);
+      display:flex; flex-direction:column;
+      align-items:center; gap:clamp(10px,1.8vh,16px);
+    }
+    .submit-warning {
+      font-size:clamp(8px,1vw,10px); letter-spacing:.15em;
+      text-transform:uppercase; color:rgba(58,40,8,.5);
+      text-align:center; line-height:1.6;
+    }
+    .submit-warning strong { color:var(--blood); font-weight:normal; }
+    #submit-btn {
+      font-family:'Courier Prime',monospace;
+      font-size:clamp(10px,1.4vw,13px); letter-spacing:.3em;
+      text-transform:uppercase;
+      background:var(--sepia); color:var(--paper);
+      border:none; padding:clamp(10px,1.8vw,16px) clamp(32px,5vw,56px);
+      cursor:pointer; transition:background .2s, transform .15s, filter .2s;
+      position:relative;
+    }
+    #submit-btn:hover:not(:disabled) { background:#5a3808; transform:translateY(-2px); filter:brightness(1.1); }
+    #submit-btn:disabled { opacity:.35; cursor:default; }
+    .submit-req {
+      font-size:clamp(7px,.8vw,9px); letter-spacing:.2em;
+      text-transform:uppercase; color:var(--red-lit);
+      opacity:.7;
+    }
+
+    /* ── VERDICT PANEL ── */
+    #verdict-panel {
+      display:none;
+      flex-direction:column;
+      gap:0;
+    }
+    #verdict-panel.show { display:flex; }
+
+    .verdict-header {
+      padding:clamp(20px,3.5vw,36px) clamp(24px,4vw,44px) clamp(20px,3.5vw,36px) clamp(60px,9vw,80px);
+      background:var(--paper);
+      border-bottom:2px solid var(--sepia);
+      position:relative;
+      background-image:
+        repeating-linear-gradient(
+          to bottom,
+          transparent 0px, transparent 27px,
+          rgba(58,40,8,.06) 27px, rgba(58,40,8,.06) 28px
+        );
+    }
+    .verdict-header::before {
+      content:''; position:absolute;
+      top:0; bottom:0; left:clamp(48px,7vw,64px);
+      width:1px; background:rgba(196,48,48,.18);
+    }
+    .verdict-eyebrow {
+      font-size:clamp(7px,.85vw,9px); letter-spacing:.5em;
+      text-transform:uppercase; color:rgba(58,40,8,.5);
+      display:block; margin-bottom:6px;
+    }
+    .verdict-title {
+      font-family:'Courier Prime',monospace;
+      font-size:clamp(22px,4vw,38px); font-weight:700;
+      color:var(--sepia); display:block; line-height:1;
+      margin-bottom:4px;
+    }
+    .verdict-case {
+      font-size:clamp(8px,1vw,10px); letter-spacing:.3em;
+      text-transform:uppercase; color:rgba(58,40,8,.45);
+      display:block;
+    }
+
+    /* Score badge */
+    .verdict-score-wrap {
+      position:absolute; top:clamp(20px,3.5vw,36px); right:clamp(24px,4vw,44px);
+      text-align:center;
+    }
+    .verdict-score {
+      font-family:'Courier Prime',monospace;
+      font-size:clamp(32px,6vw,56px); font-weight:700;
+      line-height:1; display:block;
+    }
+    .verdict-score-label {
+      font-size:clamp(6px,.78vw,8px); letter-spacing:.3em;
+      text-transform:uppercase; color:rgba(58,40,8,.45);
+      display:block;
+    }
+    .score-high   { color:var(--green-lit); }
+    .score-mid    { color:var(--amber); }
+    .score-low    { color:var(--red-lit); }
+
+    /* Verdict fields */
+    .verdict-fields {
+      padding:clamp(20px,3.5vw,36px) clamp(24px,4vw,44px) clamp(20px,3.5vw,36px) clamp(60px,9vw,80px);
+      background:var(--paper);
+      display:flex; flex-direction:column; gap:clamp(14px,2.5vh,22px);
+      background-image:
+        repeating-linear-gradient(
+          to bottom,
+          transparent 0px, transparent 27px,
+          rgba(58,40,8,.06) 27px, rgba(58,40,8,.06) 28px
+        );
+    }
+    .verdict-fields::before {
+      content:''; position:fixed;
+      width:1px; background:rgba(196,48,48,.18);
+      pointer-events:none; display:none;
+    }
+
+    .vf-row {
+      display:grid;
+      grid-template-columns:1fr auto;
+      gap:10px; align-items:start;
+      padding-bottom:clamp(10px,1.8vh,16px);
+      border-bottom:1px solid rgba(58,40,8,.1);
+    }
+    .vf-row:last-child { border-bottom:none; padding-bottom:0; }
+
+    .vf-label {
+      font-size:clamp(6px,.78vw,8px); letter-spacing:.35em;
+      text-transform:uppercase; color:rgba(58,40,8,.45);
+      display:block; margin-bottom:3px;
+    }
+    .vf-answer {
+      font-size:clamp(10px,1.3vw,13px); color:var(--sepia); line-height:1.5;
+    }
+    .vf-feedback {
+      font-size:clamp(8px,1vw,10px); color:rgba(58,40,8,.5);
+      margin-top:3px; font-style:italic; display:block;
+    }
+
+    .vf-result {
+      flex-shrink:0; display:flex; align-items:center; gap:5px;
+      font-size:clamp(7px,.85vw,9px); letter-spacing:.2em;
+      text-transform:uppercase; white-space:nowrap;
+      padding:3px 8px; border:1px solid;
+      align-self:flex-start; margin-top:4px;
+    }
+    .result-correct   { color:var(--green-lit); border-color:var(--green-lit); }
+    .result-partial   { color:var(--amber);     border-color:var(--amber); }
+    .result-incorrect { color:var(--red-lit);   border-color:var(--red-lit); }
+    .result-unscored  { color:var(--paper-dim); border-color:rgba(138,120,80,.3); }
+
+    /* Narrative summary */
+    .verdict-narrative {
+      padding:clamp(20px,3.5vw,36px) clamp(24px,4vw,44px) clamp(20px,3.5vw,36px) clamp(60px,9vw,80px);
+      background:var(--paper);
+      border-top:1px solid rgba(58,40,8,.15);
+    }
+    .narrative-label {
+      font-size:clamp(7px,.85vw,9px); letter-spacing:.4em;
+      text-transform:uppercase; color:var(--amber);
+      display:block; margin-bottom:clamp(10px,1.8vh,14px);
+    }
+    .narrative-text {
+      font-size:clamp(10px,1.3vw,13px); color:var(--sepia); line-height:1.85;
+    }
+    .narrative-text p { margin-bottom:10px; }
+    .narrative-text p:last-child { margin-bottom:0; }
+
+    /* Retry / Review buttons */
+    .verdict-actions {
+      display:flex; gap:clamp(8px,1.5vw,14px); flex-wrap:wrap;
+      padding:clamp(16px,3vw,28px) clamp(24px,4vw,44px) clamp(16px,3vw,28px) clamp(60px,9vw,80px);
+      background:var(--paper-dark);
+      border-top:1px solid rgba(58,40,8,.2);
+    }
+    .va-btn {
+      font-family:'Courier Prime',monospace;
+      font-size:clamp(9px,1.2vw,11px); letter-spacing:.25em;
+      text-transform:uppercase;
+      padding:clamp(8px,1.3vw,12px) clamp(18px,3vw,28px);
+      cursor:pointer; border:none; transition:filter .15s, transform .15s;
+    }
+    .va-btn:hover { filter:brightness(1.1); transform:translateY(-1px); }
+    .va-btn.primary   { background:var(--sepia);  color:var(--paper); }
+    .va-btn.secondary { background:none; color:var(--sepia); border:1px solid var(--border-hi); }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width:520px) {
+      .doc-stamp { display:none; }
+      .verdict-score-wrap { position:static; text-align:left; margin-bottom:10px; }
+      .vf-row { grid-template-columns:1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <div id="bg"></div>
+  <div id="vignette"></div>
+
+  <div id="app">
+
+    <!-- TOPBAR -->
+    <div id="topbar">
+      <button id="back-btn" onclick="goBack()">← Board</button>
+      <div class="tb-div"></div>
+      <div>
+        <span class="tb-title">Final Report</span>
+        <span class="tb-sub">Case COL-001-A · Submit when ready</span>
+      </div>
+      <div id="tb-right">
+        <span id="versionTag">v0.1.0 · local</span>
+      </div>
+    </div>
+
+    <!-- SCROLL AREA -->
+    <div id="scroll-area">
+      <div id="doc-wrap">
+
+        <!-- ══ REPORT FORM ══ -->
+        <div class="doc-page" id="report-form">
+          <div class="page-inner">
+
+            <!-- Header -->
+            <div class="doc-header">
+              <span class="doc-dept">City of Lies Police Department — Investigations Division</span>
+              <span class="doc-form-title">Final Case Report</span>
+              <span class="doc-form-sub">Form IR-7 · Investigating Officer Conclusions</span>
+              <span class="doc-stamp stamp-pending" id="form-stamp">Pending Submission</span>
+            </div>
+
+            <!-- Meta -->
+            <div class="doc-meta">
+              <div>
+                <span class="meta-label">Case No.</span>
+                <span class="meta-val">COL-001-A</span>
+              </div>
+              <div>
+                <span class="meta-label">Case Title</span>
+                <span class="meta-val">The Harlow Street Incident</span>
+              </div>
+              <div>
+                <span class="meta-label">Investigating Officer</span>
+                <span class="meta-val">Det. Gary Langley</span>
+              </div>
+              <div>
+                <span class="meta-label">Date of Submission</span>
+                <span class="meta-val" id="meta-date">— Not yet submitted —</span>
+              </div>
+            </div>
+
+            <!-- Completion bar -->
+            <div id="completion-bar-wrap">
+              <div class="completion-label">
+                <span class="completion-text">Report Completion</span>
+                <span class="completion-pct" id="completion-pct">0%</span>
+              </div>
+              <div class="completion-bar-bg">
+                <div class="completion-bar-fill" id="completion-fill" style="width:0%"></div>
+              </div>
+              <div class="completion-fields" id="completion-dots"></div>
+            </div>
+
+            <!-- ── SECTION 1: PRIMARY SUSPECT ── -->
+            <span class="form-section-title">Section 1 — Primary Suspect</span>
+
+            <div class="form-field">
+              <label class="field-label field-required" for="f-perpetrator">Name the Perpetrator</label>
+              <span class="field-hint">Select the individual you believe committed the crime</span>
+              <select class="field-select" id="f-perpetrator" onchange="updateCompletion()">
+                <option value="">— Select a suspect —</option>
+                <option value="victor-marre">Victor Marre</option>
+                <option value="bowen-ashford">Bowen Ashford</option>
+                <option value="raymond-cross">Alderman Raymond Cross</option>
+                <option value="diana-whitmore">Diana Whitmore</option>
+                <option value="elara-voss">Elara Voss</option>
+                <option value="isabelle-crane">Isabelle Crane</option>
+                <option value="patrick-lorne">Patrick Lorne</option>
+                <option value="unknown">Unknown — insufficient evidence</option>
+              </select>
+            </div>
+
+            <div class="form-field">
+              <label class="field-label" for="f-accomplices">Name Any Accomplices</label>
+              <span class="field-hint">Select all who assisted — hold Ctrl/Cmd to select multiple</span>
+              <select class="field-select" id="f-accomplices" multiple style="height:90px;padding-right:8px;" onchange="updateCompletion()">
+                <option value="victor-marre">Victor Marre</option>
+                <option value="bowen-ashford">Bowen Ashford</option>
+                <option value="raymond-cross">Alderman Raymond Cross</option>
+                <option value="diana-whitmore">Diana Whitmore</option>
+                <option value="elara-voss">Elara Voss</option>
+                <option value="isabelle-crane">Isabelle Crane</option>
+                <option value="patrick-lorne">Patrick Lorne</option>
+                <option value="none">No accomplices</option>
+              </select>
+            </div>
+
+            <!-- ── SECTION 2: MOTIVE & METHOD ── -->
+            <span class="form-section-title">Section 2 — Motive &amp; Method</span>
+
+            <div class="form-field">
+              <label class="field-label field-required" for="f-motive">State the Motive</label>
+              <span class="field-hint">Why did the perpetrator commit this crime?</span>
+              <select class="field-select" id="f-motive" onchange="updateCompletion()">
+                <option value="">— Select a motive —</option>
+                <option value="financial">Financial gain — protect or acquire money</option>
+                <option value="silencing">Silencing — prevent the victim from talking</option>
+                <option value="revenge">Personal revenge or vendetta</option>
+                <option value="power">Power and control</option>
+                <option value="cover-up">Cover up of a prior crime</option>
+                <option value="coercion">Acting under coercion from a third party</option>
+                <option value="unknown">Motive unclear</option>
+              </select>
+            </div>
+
+            <div class="form-field">
+              <label class="field-label field-required" for="f-method">Describe the Method</label>
+              <span class="field-hint">How was the crime carried out?</span>
+              <select class="field-select" id="f-method" onchange="updateCompletion()">
+                <option value="">— Select a method —</option>
+                <option value="direct">Direct physical act by the perpetrator</option>
+                <option value="hired">Crime carried out by a hired third party</option>
+                <option value="poisoning">Poisoning or chemical means</option>
+                <option value="staged">Staged to appear accidental</option>
+                <option value="coercion">Coercion leading to victim's death</option>
+                <option value="unknown">Method unclear</option>
+              </select>
+            </div>
+
+            <!-- ── SECTION 3: TIMELINE & LOCATION ── -->
+            <span class="form-section-title">Section 3 — Timeline &amp; Location</span>
+
+            <div class="form-field">
+              <label class="field-label field-required" for="f-timeline">Set the Timeline of Events</label>
+              <span class="field-hint">When did the crime occur?</span>
+              <select class="field-select" id="f-timeline" onchange="updateCompletion()">
+                <option value="">— Select a time window —</option>
+                <option value="before-21">Mar 04 · Before 21:00</option>
+                <option value="21-2130">Mar 04 · 21:00 – 21:30</option>
+                <option value="2130-22">Mar 04 · 21:30 – 22:00</option>
+                <option value="22-2230">Mar 04 · 22:00 – 22:30</option>
+                <option value="after-2230">Mar 04 · After 22:30</option>
+                <option value="mar05-early">Mar 05 · Early morning</option>
+                <option value="unknown">Timeline unclear</option>
+              </select>
+            </div>
+
+            <div class="form-field">
+              <label class="field-label field-required" for="f-location">Identify the Crime Location</label>
+              <span class="field-hint">Where did the primary incident take place?</span>
+              <select class="field-select" id="f-location" onchange="updateCompletion()">
+                <option value="">— Select a location —</option>
+                <option value="harlow-alley">Harlow Street Alley</option>
+                <option value="blue-meridian">The Blue Meridian Bar</option>
+                <option value="creston-apt">14B Creston Apartments</option>
+                <option value="kessler-wharf">Kessler Warehouse District</option>
+                <option value="harbour-bay7">City Harbour — Bay 7</option>
+                <option value="marre-office">Marre Import Co. Office</option>
+                <option value="unknown">Location unclear</option>
+              </select>
+            </div>
+
+            <!-- ── SECTION 4: SUPPORTING EVIDENCE ── -->
+            <span class="form-section-title">Section 4 — Supporting Evidence</span>
+
+            <div class="form-field">
+              <label class="field-label field-required">Attach Supporting Evidence</label>
+              <span class="field-hint">Select all evidence items that support your conclusions — only Logged items can be attached</span>
+              <div class="evidence-picker" id="evidence-picker"></div>
+            </div>
+
+            <!-- ── SUBMIT ── -->
+            <div id="submit-section">
+              <p class="submit-warning">
+                <strong>This action cannot be undone.</strong><br/>
+                Once submitted, your report is filed and the case moves to verdict.<br/>
+                Ensure all required fields are complete before proceeding.
+              </p>
+              <button id="submit-btn" onclick="submitReport()" disabled>
+                File Final Report
+              </button>
+              <span class="submit-req" id="submit-req">Complete all required fields to submit</span>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- ══ VERDICT PANEL ══ -->
+        <div id="verdict-panel">
+
+          <div class="verdict-header doc-page">
+            <span class="verdict-eyebrow">City of Lies P.D. — Case Verdict</span>
+            <div class="verdict-score-wrap">
+              <span class="verdict-score" id="verdict-score">—</span>
+              <span class="verdict-score-label">Score</span>
+            </div>
+            <span class="verdict-title" id="verdict-title">Case Closed</span>
+            <span class="verdict-case">COL-001-A · The Harlow Street Incident</span>
+          </div>
+
+          <div class="verdict-fields doc-page">
+            <div id="verdict-field-rows"></div>
+          </div>
+
+          <div class="verdict-narrative doc-page">
+            <span class="narrative-label">Outcome Narrative</span>
+            <div class="narrative-text" id="verdict-narrative"></div>
+          </div>
+
+          <div class="verdict-actions doc-page">
+            <button class="va-btn primary"   onclick="reviseReport()">Revise &amp; Resubmit</button>
+            <button class="va-btn secondary" onclick="goBack()">← Return to Board</button>
+          </div>
+
+        </div>
+
+      </div><!-- /doc-wrap -->
+    </div><!-- /scroll-area -->
+  </div><!-- /app -->
+
+  <audio id="bg-music" loop preload="auto">
+    <source src="Assets/Audio/Background music/Echoes_in_the_Concrete_Maze.mp3" type="audio/mpeg" />
+  </audio>
+
+  <script>
+    /* ════════════════════════════════════════════════
+       CORRECT ANSWERS
+       Set these to match your actual story solution.
+       Change them whenever the story solution changes.
+    ════════════════════════════════════════════════ */
+    const SOLUTION = {
+      perpetrator: 'victor-marre',
+      accomplices: ['bowen-ashford'],
+      motive:      'silencing',
+      method:      'hired',
+      timeline:    '2130-22',
+      location:    'harlow-alley',
+      // Evidence items that directly support the case
+      keyEvidence: ['COL-001-A-E01','COL-001-A-E05','COL-001-A-E06'],
+    };
+
+    /* ════════════════════════════════════════════════
+       EVIDENCE — load from localStorage (same keys as evidence.html)
+    ════════════════════════════════════════════════ */
+    const CURRENT_CASE = 'COL-001-A';
+    const BASE_EVIDENCE = [
+      { id:`${CURRENT_CASE}-E01`, name:'Monogrammed Cigarette Case',    status:'analysis' },
+      { id:`${CURRENT_CASE}-E02`, name:'Unsigned Threatening Letter',   status:'analysis' },
+      { id:`${CURRENT_CASE}-E03`, name:'Burner Mobile Phone',           status:'analysis' },
+      { id:`${CURRENT_CASE}-E04`, name:'Bloodstained Cloth Fragment',   status:'analysis' },
+      { id:`${CURRENT_CASE}-E05`, name:'Ledger — Handwritten Accounts', status:'logged'   },
+      { id:`${CURRENT_CASE}-E06`, name:'Security Footage — USB Drive',  status:'analysis' },
+      { id:`${CURRENT_CASE}-E07`, name:'Prescription Medicine Bottle',  status:'logged'   },
+      { id:`${CURRENT_CASE}-E08`, name:'Partial Boot Print Cast',       status:'pending'  },
+    ];
+
+    // Merge extra items and apply status overrides
+    (function loadEvidence() {
+      try {
+        const savedStatus = JSON.parse(localStorage.getItem('col_evidence_status') || '{}');
+        const extraItems  = JSON.parse(localStorage.getItem('col_evidence_extra')  || '[]');
+        BASE_EVIDENCE.forEach(e => { if (savedStatus[e.id]) e.status = savedStatus[e.id]; });
+        extraItems.forEach(ex => {
+          if (!BASE_EVIDENCE.find(e => e.id === ex.id)) BASE_EVIDENCE.push(ex);
+        });
+      } catch(_) {}
+    })();
+
+    /* ════════════════════════════════════════════════
+       BUILD EVIDENCE PICKER
+    ════════════════════════════════════════════════ */
+    const selectedEvidence = new Set();
+
+    function buildEvidencePicker() {
+      const picker = document.getElementById('evidence-picker');
+      picker.innerHTML = '';
+      BASE_EVIDENCE.forEach(item => {
+        const isLogged    = item.status === 'logged';
+        const el = document.createElement('div');
+        el.className = 'ev-pick-item' + (isLogged ? '' : ' unavailable');
+        el.dataset.id = item.id;
+        if (isLogged) el.onclick = () => toggleEvidence(el, item.id);
+        el.innerHTML = `
+          <div class="ev-cb" data-id="${item.id}"></div>
+          <span class="ev-pick-id">${item.id}</span>
+          <span class="ev-pick-name">${item.name}</span>
+          <span class="ev-pick-status ${item.status}">${statusLabel(item.status)}</span>
+        `;
+        picker.appendChild(el);
+      });
+    }
+
+    function toggleEvidence(el, id) {
+      if (selectedEvidence.has(id)) {
+        selectedEvidence.delete(id);
+        el.classList.remove('selected');
+        el.querySelector('.ev-cb').classList.remove('checked');
+      } else {
+        selectedEvidence.add(id);
+        el.classList.add('selected');
+        el.querySelector('.ev-cb').classList.add('checked');
+      }
+      updateCompletion();
+    }
+
+    function statusLabel(s) {
+      return { logged:'Logged', analysis:'In Analysis', pending:'Pending' }[s] || s;
+    }
+
+    buildEvidencePicker();
+
+    /* ════════════════════════════════════════════════
+       COMPLETION TRACKER
+       Required fields: perpetrator, motive, method,
+       timeline, location, evidence (at least 1 logged)
+    ════════════════════════════════════════════════ */
+    const REQUIRED_FIELDS = [
+      { id:'f-perpetrator', label:'Perpetrator' },
+      { id:'f-motive',      label:'Motive' },
+      { id:'f-method',      label:'Method' },
+      { id:'f-timeline',    label:'Timeline' },
+      { id:'f-location',    label:'Location' },
+      { id:'evidence',      label:'Evidence' },
+    ];
+
+    function updateCompletion() {
+      let filled = 0;
+      const dots = document.getElementById('completion-dots');
+      dots.innerHTML = '';
+
+      REQUIRED_FIELDS.forEach(f => {
+        let done;
+        if (f.id === 'evidence') {
+          done = selectedEvidence.size > 0;
+        } else {
+          done = !!document.getElementById(f.id)?.value;
+        }
+        if (done) filled++;
+        const dot = document.createElement('div');
+        dot.className = `cf-dot ${done ? 'done' : 'empty'}`;
+        dot.title = f.label;
+        dots.appendChild(dot);
+      });
+
+      const pct = Math.round((filled / REQUIRED_FIELDS.length) * 100);
+      document.getElementById('completion-pct').textContent  = pct + '%';
+      document.getElementById('completion-fill').style.width = pct + '%';
+
+      const allDone = filled === REQUIRED_FIELDS.length;
+      document.getElementById('submit-btn').disabled = !allDone;
+      document.getElementById('submit-req').style.display = allDone ? 'none' : 'block';
+
+      autoSave();
+    }
+
+    /* ════════════════════════════════════════════════
+       AUTOSAVE — preserve progress across navigation
+    ════════════════════════════════════════════════ */
+    function autoSave() {
+      const data = {
+        perpetrator: document.getElementById('f-perpetrator').value,
+        accomplices: Array.from(document.getElementById('f-accomplices').selectedOptions).map(o => o.value),
+        motive:      document.getElementById('f-motive').value,
+        method:      document.getElementById('f-method').value,
+        timeline:    document.getElementById('f-timeline').value,
+        location:    document.getElementById('f-location').value,
+        evidence:    [...selectedEvidence],
+      };
+      localStorage.setItem('col_report_draft', JSON.stringify(data));
+    }
+
+    function loadDraft() {
+      try {
+        const d = JSON.parse(localStorage.getItem('col_report_draft') || '{}');
+        if (d.perpetrator) document.getElementById('f-perpetrator').value = d.perpetrator;
+        if (d.motive)      document.getElementById('f-motive').value      = d.motive;
+        if (d.method)      document.getElementById('f-method').value      = d.method;
+        if (d.timeline)    document.getElementById('f-timeline').value    = d.timeline;
+        if (d.location)    document.getElementById('f-location').value    = d.location;
+        if (d.accomplices) {
+          const sel = document.getElementById('f-accomplices');
+          d.accomplices.forEach(v => {
+            Array.from(sel.options).forEach(o => { if (o.value === v) o.selected = true; });
+          });
+        }
+        if (d.evidence) {
+          d.evidence.forEach(id => {
+            selectedEvidence.add(id);
+            const el = document.querySelector(`.ev-pick-item[data-id="${id}"]`);
+            if (el) {
+              el.classList.add('selected');
+              el.querySelector('.ev-cb').classList.add('checked');
+            }
+          });
+        }
+        updateCompletion();
+      } catch(_) {}
+    }
+    loadDraft();
+
+    /* ════════════════════════════════════════════════
+       SUBMIT REPORT
+    ════════════════════════════════════════════════ */
+    function submitReport() {
+      const answers = {
+        perpetrator: document.getElementById('f-perpetrator').value,
+        accomplices: Array.from(document.getElementById('f-accomplices').selectedOptions).map(o => o.value),
+        motive:      document.getElementById('f-motive').value,
+        method:      document.getElementById('f-method').value,
+        timeline:    document.getElementById('f-timeline').value,
+        location:    document.getElementById('f-location').value,
+        evidence:    [...selectedEvidence],
+      };
+
+      // Update submission date
+      document.getElementById('meta-date').textContent =
+        new Date().toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' }) +
+        ' · ' + new Date().toLocaleTimeString('en-GB', { hour:'2-digit', minute:'2-digit' });
+
+      document.getElementById('form-stamp').textContent = 'Submitted';
+      document.getElementById('form-stamp').className   = 'doc-stamp stamp-submitted';
+
+      // Score and show verdict
+      showVerdict(answers);
+
+      // Scroll to verdict
+      setTimeout(() => {
+        document.getElementById('verdict-panel').scrollIntoView({ behavior:'smooth' });
+      }, 300);
+
+      // Save submission
+      localStorage.setItem('col_report_submitted', JSON.stringify(answers));
+    }
+
+    /* ════════════════════════════════════════════════
+       SCORING ENGINE
+    ════════════════════════════════════════════════ */
+    function showVerdict(answers) {
+      const panel = document.getElementById('verdict-panel');
+      panel.classList.add('show');
+
+      const fields = [
+        {
+          label:    'Perpetrator',
+          answer:   labelFor('perpetrator', answers.perpetrator),
+          correct:  answers.perpetrator === SOLUTION.perpetrator,
+          partial:  false,
+          feedback: answers.perpetrator === SOLUTION.perpetrator
+            ? 'Correct. Victor Marre orchestrated the incident through a hired contact.'
+            : 'Incorrect. The evidence trail leads elsewhere — review the cigarette case, ledger, and CCTV footage.',
+        },
+        {
+          label:    'Accomplices',
+          answer:   answers.accomplices.map(v => labelFor('accomplices', v)).join(', ') || 'None named',
+          correct:  SOLUTION.accomplices.every(a => answers.accomplices.includes(a)),
+          partial:  answers.accomplices.some(a => SOLUTION.accomplices.includes(a)),
+          feedback: SOLUTION.accomplices.every(a => answers.accomplices.includes(a))
+            ? 'Correct. Bowen Ashford accepted payment to look the other way.'
+            : 'Partially correct or incorrect. At least one key accomplice was not identified.',
+        },
+        {
+          label:    'Motive',
+          answer:   labelFor('motive', answers.motive),
+          correct:  answers.motive === SOLUTION.motive,
+          partial:  false,
+          feedback: answers.motive === SOLUTION.motive
+            ? 'Correct. The victim was about to expose information that would have destroyed Marre.'
+            : 'Incorrect. Consider what the victim knew and who would have been most threatened by it.',
+        },
+        {
+          label:    'Method',
+          answer:   labelFor('method', answers.method),
+          correct:  answers.method === SOLUTION.method,
+          partial:  false,
+          feedback: answers.method === SOLUTION.method
+            ? 'Correct. Marre contracted the act through an intermediary — the envelope delivery was the trigger.'
+            : 'Incorrect. Review the burner phone data and the delivery testimony.',
+        },
+        {
+          label:    'Timeline',
+          answer:   labelFor('timeline', answers.timeline),
+          correct:  answers.timeline === SOLUTION.timeline,
+          partial:  false,
+          feedback: answers.timeline === SOLUTION.timeline
+            ? 'Correct. The incident occurred between 21:30 and 22:00, consistent with CCTV and cell tower data.'
+            : 'Incorrect. Cross-reference the CCTV timestamp with Cass Delray\'s testimony.',
+        },
+        {
+          label:    'Crime Location',
+          answer:   labelFor('location', answers.location),
+          correct:  answers.location === SOLUTION.location,
+          partial:  false,
+          feedback: answers.location === SOLUTION.location
+            ? 'Correct. Harlow Street Alley was the primary scene.'
+            : 'Incorrect. The primary scene is confirmed by physical evidence and witness testimony.',
+        },
+        {
+          label:    'Supporting Evidence',
+          answer:   answers.evidence.join(', ') || 'None attached',
+          correct:  SOLUTION.keyEvidence.every(e => answers.evidence.includes(e)),
+          partial:  SOLUTION.keyEvidence.some(e => answers.evidence.includes(e)),
+          feedback: SOLUTION.keyEvidence.every(e => answers.evidence.includes(e))
+            ? 'Strong evidence package. All key items are attached.'
+            : 'Incomplete evidence package. Several critical items were not attached.',
+        },
+      ];
+
+      // Calculate score
+      let score = 0;
+      fields.forEach(f => {
+        if (f.correct) score += 2;
+        else if (f.partial) score += 1;
+      });
+      const maxScore  = fields.length * 2;
+      const scorePct  = Math.round((score / maxScore) * 100);
+      const scoreEl   = document.getElementById('verdict-score');
+      scoreEl.textContent = scorePct + '%';
+      scoreEl.className   = 'verdict-score ' +
+        (scorePct >= 70 ? 'score-high' : scorePct >= 40 ? 'score-mid' : 'score-low');
+
+      // Title
+      document.getElementById('verdict-title').textContent =
+        scorePct >= 80 ? 'Case Closed — Strong Conviction' :
+        scorePct >= 50 ? 'Case Partially Resolved' :
+        'Insufficient Evidence — Case Remains Open';
+
+      // Field rows
+      const rowsEl = document.getElementById('verdict-field-rows');
+      rowsEl.innerHTML = '';
+      fields.forEach(f => {
+        const resultCls  = f.correct ? 'result-correct' : f.partial ? 'result-partial' : 'result-incorrect';
+        const resultText = f.correct ? '✓ Correct'      : f.partial ? '~ Partial'      : '✗ Incorrect';
+        rowsEl.innerHTML += `
+          <div class="vf-row">
+            <div>
+              <span class="vf-label">${f.label}</span>
+              <span class="vf-answer">${f.answer}</span>
+              <span class="vf-feedback">${f.feedback}</span>
+            </div>
+            <span class="vf-result ${resultCls}">${resultText}</span>
+          </div>
+        `;
+      });
+
+      // Narrative
+      const narrative = document.getElementById('verdict-narrative');
+      narrative.innerHTML = generateNarrative(scorePct, answers);
+    }
+
+    /* ── Generate outcome narrative ── */
+    function generateNarrative(score, answers) {
+      if (score >= 80) return `
+        <p>Your report was filed with the Deputy Commissioner's office at 09:00 the following morning. By noon, an arrest warrant had been issued for Victor Marre. By the time his lawyers arrived at the precinct, officers had already secured the ledger, the CCTV evidence, and a statement from Bowen Ashford.</p>
+        <p>The trial is pending. The city watches. For the first time in years, it feels like someone in this department actually followed the evidence where it led.</p>
+        <p>Case COL-001-A is formally closed.</p>
+      `;
+      if (score >= 50) return `
+        <p>Your report identified several key elements correctly, but gaps in the evidence chain left the prosecution with less than they needed for a watertight case. Charges were filed, but the defence found room to manoeuvre.</p>
+        <p>The case is partially resolved. Some answers have been found. Others remain buried in the city's silences. Marre's lawyers are expensive. The city is patient.</p>
+        <p>Case COL-001-A remains conditionally open pending further evidence.</p>
+      `;
+      return `
+        <p>The report was reviewed and returned without action. The Deputy Commissioner's note was brief: <em>"Insufficient basis for prosecution. Reopen and investigate further."</em></p>
+        <p>Somewhere in the city, someone is still walking free. The alley is quiet again. The evidence locker is full of things that haven't told their full story yet.</p>
+        <p>Case COL-001-A remains open. Start again.</p>
+      `;
+    }
+
+    /* ── Label helpers ── */
+    function labelFor(field, value) {
+      const labels = {
+        perpetrator: {
+          'victor-marre':'Victor Marre','bowen-ashford':'Bowen Ashford',
+          'raymond-cross':'Alderman Raymond Cross','diana-whitmore':'Diana Whitmore',
+          'elara-voss':'Elara Voss','isabelle-crane':'Isabelle Crane',
+          'patrick-lorne':'Patrick Lorne','unknown':'Unknown'
+        },
+        accomplices: {
+          'victor-marre':'Victor Marre','bowen-ashford':'Bowen Ashford',
+          'raymond-cross':'Alderman Raymond Cross','diana-whitmore':'Diana Whitmore',
+          'elara-voss':'Elara Voss','isabelle-crane':'Isabelle Crane',
+          'patrick-lorne':'Patrick Lorne','none':'None'
+        },
+        motive: {
+          'financial':'Financial gain','silencing':'Silencing the victim',
+          'revenge':'Personal revenge','power':'Power and control',
+          'cover-up':'Cover up of prior crime','coercion':'Acting under coercion',
+          'unknown':'Unclear'
+        },
+        method: {
+          'direct':'Direct physical act','hired':'Hired third party',
+          'poisoning':'Poisoning','staged':'Staged accident',
+          'coercion':'Coercion','unknown':'Unclear'
+        },
+        timeline: {
+          'before-21':'Before 21:00','21-2130':'21:00–21:30',
+          '2130-22':'21:30–22:00','22-2230':'22:00–22:30',
+          'after-2230':'After 22:30','mar05-early':'Mar 05 early morning',
+          'unknown':'Unclear'
+        },
+        location: {
+          'harlow-alley':'Harlow Street Alley','blue-meridian':'The Blue Meridian',
+          'creston-apt':'14B Creston Apartments','kessler-wharf':'Kessler Warehouse District',
+          'harbour-bay7':'City Harbour — Bay 7','marre-office':'Marre Import Co.',
+          'unknown':'Unclear'
+        },
+      };
+      return labels[field]?.[value] ?? value;
+    }
+
+    /* ── Revise report ── */
+    function reviseReport() {
+      document.getElementById('verdict-panel').classList.remove('show');
+      document.getElementById('form-stamp').textContent = 'Pending Submission';
+      document.getElementById('form-stamp').className   = 'doc-stamp stamp-pending';
+      document.getElementById('report-form').scrollIntoView({ behavior:'smooth' });
+    }
+
+    /* ════════════════════════════════════════════════
+       MUSIC RESUME
+    ════════════════════════════════════════════════ */
+    const music = document.getElementById('bg-music');
+    let musicEnabled = true;
+
+    (function resumeMusic() {
+      try {
+        const saved = JSON.parse(sessionStorage.getItem('col_music') || '{}');
+        musicEnabled = saved.enabled !== false;
+        if (!musicEnabled) return;
+        if (saved.time)   music.currentTime = saved.time;
+        music.volume = saved.volume ?? 0.42;
+        music.play().catch(() => {
+          const unlock = () => { music.play().catch(()=>{}); document.removeEventListener('click',unlock); document.removeEventListener('touchstart',unlock); };
+          document.addEventListener('click',unlock,{passive:true});
+          document.addEventListener('touchstart',unlock,{passive:true});
+        });
+      } catch(_) {}
+    })();
+
+    function saveMusicState() {
+      sessionStorage.setItem('col_music', JSON.stringify({
+        enabled: musicEnabled, time: music.currentTime,
+        volume: music.volume, src: 'Assets/Audio/Background music/Echoes_in_the_Concrete_Maze.mp3'
+      }));
+    }
+
+    /* ════════════════════════════════════════════════
+       NAVIGATION
+    ════════════════════════════════════════════════ */
+    function goBack() {
+      saveMusicState();
+      window.location.href = 'game.html';
+    }
+
+    /* ════════════════════════════════════════════════
+       VERSION TAG
+    ════════════════════════════════════════════════ */
+    async function updateCommitHash() {
+      try {
+        const res  = await fetch('https://api.github.com/repos/jellybean1979/CityOfLies/commits?per_page=1');
+        if (!res.ok) throw new Error();
+        const data = await res.json();
+        const sha  = data[0]?.sha?.substring(0,7) ?? '-------';
+        document.getElementById('versionTag').textContent = `v0.1.0 · ${sha}`;
+      } catch { document.getElementById('versionTag').textContent = 'v0.1.0 · local'; }
+    }
+    updateCommitHash();
+  </script>
+</body>
+</html>
+
