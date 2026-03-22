@@ -1001,7 +1001,13 @@
     ════════════════════════════════════════════════ */
     function filterBy(role, btn) {
       document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
+      if (btn) btn.classList.add('active');
+      else {
+        // Called programmatically — activate matching button
+        document.querySelectorAll('.filter-btn').forEach(b => {
+          if (b.getAttribute('onclick').includes(`'${role}'`)) b.classList.add('active');
+        });
+      }
 
       let count = 0;
       document.querySelectorAll('.portrait-card').forEach(card => {
@@ -1011,6 +1017,15 @@
       });
       document.getElementById('showing-count').textContent = count;
     }
+
+    /* Auto-apply filter from URL param e.g. ?filter=suspect */
+    (function applyUrlFilter() {
+      const params = new URLSearchParams(window.location.search);
+      const urlFilter = params.get('filter');
+      if (urlFilter && ['suspect','witness','poi','informant'].includes(urlFilter)) {
+        filterBy(urlFilter, null);
+      }
+    })();
 
     /* ════════════════════════════════════════════════
        DOSSIER MODAL
