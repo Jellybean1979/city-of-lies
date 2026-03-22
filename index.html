@@ -494,6 +494,32 @@
       #menu-buttons { align-items: flex-start; width: 100%; padding-left: 8%; }
       .corner { display: none; }
     }
+
+    /* ═══ MOBILE PORTRAIT — video & menu fixes ═══ */
+    @media (max-width: 580px) and (orientation: portrait) {
+      /* Contain video so it doesn't crop on narrow screens */
+      #intro-video {
+        object-fit: contain;
+        background: #000;
+      }
+      /* Remove letterbox bars on portrait — video handles its own space */
+      .letterbox { display: none; }
+
+      /* Shift menu up — eliminates the large empty top gap */
+      #menu-panel {
+        position: absolute;
+        bottom: auto;
+        top: 50%;
+        transform: translateY(-50%);
+        padding-bottom: 0;
+        padding-top: 0;
+      }
+
+      /* Shrink logo a touch so everything fits without scrolling */
+      .logo-main {
+        font-size: clamp(42px, 14vw, 64px);
+      }
+    }
   </style>
 </head>
 <body>
