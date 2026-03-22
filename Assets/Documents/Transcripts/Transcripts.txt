@@ -21,3 +21,25 @@ Interrogator: [leans back] And when did you realise something had happened in th
 Suspect: [voice drops] When I saw the news the next morning. I threw up. I swear I didn't know what I was walking into.
 Interrogator: [quietly] You should have come to us sooner.
 Suspect: [barely a whisper] I know. I was scared. I'm still scared.
+
+
+
+VERSION C — Suspects Lawyers Up Mid-Interrogation
+Interrogator: [calmly] Let's begin. Tell me where you were between 9 and 10 PM last night.
+Suspect: [nervous] I… I already told you. I was walking home.
+Interrogator: [skeptical] That's interesting, because the CCTV footage shows someone matching your description near the alley.
+Suspect: [defensive] That wasn't me. You're seeing things.
+Interrogator: [slides photograph across table] Look at it. Take your time.
+Suspect: [long pause] ...That could be anyone.
+Interrogator: [leans forward] Then explain why your phone pinged off the tower two blocks away.
+Suspect: [swallows] I… I don't know. Maybe the signal bounced or something.
+Interrogator: [firm] That's not how cell towers work. Try again.
+Suspect: [sudden shift, composure returning] You know what — I'm done talking.
+Interrogator: We're just getting started.
+Suspect: [coldly] No. We're not. I know how this works. You've got a photograph that proves nothing and a cell tower ping that any defence attorney will have thrown out in twenty minutes.
+Interrogator: You seem to know a lot about how evidence works.
+Suspect: [thin smile] I watch the news. I want a lawyer. Right now. This conversation is over.
+Interrogator: [beat] That's your right.
+Suspect: [leans forward] And when my lawyer gets here, we're going to have a very different conversation about how you people are harassing an innocent citizen. Write that down.
+Interrogator: [stands, closes folder] Interview suspended. Subject requested legal counsel. [to suspect, quietly] You're making this harder for yourself.
+Suspect: [says nothing, looks away]
