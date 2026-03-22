@@ -843,11 +843,15 @@
       { id:'COL-001-A-E08', name:'Partial Boot Print Cast',      status:'pending'  },
     ];
 
-    // Apply localStorage status overrides from evidence.html
+    // Apply localStorage status overrides and extra evidence items
     (function applyOverrides() {
       try {
-        const saved = JSON.parse(localStorage.getItem('col_evidence_status') || '{}');
+        const saved      = JSON.parse(localStorage.getItem('col_evidence_status') || '{}');
+        const extraItems = JSON.parse(localStorage.getItem('col_evidence_extra')  || '[]');
         EVIDENCE.forEach(e => { if (saved[e.id]) e.status = saved[e.id]; });
+        extraItems.forEach(extra => {
+          if (!EVIDENCE.find(e => e.id === extra.id)) EVIDENCE.push(extra);
+        });
       } catch(_) {}
     })();
 
@@ -886,12 +890,17 @@
     /* ════════════════════════════════════════
        SUBMIT MODAL
     ════════════════════════════════════════ */
+    const ANALYSIS_MIN_MS = 5  * 60 * 1000;
+    const ANALYSIS_MAX_MS = 10 * 60 * 1000;
+    const PENDING_MS      = 1  * 60 * 1000;
+
     let currentLab = null;
     let selectedEvidence = new Set();
 
     function openSubmit(labKey) {
-      if (labKey === 'bio') return; // restricted
-      const lab = LAB_CONFIG[labKey];
+      if (labKey === 'bio') return;
+      const lab    = LAB_CONFIG[labKey];
+      const labUsed = JSON.parse(localStorage.getItem('col_lab_used') || '{}');
       currentLab = labKey;
       selectedEvidence.clear();
 
@@ -899,18 +908,30 @@
       document.getElementById('modal-lab-sub').textContent  = lab.sub;
       document.getElementById('modal-note').value = '';
 
-      // Populate evidence list
       const list = document.getElementById('modal-evidence-list');
       list.innerHTML = '';
+
       EVIDENCE.forEach(item => {
+        const usedLabs     = labUsed[item.id] || [];
+        const alreadyUsed  = usedLabs.includes(labKey);
+        const inAnalysis   = item.status === 'analysis';
+        const isDisabled   = alreadyUsed || inAnalysis;
+
         const el = document.createElement('div');
-        el.className = 'modal-ev-item';
+        el.className = 'modal-ev-item' + (isDisabled ? ' disabled' : '');
         el.dataset.id = item.id;
-        el.onclick = () => toggleEvItem(el, item.id);
+        el.style.opacity = isDisabled ? '0.35' : '1';
+        el.style.cursor  = isDisabled ? 'default' : 'pointer';
+        if (!isDisabled) el.onclick = () => toggleEvItem(el, item.id);
+
+        const lockTag = alreadyUsed
+          ? `<span style="font-size:7px;letter-spacing:.15em;text-transform:uppercase;color:#c43030;margin-left:4px;">Lab Used</span>`
+          : '';
+
         el.innerHTML = `
           <div class="modal-ev-checkbox" data-cb="${item.id}"></div>
           <span class="modal-ev-id">${item.id}</span>
-          <span class="modal-ev-name">${item.name}</span>
+          <span class="modal-ev-name">${item.name}${lockTag}</span>
           <span class="modal-ev-status ${item.status}">${statusLabel(item.status)}</span>
         `;
         list.appendChild(el);
@@ -944,19 +965,38 @@
     function confirmSubmit() {
       if (selectedEvidence.size === 0) return;
 
-      // Update status to 'analysis' for selected items
-      const saved = JSON.parse(localStorage.getItem('col_evidence_status') || '{}');
+      const statusMap = JSON.parse(localStorage.getItem('col_evidence_status') || '{}');
+      const timers    = JSON.parse(localStorage.getItem('col_lab_timers')       || '{}');
+      const labUsed   = JSON.parse(localStorage.getItem('col_lab_used')         || '{}');
+
       selectedEvidence.forEach(id => {
         const item = EVIDENCE.find(e => e.id === id);
-        if (item) item.status = 'analysis';
-        saved[id] = 'analysis';
+        if (!item) return;
+
+        item.status = 'analysis';
+        statusMap[id] = 'analysis';
+
+        // Record timestamp for this item
+        const now         = Date.now();
+        const analysisMs  = ANALYSIS_MIN_MS + Math.random() * (ANALYSIS_MAX_MS - ANALYSIS_MIN_MS);
+        timers[id] = {
+          lab:         currentLab,
+          analysisEnd: now + analysisMs,
+          pendingEnd:  now + analysisMs + PENDING_MS
+        };
+
+        // Lock this lab for this item
+        if (!labUsed[id]) labUsed[id] = [];
+        if (!labUsed[id].includes(currentLab)) labUsed[id].push(currentLab);
       });
-      localStorage.setItem('col_evidence_status', JSON.stringify(saved));
+
+      localStorage.setItem('col_evidence_status', JSON.stringify(statusMap));
+      localStorage.setItem('col_lab_timers',       JSON.stringify(timers));
+      localStorage.setItem('col_lab_used',         JSON.stringify(labUsed));
 
       closeModal();
       refreshUI();
 
-      // Show toast
       const toast = document.getElementById('submit-confirm');
       toast.classList.add('show');
       setTimeout(() => toast.classList.remove('show'), 3000);
@@ -1018,4 +1058,3 @@
   </script>
 </body>
 </html>
-
