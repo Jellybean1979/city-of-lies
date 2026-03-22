@@ -782,12 +782,24 @@
       { id:`${CURRENT_CASE}-E08`, name:'Partial Boot Print Cast',       status:'pending'  },
     ];
 
-    // Merge extra items and apply status overrides
+    // Merge extra items and apply status overrides — only show released items
     (function loadEvidence() {
       try {
         const savedStatus = JSON.parse(localStorage.getItem('col_evidence_status') || '{}');
         const extraItems  = JSON.parse(localStorage.getItem('col_evidence_extra')  || '[]');
-        BASE_EVIDENCE.forEach(e => { if (savedStatus[e.id]) e.status = savedStatus[e.id]; });
+        const waveState   = JSON.parse(localStorage.getItem('col_evidence_waves')  || '{}');
+
+        // Only include items that have been released by the wave system
+        BASE_EVIDENCE.forEach((e, i, arr) => {
+          const waveKey   = 'released_' + e.id;
+          const released  = !!waveState[waveKey] || !!savedStatus[e.id];
+          if (!released) {
+            arr.splice(i, 1);
+          } else {
+            e.status = savedStatus[e.id] || e.status;
+          }
+        });
+
         extraItems.forEach(ex => {
           if (!BASE_EVIDENCE.find(e => e.id === ex.id)) BASE_EVIDENCE.push(ex);
         });
@@ -1196,4 +1208,3 @@
   </script>
 </body>
 </html>
-
