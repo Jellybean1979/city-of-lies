@@ -51,7 +51,7 @@
       100% { opacity: 0; pointer-events: none; }
     }
 
-    /* The video fills the screen — pointer-events off so taps never reach it */
+    /* The video fills the screen */
     #intro-video {
       position: absolute;
       inset: 0;
@@ -59,7 +59,6 @@
       height: 100%;
       object-fit: cover;
       display: block;
-      pointer-events: none;
     }
 
     /* Fallback shown when no video src is present */
@@ -99,15 +98,6 @@
       letter-spacing: 0.1em;
     }
 
-    /* Transparent overlay — sits above video, catches all taps before they reach it */
-    #video-tap-overlay {
-      position: absolute;
-      inset: 0;
-      z-index: 8;
-      background: transparent;
-      cursor: pointer;
-      -webkit-tap-highlight-color: transparent;
-    }
 
     /* Letterbox bars over video */
     .letterbox {
@@ -567,8 +557,6 @@
       preload="auto"
     ></video>
 
-    <!-- Transparent overlay intercepts taps so the browser doesn't pause the video -->
-    <div id="video-tap-overlay"></div>
 
     <!-- Shown while no video src is set -->
     <div id="video-fallback">
@@ -680,35 +668,11 @@
     /* ── Video src check — declared early so unlockAudio can reference it ── */
     const hasSrc = introVideo.getAttribute('src') && introVideo.getAttribute('src').trim() !== '';
 
-    /* ── Overlay tap handler — blocks tap reaching video entirely ── */
-    const tapOverlay = document.getElementById('video-tap-overlay');
-    if (tapOverlay) {
-      ['touchstart', 'touchend', 'click', 'mousedown'].forEach(evt => {
-        tapOverlay.addEventListener(evt, e => {
-          e.preventDefault();
-          e.stopPropagation();
-          e.stopImmediatePropagation();
-          unlockAudio();
-        });
-      });
-    }
 
     /* ── Unlock audio on first user gesture anywhere ── */
     function unlockAudio() {
       if (musicUnlocked) return;
       musicUnlocked = true;
-
-      // Remove the tap interceptor — no longer needed
-      const overlay = document.getElementById('video-tap-overlay');
-      if (overlay) overlay.remove();
-
-      // Unmute the intro video now that we have a user gesture
-      if (hasSrc && !introComplete) {
-        introVideo.muted = false;
-        introVideo.volume = 1.0;
-        // Resume in case the browser paused it before the gesture
-        introVideo.play().catch(() => {});
-      }
 
       // Only start bg music if the main UI is already showing
       if (introComplete && musicEnabled) {
