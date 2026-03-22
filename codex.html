@@ -1,0 +1,1009 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>City of Lies — Case Files & Codex</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Special+Elite&family=Courier+Prime:ital,wght@0,400;0,700;1,400&family=Playfair+Display:ital,wght@0,700;1,400;1,700&family=Caveat:wght@400;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --ink:          #0e0a06;
+      --paper:        #e0d0b0;
+      --paper-dim:    #8a7a5a;
+      --paper-dark:   #c8b48a;
+      --amber:        #c47c1a;
+      --gold:         #a8832e;
+      --blood:        #7a1a1a;
+      --sepia:        #4a3218;
+      --green-cred:   #1a4a2a;
+      --green-lit:    #3a9a5a;
+      --red-corrupt:  #4a0a0a;
+      --red-lit:      #c43030;
+      --blue-city:    #0a1a3a;
+      --blue-lit:     #4080c0;
+      --rule:         rgba(168,131,46,0.25);
+      --panel-bg:     rgba(14,10,6,0.82);
+      --panel-border: rgba(168,131,46,0.2);
+    }
+
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    html, body {
+      width: 100%; height: 100%;
+      background: var(--ink);
+      font-family: 'Courier Prime', monospace;
+      overflow: hidden;
+    }
+
+    body { animation: pageIn 0.8s ease forwards; }
+    @keyframes pageIn { from { opacity: 0; } to { opacity: 1; } }
+
+    /* ════════════════════════════
+       BACKGROUND
+    ════════════════════════════ */
+    #bg {
+      position: fixed; inset: 0;
+      background-image: url('background-mainUI.jpg');
+      background-size: cover;
+      background-position: center;
+      filter: brightness(0.22) saturate(0.5) sepia(0.5);
+    }
+    #bg-tint {
+      position: fixed; inset: 0;
+      background: radial-gradient(ellipse 80% 60% at 50% 0%, rgba(80,50,10,0.25) 0%, transparent 60%);
+    }
+    #vignette {
+      position: fixed; inset: 0; z-index: 1; pointer-events: none;
+      box-shadow: inset 0 0 160px rgba(4,2,0,0.97), inset 0 0 60px rgba(4,2,0,0.6);
+    }
+    #grain {
+      position: fixed; inset: 0; z-index: 1; pointer-events: none; opacity: 0.035;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='220' height='220' filter='url(%23n)'/%3E%3C/svg%3E");
+      background-size: 180px;
+    }
+
+    /* ════════════════════════════
+       OUTER LAYOUT
+    ════════════════════════════ */
+    #shell {
+      position: fixed; inset: 0; z-index: 10;
+      display: flex; flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* ── Top bar ── */
+    #topbar {
+      display: flex; align-items: center;
+      justify-content: space-between;
+      padding: clamp(10px,1.8vh,18px) clamp(14px,3vw,32px);
+      border-bottom: 1px solid var(--panel-border);
+      background: rgba(8,5,2,0.7);
+      flex-shrink: 0;
+      gap: 12px;
+      backdrop-filter: blur(6px);
+    }
+    .topbar-title {
+      font-family: 'Special Elite', cursive;
+      font-size: clamp(16px,3vw,26px);
+      color: var(--paper);
+      letter-spacing: 0.05em;
+    }
+    .topbar-case {
+      font-size: clamp(7px,0.9vw,9px);
+      letter-spacing: 0.4em;
+      text-transform: uppercase;
+      color: var(--amber);
+      display: block;
+      margin-top: 2px;
+    }
+    #back-btn {
+      font-family: 'Courier Prime', monospace;
+      font-size: clamp(9px,1.1vw,11px);
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: var(--paper-dim);
+      background: rgba(14,10,6,0.6);
+      border: 1px solid var(--panel-border);
+      padding: 7px 16px;
+      cursor: pointer;
+      transition: color .2s, border-color .2s, transform .15s;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    #back-btn:hover { color: var(--amber); border-color: rgba(168,131,46,.5); transform: translateX(-2px); }
+
+    /* ── Tab bar ── */
+    #tabs {
+      display: flex;
+      border-bottom: 1px solid var(--panel-border);
+      background: rgba(8,5,2,0.5);
+      flex-shrink: 0;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+    #tabs::-webkit-scrollbar { display: none; }
+    .tab {
+      font-family: 'Courier Prime', monospace;
+      font-size: clamp(8px,1.1vw,10px);
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: var(--paper-dim);
+      background: none;
+      border: none;
+      border-bottom: 2px solid transparent;
+      padding: clamp(8px,1.3vh,12px) clamp(14px,2.5vw,28px);
+      cursor: pointer;
+      transition: color .2s, border-color .2s;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .tab:hover { color: var(--paper); }
+    .tab.active { color: var(--amber); border-bottom-color: var(--amber); }
+
+    /* ── Content area ── */
+    #content {
+      flex: 1;
+      overflow-y: auto;
+      overflow-x: hidden;
+      padding: clamp(16px,3vw,32px) clamp(14px,3vw,32px);
+      scrollbar-width: thin;
+      scrollbar-color: rgba(168,131,46,.25) transparent;
+    }
+    #content::-webkit-scrollbar { width: 4px; }
+    #content::-webkit-scrollbar-thumb { background: rgba(168,131,46,.25); border-radius: 2px; }
+
+    .tab-panel { display: none; animation: panelIn .35s ease; }
+    .tab-panel.active { display: block; }
+    @keyframes panelIn { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
+
+    /* ════════════════════════════
+       SHARED SECTION STYLES
+    ════════════════════════════ */
+    .section-head {
+      display: flex; align-items: center; gap: 12px;
+      margin-bottom: clamp(14px,2.5vh,22px);
+    }
+    .section-icon { font-size: clamp(16px,2.2vw,20px); flex-shrink:0; }
+    .section-label {
+      font-family: 'Special Elite', cursive;
+      font-size: clamp(15px,2.2vw,20px);
+      color: var(--paper);
+      letter-spacing: 0.04em;
+    }
+    .section-rule { flex:1; height:1px; background: linear-gradient(to right, var(--rule), transparent); }
+
+    .subsection { margin-bottom: clamp(24px,4vh,40px); }
+
+    /* ════════════════════════════
+       TAB 1 — FACTIONS
+    ════════════════════════════ */
+    .faction-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(clamp(240px,30vw,320px), 1fr));
+      gap: clamp(10px,1.8vw,18px);
+    }
+
+    .faction-card {
+      border: 1px solid var(--panel-border);
+      background: var(--panel-bg);
+      cursor: pointer;
+      text-decoration: none;
+      display: block;
+      transition: border-color .2s, transform .2s, background .2s;
+      position: relative;
+      overflow: hidden;
+    }
+    .faction-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+      opacity: 0;
+      transition: opacity .2s;
+    }
+    .faction-card:hover {
+      transform: translateY(-2px);
+      background: rgba(22,16,8,0.92);
+    }
+    .faction-card:hover::before { opacity: 1; }
+
+    /* accent colours per faction */
+    .faction-card.police::before     { background: var(--blue-lit); }
+    .faction-card.council::before    { background: var(--gold); }
+    .faction-card.security::before   { background: #888; }
+    .faction-card.syndicate::before  { background: var(--red-lit); }
+    .faction-card.activist::before   { background: var(--green-lit); }
+    .faction-card.media::before      { background: #c0a030; }
+
+    .faction-card:hover { border-color: rgba(168,131,46,.4); }
+
+    .faction-inner {
+      padding: clamp(12px,1.8vw,20px);
+    }
+    .faction-header {
+      display: flex; align-items: center; gap: 10px;
+      margin-bottom: 8px;
+    }
+    .faction-icon { font-size: clamp(18px,2.5vw,24px); flex-shrink:0; }
+    .faction-name {
+      font-family: 'Special Elite', cursive;
+      font-size: clamp(13px,1.8vw,17px);
+      color: var(--paper);
+      line-height: 1.1;
+    }
+    .faction-badge {
+      margin-left: auto;
+      font-size: clamp(6px,.8vw,8px);
+      letter-spacing: .25em;
+      text-transform: uppercase;
+      padding: 2px 7px;
+      border: 1px solid;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .badge-active   { color: var(--green-lit); border-color: var(--green-lit); }
+    .badge-hostile  { color: var(--red-lit);   border-color: var(--red-lit); }
+    .badge-neutral  { color: var(--paper-dim); border-color: rgba(138,120,80,.35); }
+    .badge-locked   { color: rgba(138,120,80,.35); border-color: rgba(138,120,80,.2); }
+
+    .faction-desc {
+      font-size: clamp(9px,1.1vw,11px);
+      color: var(--paper-dim);
+      line-height: 1.65;
+      margin-bottom: 10px;
+    }
+    .faction-footer {
+      display: flex; align-items: center; justify-content: space-between;
+      padding-top: 8px;
+      border-top: 1px solid rgba(168,131,46,.1);
+    }
+    .faction-stat {
+      font-size: clamp(7px,.85vw,9px);
+      letter-spacing: .2em;
+      text-transform: uppercase;
+      color: var(--paper-dim);
+    }
+    .faction-stat span { color: var(--amber); }
+    .faction-arrow {
+      font-size: 12px;
+      color: rgba(168,131,46,.4);
+      transition: color .2s, transform .2s;
+    }
+    .faction-card:hover .faction-arrow { color: var(--amber); transform: translateX(4px); }
+
+    /* ════════════════════════════
+       TAB 2 — INFLUENCE METERS
+    ════════════════════════════ */
+    .meters-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(clamp(260px,32vw,360px), 1fr));
+      gap: clamp(14px,2.5vw,24px);
+    }
+
+    .meter-card {
+      border: 1px solid var(--panel-border);
+      background: var(--panel-bg);
+      padding: clamp(16px,2.5vw,26px);
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Ambient glow behind each card */
+    .meter-card::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      opacity: 0.04;
+      pointer-events: none;
+      border-radius: 0;
+    }
+    .meter-card.influence::after  { background: var(--red-lit); }
+    .meter-card.city-corrupt::after { background: var(--blue-lit); }
+    .meter-card.street-cred::after { background: var(--green-lit); }
+
+    .meter-name {
+      font-family: 'Special Elite', cursive;
+      font-size: clamp(14px,2vw,19px);
+      color: var(--paper);
+      display: block;
+      margin-bottom: 3px;
+    }
+    .meter-sub {
+      font-size: clamp(7px,.9vw,9px);
+      letter-spacing: .3em;
+      text-transform: uppercase;
+      color: var(--paper-dim);
+      display: block;
+      margin-bottom: clamp(12px,2vh,18px);
+    }
+
+    /* Bar */
+    .meter-bar-wrap {
+      position: relative;
+      height: 8px;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.08);
+      margin-bottom: 6px;
+      overflow: visible;
+    }
+    .meter-bar-fill {
+      height: 100%;
+      transition: width 1.2s cubic-bezier(.4,0,.2,1);
+      position: relative;
+    }
+    .meter-bar-fill::after {
+      content: '';
+      position: absolute;
+      right: -1px; top: -3px;
+      width: 3px; height: 14px;
+      background: inherit;
+      filter: brightness(1.6);
+    }
+    .meter-card.influence  .meter-bar-fill { background: linear-gradient(to right, #6a0a0a, var(--red-lit)); }
+    .meter-card.city-corrupt .meter-bar-fill { background: linear-gradient(to right, #0a1a4a, var(--blue-lit)); }
+    .meter-card.street-cred .meter-bar-fill { background: linear-gradient(to right, #0a2a18, var(--green-lit)); }
+
+    .meter-labels {
+      display: flex; justify-content: space-between;
+      font-size: clamp(6px,.75vw,8px);
+      letter-spacing: .2em;
+      text-transform: uppercase;
+      color: rgba(138,120,80,.4);
+      margin-bottom: clamp(10px,1.6vh,16px);
+    }
+
+    .meter-value-row {
+      display: flex; align-items: baseline; gap: 8px;
+      margin-bottom: 8px;
+    }
+    .meter-value {
+      font-family: 'Special Elite', cursive;
+      font-size: clamp(28px,5vw,44px);
+      line-height: 1;
+    }
+    .meter-card.influence  .meter-value { color: var(--red-lit); }
+    .meter-card.city-corrupt .meter-value { color: var(--blue-lit); }
+    .meter-card.street-cred .meter-value { color: var(--green-lit); }
+
+    .meter-max {
+      font-size: clamp(10px,1.4vw,14px);
+      color: var(--paper-dim);
+    }
+    .meter-rank {
+      font-size: clamp(8px,1vw,11px);
+      letter-spacing: .2em;
+      text-transform: uppercase;
+      color: var(--paper-dim);
+      border: 1px solid rgba(168,131,46,.2);
+      padding: 2px 8px;
+      display: inline-block;
+      margin-bottom: clamp(10px,1.5vh,14px);
+    }
+
+    .meter-desc {
+      font-size: clamp(9px,1.1vw,11px);
+      color: var(--paper-dim);
+      line-height: 1.7;
+      padding-top: clamp(10px,1.5vh,14px);
+      border-top: 1px solid rgba(168,131,46,.1);
+    }
+    .meter-desc strong {
+      color: var(--paper);
+      font-weight: normal;
+      font-style: italic;
+    }
+
+    /* Perks list */
+    .perk-list {
+      margin-top: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+    .perk {
+      display: flex; align-items: flex-start; gap: 8px;
+      font-size: clamp(8px,1vw,10px);
+      color: var(--paper-dim);
+      line-height: 1.4;
+    }
+    .perk-icon { flex-shrink:0; font-size:10px; margin-top:1px; }
+    .perk.unlocked .perk-icon::before { content: '✓'; color: var(--green-lit); }
+    .perk.locked   .perk-icon::before { content: '🔒'; filter: grayscale(1); opacity: .4; }
+    .perk.unlocked { color: var(--paper); }
+
+    /* Warning banner for high corruption */
+    .meter-warning {
+      display: none;
+      margin-top: 10px;
+      padding: 6px 10px;
+      background: rgba(122,26,26,0.2);
+      border: 1px solid rgba(196,48,48,0.3);
+      font-size: clamp(8px,1vw,10px);
+      color: var(--red-lit);
+      letter-spacing: .15em;
+      text-transform: uppercase;
+      line-height: 1.4;
+    }
+    .meter-warning.show { display: block; }
+
+    /* ════════════════════════════
+       TAB 3 — HOW TO PLAY
+    ════════════════════════════ */
+    .htp-doc {
+      max-width: 720px;
+      /* typewriter paper feel */
+      background: rgba(224,208,176,0.04);
+      border: 1px solid var(--panel-border);
+      padding: clamp(20px,4vw,44px);
+      position: relative;
+    }
+    /* Pin */
+    .htp-doc::before {
+      content: '';
+      position: absolute;
+      top: -9px; left: clamp(30px,5vw,60px);
+      width: 15px; height: 15px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 35% 35%, #f55, #8b1a1a);
+      box-shadow: 0 2px 5px rgba(0,0,0,.8);
+    }
+
+    .htp-eyebrow {
+      font-size: clamp(7px,.9vw,9px);
+      letter-spacing: .5em;
+      text-transform: uppercase;
+      color: var(--paper-dim);
+      display: block;
+      margin-bottom: 4px;
+    }
+    .htp-title {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(22px,4vw,36px);
+      font-style: italic;
+      color: var(--paper);
+      display: block;
+      margin-bottom: clamp(14px,2.5vh,22px);
+    }
+    .htp-rule {
+      width: 100%; height: 1px;
+      background: linear-gradient(to right, var(--amber), rgba(168,131,46,.1));
+      opacity: .4;
+      margin-bottom: clamp(18px,3vh,28px);
+    }
+
+    .htp-section {
+      margin-bottom: clamp(20px,3.5vh,32px);
+    }
+    .htp-section-title {
+      font-family: 'Special Elite', cursive;
+      font-size: clamp(12px,1.6vw,15px);
+      color: var(--amber);
+      letter-spacing: .1em;
+      display: block;
+      margin-bottom: clamp(8px,1.3vh,12px);
+      padding-bottom: 4px;
+      border-bottom: 1px solid rgba(168,131,46,.15);
+    }
+    .htp-body {
+      font-size: clamp(10px,1.3vw,13px);
+      color: var(--paper-dim);
+      line-height: 1.85;
+    }
+    .htp-body p { margin-bottom: 10px; }
+    .htp-body p:last-child { margin-bottom: 0; }
+    .htp-body strong { color: var(--paper); font-weight: normal; font-style: italic; }
+    .htp-body em { color: var(--amber); font-style: normal; }
+
+    .htp-tip {
+      margin: clamp(12px,2vh,18px) 0;
+      padding: clamp(10px,1.5vw,14px) clamp(12px,2vw,18px);
+      border-left: 2px solid var(--amber);
+      background: rgba(196,124,26,0.06);
+    }
+    .htp-tip-label {
+      font-size: clamp(6px,.8vw,8px);
+      letter-spacing: .4em;
+      text-transform: uppercase;
+      color: var(--amber);
+      display: block;
+      margin-bottom: 4px;
+    }
+    .htp-tip-text {
+      font-size: clamp(9px,1.1vw,11px);
+      color: var(--paper-dim);
+      line-height: 1.65;
+    }
+
+    .htp-wip {
+      display: inline-block;
+      font-size: clamp(6px,.8vw,8px);
+      letter-spacing: .3em;
+      text-transform: uppercase;
+      color: var(--paper-dim);
+      border: 1px dashed rgba(138,120,80,.3);
+      padding: 2px 8px;
+      margin-left: 8px;
+      vertical-align: middle;
+      opacity: .6;
+    }
+
+    .htp-annotation {
+      font-family: 'Caveat', cursive;
+      font-size: clamp(11px,1.5vw,15px);
+      color: rgba(196,124,26,.35);
+      display: block;
+      margin-top: clamp(18px,3vh,28px);
+      transform: rotate(-1deg);
+      text-align: right;
+    }
+
+    /* ════════════════════════════
+       VERSION
+    ════════════════════════════ */
+    #version-bar {
+      position: fixed; bottom:14px; right:18px; z-index:50;
+    }
+    #versionTag {
+      font-size:9px; letter-spacing:.2em;
+      color: rgba(138,120,80,.3); text-transform:uppercase;
+    }
+
+    /* ════════════════════════════
+       RESPONSIVE
+    ════════════════════════════ */
+    @media (max-width:560px) {
+      .faction-grid, .meters-grid { grid-template-columns: 1fr; }
+      .htp-doc { padding: 20px 16px; }
+    }
+  </style>
+</head>
+<body>
+
+  <div id="bg"></div>
+  <div id="bg-tint"></div>
+  <div id="grain"></div>
+  <div id="vignette"></div>
+
+  <div id="shell">
+
+    <!-- TOP BAR -->
+    <div id="topbar">
+      <div>
+        <span class="topbar-title">Case Files &amp; Codex</span>
+        <span class="topbar-case">Case No. COL-001-A &nbsp;·&nbsp; City of Lies</span>
+      </div>
+      <button id="back-btn" onclick="goBack()">← Board</button>
+    </div>
+
+    <!-- TABS -->
+    <div id="tabs">
+      <button class="tab active" onclick="switchTab('factions', this)">Factions</button>
+      <button class="tab" onclick="switchTab('influence', this)">Influence &amp; Standing</button>
+      <button class="tab" onclick="switchTab('howtoplay', this)">How to Play</button>
+    </div>
+
+    <!-- CONTENT -->
+    <div id="content">
+
+      <!-- ══════════════════════════
+           TAB 1 — FACTIONS
+      ══════════════════════════ -->
+      <div class="tab-panel active" id="panel-factions">
+        <div class="subsection">
+          <div class="section-head">
+            <span class="section-icon">🏛</span>
+            <span class="section-label">City Factions</span>
+            <div class="section-rule"></div>
+          </div>
+
+          <div class="faction-grid">
+
+            <!-- Police Department -->
+            <a class="faction-card police" href="faction-police.html">
+              <div class="faction-inner">
+                <div class="faction-header">
+                  <span class="faction-icon">🚔</span>
+                  <span class="faction-name">Police Department</span>
+                  <span class="faction-badge badge-active">Active</span>
+                </div>
+                <p class="faction-desc">The city's primary law enforcement body. Publicly committed to justice, internally fractured between honest officers and those on the payroll of powerful interests. Your badge opens doors — but it also marks you.</p>
+                <div class="faction-footer">
+                  <span class="faction-stat">Intel: <span>2 contacts</span></span>
+                  <span class="faction-arrow">→</span>
+                </div>
+              </div>
+            </a>
+
+            <!-- City Council -->
+            <a class="faction-card council" href="faction-council.html">
+              <div class="faction-inner">
+                <div class="faction-header">
+                  <span class="faction-icon">🏛</span>
+                  <span class="faction-name">City Council</span>
+                  <span class="faction-badge badge-neutral">Neutral</span>
+                </div>
+                <p class="faction-desc">The elected body governing the city, though "elected" is a generous term. Several council members are deeply entangled in the same corruption you're investigating. Watch who you expose — and who you protect.</p>
+                <div class="faction-footer">
+                  <span class="faction-stat">Intel: <span>0 contacts</span></span>
+                  <span class="faction-arrow">→</span>
+                </div>
+              </div>
+            </a>
+
+            <!-- Private Security -->
+            <a class="faction-card security" href="faction-security.html">
+              <div class="faction-inner">
+                <div class="faction-header">
+                  <span class="faction-icon">🛡</span>
+                  <span class="faction-name">Private Security Firms</span>
+                  <span class="faction-badge badge-neutral">Neutral</span>
+                </div>
+                <p class="faction-desc">Well-funded, legally grey, and everywhere. They protect the city's wealthy enclaves and ask no questions. Some are fronts. Others are the last honest guns for hire. Hard to tell which is which.</p>
+                <div class="faction-footer">
+                  <span class="faction-stat">Intel: <span>0 contacts</span></span>
+                  <span class="faction-arrow">→</span>
+                </div>
+              </div>
+            </a>
+
+            <!-- Crime Syndicates -->
+            <a class="faction-card syndicate" href="faction-syndicates.html">
+              <div class="faction-inner">
+                <div class="faction-header">
+                  <span class="faction-icon">💀</span>
+                  <span class="faction-name">Crime Syndicates</span>
+                  <span class="faction-badge badge-hostile">Hostile</span>
+                </div>
+                <p class="faction-desc">Three rival organisations control the city's underworld. They hate each other almost as much as they hate you. But their grudges make them predictable — and their information is priceless, if you can survive the asking price.</p>
+                <div class="faction-footer">
+                  <span class="faction-stat">Intel: <span>0 contacts</span></span>
+                  <span class="faction-arrow">→</span>
+                </div>
+              </div>
+            </a>
+
+            <!-- Activist Groups -->
+            <a class="faction-card activist" href="faction-activists.html">
+              <div class="faction-inner">
+                <div class="faction-header">
+                  <span class="faction-icon">✊</span>
+                  <span class="faction-name">Activist Groups</span>
+                  <span class="faction-badge badge-neutral">Neutral</span>
+                </div>
+                <p class="faction-desc">Community organisers, whistleblowers, and agitators who've been documenting the city's rot for years. They don't trust cops. Earn their trust slowly, and they'll hand you evidence no one else can get.</p>
+                <div class="faction-footer">
+                  <span class="faction-stat">Intel: <span>1 contact</span></span>
+                  <span class="faction-arrow">→</span>
+                </div>
+              </div>
+            </a>
+
+            <!-- Media Outlets -->
+            <a class="faction-card media" href="faction-media.html">
+              <div class="faction-inner">
+                <div class="faction-header">
+                  <span class="faction-icon">📰</span>
+                  <span class="faction-name">Media Outlets</span>
+                  <span class="faction-badge badge-neutral">Neutral</span>
+                </div>
+                <p class="faction-desc">Two newspapers, one independent broadcaster, and a network of anonymous bloggers. Leak the right story and you control the narrative. Feed them the wrong one, and you become it.</p>
+                <div class="faction-footer">
+                  <span class="faction-stat">Intel: <span>1 contact</span></span>
+                  <span class="faction-arrow">→</span>
+                </div>
+              </div>
+            </a>
+
+          </div>
+        </div>
+      </div>
+
+      <!-- ══════════════════════════
+           TAB 2 — INFLUENCE & STANDING
+      ══════════════════════════ -->
+      <div class="tab-panel" id="panel-influence">
+        <div class="subsection">
+          <div class="section-head">
+            <span class="section-icon">⚖</span>
+            <span class="section-label">Your Standing in the City</span>
+            <div class="section-rule"></div>
+          </div>
+
+          <div class="meters-grid">
+
+            <!-- INFLUENCE LEVEL -->
+            <div class="meter-card influence">
+              <span class="meter-name">Influence Level</span>
+              <span class="meter-sub">Personal Corruption Index</span>
+              <div class="meter-bar-wrap">
+                <div class="meter-bar-fill" id="bar-influence" style="width:0%"></div>
+              </div>
+              <div class="meter-labels"><span>Clean</span><span>Compromised</span></div>
+              <div class="meter-value-row">
+                <span class="meter-value" id="val-influence">0</span>
+                <span class="meter-max">/ 100</span>
+              </div>
+              <span class="meter-rank" id="rank-influence">Untested</span>
+              <div class="meter-desc">
+                Every corrupt choice you make — accepting bribes, planting evidence, protecting the guilty — raises your Influence Level. <strong>Higher influence unlocks access to powerful people</strong>, but risks your badge, your conscience, and ultimately, the ending you receive.
+                <div class="perk-list">
+                  <div class="perk locked"><span class="perk-icon"></span>Lv 20 — Bribe minor officials without suspicion</div>
+                  <div class="perk locked"><span class="perk-icon"></span>Lv 40 — Access to off-the-books police resources</div>
+                  <div class="perk locked"><span class="perk-icon"></span>Lv 60 — Council member will take your calls</div>
+                  <div class="perk locked"><span class="perk-icon"></span>Lv 80 — Case files can be quietly buried</div>
+                  <div class="perk locked"><span class="perk-icon"></span>Lv 100 — You become the corruption</div>
+                </div>
+              </div>
+              <div class="meter-warning" id="warn-influence">⚠ High influence detected — internal affairs may be watching</div>
+            </div>
+
+            <!-- CITY CORRUPTION -->
+            <div class="meter-card city-corrupt">
+              <span class="meter-name">City Corruption</span>
+              <span class="meter-sub">State of the City Index</span>
+              <div class="meter-bar-wrap">
+                <div class="meter-bar-fill" id="bar-city" style="width:0%"></div>
+              </div>
+              <div class="meter-labels"><span>Stable</span><span>Collapsed</span></div>
+              <div class="meter-value-row">
+                <span class="meter-value" id="val-city">0</span>
+                <span class="meter-max">/ 100</span>
+              </div>
+              <span class="meter-rank" id="rank-city">Fragile Peace</span>
+              <div class="meter-desc">
+                A measure of how far gone the city itself is. Your actions — and inactions — affect this. <strong>Exposing corruption lowers it. Ignoring it raises it.</strong> Let it climb too high and the city descends into open crisis, closing off certain endings and triggering faction wars that spiral beyond your control.
+                <div class="perk-list">
+                  <div class="perk unlocked"><span class="perk-icon"></span>Lv 0–25 — Citizens cooperate with investigations</div>
+                  <div class="perk locked"><span class="perk-icon"></span>Lv 26–50 — Witnesses become reluctant. Bribes cost more</div>
+                  <div class="perk locked"><span class="perk-icon"></span>Lv 51–75 — Riots begin. Faction hostility increases</div>
+                  <div class="perk locked"><span class="perk-icon"></span>Lv 76–100 — The city is ungovernable. No good endings remain</div>
+                </div>
+              </div>
+              <div class="meter-warning" id="warn-city">⚠ City stability critical — disorder events now active</div>
+            </div>
+
+            <!-- STREET CREDIBILITY -->
+            <div class="meter-card street-cred">
+              <span class="meter-name">Street Credibility</span>
+              <span class="meter-sub">Underworld Trust Index</span>
+              <div class="meter-bar-wrap">
+                <div class="meter-bar-fill" id="bar-cred" style="width:0%"></div>
+              </div>
+              <div class="meter-labels"><span>Unknown</span><span>Legend</span></div>
+              <div class="meter-value-row">
+                <span class="meter-value" id="val-cred">0</span>
+                <span class="meter-max">/ 100</span>
+              </div>
+              <span class="meter-rank" id="rank-cred">Ghost</span>
+              <div class="meter-desc">
+                The criminal underworld doesn't trust badges — they trust behaviour. <strong>Look the other way, cut deals, play dirty</strong>, and your Street Cred rises. In return, informants emerge from the shadows, black-market evidence becomes available, and syndicate doors open. <em>The temptation is real. So are the consequences.</em>
+                <div class="perk-list">
+                  <div class="perk locked"><span class="perk-icon"></span>Lv 15 — Low-level informants will talk</div>
+                  <div class="perk locked"><span class="perk-icon"></span>Lv 30 — Black market evidence access unlocked</div>
+                  <div class="perk locked"><span class="perk-icon"></span>Lv 50 — Syndicate safe passage granted</div>
+                  <div class="perk locked"><span class="perk-icon"></span>Lv 70 — Exclusive underworld case shortcuts</div>
+                  <div class="perk locked"><span class="perk-icon"></span>Lv 90 — The syndicates offer you a choice that changes everything</div>
+                </div>
+              </div>
+              <div class="meter-warning" id="warn-cred">⚠ You are now a known quantity in the underworld</div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+      <!-- ══════════════════════════
+           TAB 3 — HOW TO PLAY
+      ══════════════════════════ -->
+      <div class="tab-panel" id="panel-howtoplay">
+        <div class="htp-doc">
+
+          <span class="htp-eyebrow">Field Operations Manual — Confidential</span>
+          <span class="htp-title">How to Play City of Lies</span>
+          <div class="htp-rule"></div>
+
+          <div class="htp-section">
+            <span class="htp-section-title">The Premise</span>
+            <div class="htp-body">
+              <p>You are a detective in a city that has learned to lie to itself. A case lands on your desk — straightforward on the surface, rotten underneath. The deeper you dig, the more you'll find that <strong>the city's institutions are compromised</strong>, its people are scared, and the truth costs more than most are willing to pay.</p>
+              <p>You decide how far you're willing to go to close the case.</p>
+            </div>
+          </div>
+
+          <div class="htp-section">
+            <span class="htp-section-title">Navigation <span class="htp-wip">More coming soon</span></span>
+            <div class="htp-body">
+              <p>Your <strong>Investigation Board</strong> is the hub of every case. From there, you can access your <strong>Evidence Locker</strong>, <strong>Case Files</strong>, <strong>Suspect Profiles</strong>, and your <strong>Field Journal</strong>. Everything you discover gets logged automatically.</p>
+              <p>Use the <strong>Audio Lab</strong> to analyse intercepted recordings and ambient sound evidence. The <strong>Final Report</strong> is where you submit your conclusions — but you can only submit once, so be certain.</p>
+            </div>
+          </div>
+
+          <div class="htp-section">
+            <span class="htp-section-title">Gathering Evidence <span class="htp-wip">More coming soon</span></span>
+            <div class="htp-body">
+              <p>Evidence is collected by <strong>interacting with locations, suspects, and contacts</strong> during active investigation scenes. Items found in the field are automatically tagged with location, time, and chain-of-custody details and added to your Evidence Locker.</p>
+              <div class="htp-tip">
+                <span class="htp-tip-label">Detective's Note</span>
+                <span class="htp-tip-text">Not all evidence is found in obvious places. Pay attention to background details, overheard conversations, and what suspects <em>don't</em> say. The city has layers.</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="htp-section">
+            <span class="htp-section-title">The Three Meters <span class="htp-wip">More coming soon</span></span>
+            <div class="htp-body">
+              <p>Your choices continuously affect three city-wide measurements. <em>Influence Level</em> tracks your personal corruption. <em>City Corruption</em> measures the health of the city's institutions. <em>Street Credibility</em> reflects your standing in the criminal underworld.</p>
+              <p>These meters <strong>shape what options are available to you</strong>, which contacts will talk, and which of the game's multiple endings you'll reach. There is no single "good" path — every approach closes some doors and opens others.</p>
+            </div>
+          </div>
+
+          <div class="htp-section">
+            <span class="htp-section-title">Factions <span class="htp-wip">More coming soon</span></span>
+            <div class="htp-body">
+              <p>The city is divided into six factions, each with their own agendas, contacts, and information. <strong>Building relationships with factions</strong> unlocks new investigative avenues, but earning one faction's trust often comes at the cost of another's.</p>
+            </div>
+          </div>
+
+          <div class="htp-section">
+            <span class="htp-section-title">Closing a Case <span class="htp-wip">More coming soon</span></span>
+            <div class="htp-body">
+              <p>When you believe you have enough evidence, you can file your <strong>Final Report</strong> and name a perpetrator. The outcome depends on the quality of your evidence, your standing with key factions, and the state of your three meters at the time of submission.</p>
+              <p><strong>You cannot unsign a final report.</strong> Make sure you're ready.</p>
+              <div class="htp-tip">
+                <span class="htp-tip-label">Warning</span>
+                <span class="htp-tip-text">Submitting a report that implicates powerful people without sufficient evidence will not end well for you. The city protects its own.</span>
+              </div>
+            </div>
+          </div>
+
+          <span class="htp-annotation">— This section will expand as new case content is added —</span>
+
+        </div>
+      </div>
+
+    </div><!-- /content -->
+  </div><!-- /shell -->
+
+  <div id="version-bar"><span id="versionTag">v0.1.0 · local</span></div>
+
+  <audio id="bg-music" loop preload="auto">
+    <source src="Echoes_in_the_Concrete_Maze.mp3" type="audio/mpeg" />
+  </audio>
+
+  <script>
+    /* ════════════════════════════
+       TAB SWITCHING
+    ════════════════════════════ */
+    function switchTab(id, btn) {
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById('panel-' + id).classList.add('active');
+      document.getElementById('content').scrollTop = 0;
+    }
+
+    /* ════════════════════════════
+       METER DATA
+       Read from localStorage col_save.
+       Defaults to 0 if no save exists.
+       Update these values from your
+       game logic as the player progresses.
+    ════════════════════════════ */
+    const RANKS = {
+      influence:  ['Untested','On the Take','Compromised','Deep In','Corrupt','Beyond Redemption'],
+      city:       ['Fragile Peace','Simmering','Unstable','Critical','On the Edge','Collapsed'],
+      cred:       ['Ghost','Heard Of','Known','Respected','Feared','Legend'],
+    };
+
+    function getRank(val, key) {
+      const idx = Math.min(Math.floor(val / 20), 5);
+      return RANKS[key][idx];
+    }
+
+    function animateMeter(barId, valId, rankId, warnId, target) {
+      const bar  = document.getElementById(barId);
+      const val  = document.getElementById(valId);
+      const rank = document.getElementById(rankId);
+      const warn = document.getElementById(warnId);
+      const key  = barId.replace('bar-', '').replace('-','');
+
+      // Give DOM a tick then animate
+      setTimeout(() => {
+        bar.style.width = target + '%';
+        val.textContent = target;
+        rank.textContent = getRank(target, barId === 'bar-influence' ? 'influence' : barId === 'bar-city' ? 'city' : 'cred');
+        if (target >= 60) warn.classList.add('show');
+
+        // Unlock perks visually
+        const card = bar.closest('.meter-card');
+        card.querySelectorAll('.perk').forEach((perk, i) => {
+          const threshold = [20,30,50,70,90][i] ?? 100;
+          if (target >= threshold) {
+            perk.classList.remove('locked');
+            perk.classList.add('unlocked');
+          }
+        });
+      }, 200);
+    }
+
+    function loadMeters() {
+      try {
+        const save = JSON.parse(localStorage.getItem('col_save') || '{}');
+        animateMeter('bar-influence', 'val-influence', 'rank-influence', 'warn-influence', save.influence ?? 0);
+        animateMeter('bar-city',      'val-city',      'rank-city',      'warn-city',      save.cityCorrupt ?? 0);
+        animateMeter('bar-cred',      'val-cred',      'rank-cred',      'warn-cred',      save.streetCred  ?? 0);
+      } catch(e) {}
+    }
+    loadMeters();
+
+    /* ════════════════════════════
+       MUSIC RESUME
+    ════════════════════════════ */
+    const music = document.getElementById('bg-music');
+    let musicEnabled = true;
+
+    (function resumeMusic() {
+      try {
+        const saved = JSON.parse(sessionStorage.getItem('col_music') || '{}');
+        musicEnabled = saved.enabled !== false;
+        if (!musicEnabled) return;
+        if (saved.time)   music.currentTime = saved.time;
+        music.volume = saved.volume ?? 0.42;
+        music.play().catch(() => {
+          const unlock = () => {
+            music.play().catch(() => {});
+            document.removeEventListener('click',      unlock);
+            document.removeEventListener('touchstart', unlock);
+          };
+          document.addEventListener('click',      unlock, { passive: true });
+          document.addEventListener('touchstart', unlock, { passive: true });
+        });
+      } catch(e) {}
+    })();
+
+    function saveMusicState() {
+      sessionStorage.setItem('col_music', JSON.stringify({
+        enabled: musicEnabled,
+        time:    music.currentTime,
+        volume:  music.volume,
+        src:     'Echoes_in_the_Concrete_Maze.mp3'
+      }));
+    }
+
+    /* ════════════════════════════
+       NAVIGATION
+    ════════════════════════════ */
+    function goBack() {
+      saveMusicState();
+      // Returns to whichever page linked here.
+      // Both index.html and game.html link to this page,
+      // so use document.referrer to go back correctly.
+      const ref = document.referrer;
+      if (ref && (ref.includes('game.html') || ref.includes('index.html'))) {
+        window.location.href = ref.includes('game.html') ? 'game.html' : 'index.html';
+      } else {
+        window.location.href = 'game.html';
+      }
+    }
+
+    /* ════════════════════════════
+       VERSION TAG
+    ════════════════════════════ */
+    async function updateCommitHash() {
+      try {
+        const res  = await fetch('https://api.github.com/repos/jellybean1979/CityOfLies/commits?per_page=1');
+        if (!res.ok) throw new Error();
+        const data = await res.json();
+        const sha  = data[0]?.sha?.substring(0, 7) ?? '-------';
+        document.getElementById('versionTag').textContent = `v0.1.0 · ${sha}`;
+      } catch {
+        document.getElementById('versionTag').textContent = 'v0.1.0 · local';
+      }
+    }
+    updateCommitHash();
+  </script>
+</body>
+</html>
+
