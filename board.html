@@ -1,0 +1,1581 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>City of Lies — Investigation Board</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Special+Elite&family=Courier+Prime:ital,wght@0,400;0,700;1,400&family=Playfair+Display:ital,wght@0,700;1,400&family=Caveat:wght@400;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --ink:       #0a0806;
+      --surface:   #12100d;
+      --panel:     rgba(16,13,10,0.88);
+      --border:    rgba(168,131,46,0.18);
+      --border-hi: rgba(168,131,46,0.5);
+      --amber:     #c47c1a;
+      --gold:      #a8832e;
+      --paper:     #d8c8a8;
+      --paper-dim: #7a6a4a;
+      --blood:     #8b1a1a;
+      --red-lit:   #c43030;
+      --green-lit: #3a9a5a;
+      --teal:      #1a9a8a;
+      --blue-lit:  #4080c0;
+      --sidebar-w: clamp(180px, 22vw, 240px);
+    }
+
+    *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+
+    html, body {
+      width:100%; height:100%;
+      background: var(--ink);
+      font-family: 'Courier Prime', monospace;
+      overflow: hidden;
+      color: var(--paper);
+    }
+
+    body { animation: pageIn .6s ease forwards; }
+    @keyframes pageIn { from{opacity:0} to{opacity:1} }
+
+    /* ── BG ── */
+    #bg {
+      position:fixed; inset:0;
+      background-image: url('background-mainUI.jpg');
+      background-size:cover; background-position:center;
+      filter: brightness(0.18) saturate(0.4) sepia(0.5);
+    }
+    #vignette {
+      position:fixed; inset:0; z-index:1; pointer-events:none;
+      box-shadow: inset 0 0 180px rgba(2,1,0,.98), inset 0 0 60px rgba(2,1,0,.6);
+    }
+    #grain {
+      position:fixed; inset:0; z-index:1; pointer-events:none; opacity:.03;
+      background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='220' height='220' filter='url(%23n)'/%3E%3C/svg%3E");
+      background-size:180px;
+    }
+
+    /* ════════════════════════════
+       APP SHELL
+    ════════════════════════════ */
+    #app {
+      position:fixed; inset:0; z-index:10;
+      display:flex; flex-direction:column;
+    }
+
+    /* ── TOPBAR ── */
+    #topbar {
+      display:flex; align-items:center; gap:12px;
+      padding: 0 clamp(12px,2vw,24px);
+      height: clamp(44px,7vh,56px);
+      background: rgba(6,4,2,.85);
+      border-bottom: 1px solid var(--border);
+      flex-shrink:0;
+      backdrop-filter: blur(8px);
+    }
+    #back-btn {
+      font-family:'Courier Prime',monospace;
+      font-size: clamp(8px,1vw,10px);
+      letter-spacing:.25em; text-transform:uppercase;
+      color: var(--paper-dim); background:none;
+      border:1px solid var(--border); padding:5px 12px;
+      cursor:pointer; transition:color .2s, border-color .2s, transform .15s;
+      white-space:nowrap; flex-shrink:0;
+    }
+    #back-btn:hover { color:var(--amber); border-color:var(--border-hi); transform:translateX(-2px); }
+
+    .topbar-divider { width:1px; height:22px; background:var(--border); flex-shrink:0; }
+
+    .topbar-title {
+      font-family:'Special Elite',cursive;
+      font-size:clamp(13px,2vw,18px);
+      color:var(--paper); letter-spacing:.04em;
+    }
+    .topbar-case {
+      font-size:clamp(7px,.85vw,9px);
+      letter-spacing:.35em; text-transform:uppercase;
+      color:var(--amber); opacity:.7;
+    }
+
+    .topbar-right { margin-left:auto; display:flex; align-items:center; gap:12px; }
+    #breadcrumb {
+      font-size:clamp(7px,.85vw,9px);
+      letter-spacing:.25em; text-transform:uppercase;
+      color:var(--paper-dim);
+    }
+    #breadcrumb span { color:var(--amber); }
+
+    #versionTag {
+      font-size:8px; letter-spacing:.2em;
+      color:rgba(120,100,60,.35); text-transform:uppercase;
+    }
+
+    /* ════════════════════════════
+       BODY — SIDEBAR + MAIN
+    ════════════════════════════ */
+    #body {
+      flex:1; display:flex; overflow:hidden;
+    }
+
+    /* ── SIDEBAR ── */
+    #sidebar {
+      width: var(--sidebar-w);
+      flex-shrink:0;
+      background: rgba(8,6,4,.9);
+      border-right:1px solid var(--border);
+      display:flex; flex-direction:column;
+      overflow-y:auto; overflow-x:hidden;
+      scrollbar-width:thin;
+      scrollbar-color: rgba(168,131,46,.2) transparent;
+    }
+    #sidebar::-webkit-scrollbar { width:3px; }
+    #sidebar::-webkit-scrollbar-thumb { background:rgba(168,131,46,.2); }
+
+    .nav-section {
+      border-bottom:1px solid var(--border);
+    }
+    .nav-item {
+      display:flex; align-items:center; gap:10px;
+      padding: clamp(9px,1.4vh,13px) clamp(12px,1.8vw,18px);
+      cursor:pointer;
+      transition: background .15s, color .15s;
+      border-left:2px solid transparent;
+      user-select:none;
+    }
+    .nav-item:hover { background:rgba(168,131,46,.06); }
+    .nav-item.active {
+      background:rgba(168,131,46,.1);
+      border-left-color: var(--amber);
+      color:var(--paper);
+    }
+    .nav-icon { font-size:clamp(12px,1.6vw,15px); flex-shrink:0; width:20px; text-align:center; }
+    .nav-label {
+      font-family:'Special Elite',cursive;
+      font-size:clamp(10px,1.3vw,13px);
+      color:var(--paper-dim);
+      transition:color .15s;
+      line-height:1.2;
+    }
+    .nav-item.active .nav-label,
+    .nav-item:hover .nav-label { color:var(--paper); }
+    .nav-arrow {
+      margin-left:auto; font-size:9px;
+      color:rgba(168,131,46,.3);
+      transition:transform .2s, color .2s;
+      flex-shrink:0;
+    }
+    .nav-item.open > .nav-arrow { transform:rotate(90deg); color:var(--amber); }
+
+    /* Sub-items */
+    .nav-subitems {
+      display:none;
+      flex-direction:column;
+      background:rgba(0,0,0,.2);
+    }
+    .nav-subitems.open { display:flex; }
+    .nav-subitem {
+      display:flex; align-items:center; gap:8px;
+      padding: clamp(7px,1.1vh,10px) clamp(12px,1.8vw,18px) clamp(7px,1.1vh,10px) clamp(24px,3.5vw,36px);
+      cursor:pointer;
+      transition:background .15s;
+      border-left:2px solid transparent;
+    }
+    .nav-subitem:hover { background:rgba(168,131,46,.05); }
+    .nav-subitem.active {
+      background:rgba(168,131,46,.08);
+      border-left-color:rgba(168,131,46,.4);
+    }
+    .nav-subitem .nav-label { font-family:'Courier Prime',monospace; font-size:clamp(9px,1.1vw,11px); }
+    .nav-subitem .nav-icon  { font-size:11px; }
+
+    /* ── MAIN CONTENT ── */
+    #main {
+      flex:1; overflow-y:auto; overflow-x:hidden;
+      padding: clamp(16px,2.5vw,28px) clamp(14px,2.5vw,28px);
+      scrollbar-width:thin;
+      scrollbar-color:rgba(168,131,46,.2) transparent;
+    }
+    #main::-webkit-scrollbar { width:4px; }
+    #main::-webkit-scrollbar-thumb { background:rgba(168,131,46,.2); border-radius:2px; }
+
+    /* ── PANELS ── */
+    .panel { display:none; animation:panelIn .3s ease; }
+    .panel.active { display:block; }
+    @keyframes panelIn { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:translateY(0)} }
+
+    /* ── Shared panel parts ── */
+    .panel-head {
+      display:flex; align-items:flex-start;
+      justify-content:space-between;
+      margin-bottom:clamp(14px,2.5vh,22px);
+      gap:12px;
+    }
+    .panel-title {
+      font-family:'Special Elite',cursive;
+      font-size:clamp(18px,3vw,26px);
+      color:var(--paper); line-height:1;
+      display:block;
+    }
+    .panel-sub {
+      font-size:clamp(7px,.9vw,9px);
+      letter-spacing:.35em; text-transform:uppercase;
+      color:var(--paper-dim); display:block; margin-top:3px;
+    }
+    .panel-rule {
+      width:100%; height:1px;
+      background:linear-gradient(to right, var(--amber), rgba(168,131,46,.1));
+      opacity:.35; margin-bottom:clamp(16px,2.8vh,26px);
+    }
+    .wip-badge {
+      font-size:clamp(6px,.75vw,8px);
+      letter-spacing:.25em; text-transform:uppercase;
+      color:var(--paper-dim);
+      border:1px dashed rgba(120,100,60,.3);
+      padding:2px 8px; display:inline-block;
+      opacity:.6; flex-shrink:0; align-self:flex-start;
+      margin-top:4px;
+    }
+
+    /* ── Grid cards ── */
+    .card-grid {
+      display:grid;
+      grid-template-columns:repeat(auto-fill, minmax(clamp(200px,24vw,280px),1fr));
+      gap:clamp(10px,1.5vw,16px);
+    }
+    .card {
+      background:var(--panel);
+      border:1px solid var(--border);
+      padding:clamp(12px,1.8vw,18px);
+      cursor:pointer;
+      transition:border-color .2s, transform .2s, background .2s;
+      position:relative; overflow:hidden;
+    }
+    .card::before {
+      content:''; position:absolute;
+      top:0; left:0; right:0; height:2px;
+      background:var(--amber); opacity:0;
+      transition:opacity .2s;
+    }
+    .card:hover { border-color:var(--border-hi); transform:translateY(-2px); }
+    .card:hover::before { opacity:1; }
+
+    .card-icon  { font-size:clamp(20px,3vw,28px); display:block; margin-bottom:8px; }
+    .card-title {
+      font-family:'Special Elite',cursive;
+      font-size:clamp(12px,1.6vw,15px);
+      color:var(--paper); display:block; margin-bottom:4px;
+    }
+    .card-desc {
+      font-size:clamp(8px,1vw,10px);
+      color:var(--paper-dim); line-height:1.6;
+    }
+    .card-count {
+      position:absolute; top:10px; right:10px;
+      font-size:clamp(7px,.85vw,9px);
+      letter-spacing:.2em;
+      color:var(--amber); opacity:.6;
+    }
+
+    /* ════════════════════════════
+       EVIDENCE PANEL
+    ════════════════════════════ */
+    .evidence-empty {
+      display:flex; flex-direction:column;
+      align-items:center; justify-content:center;
+      min-height:160px; gap:10px;
+      color:var(--paper-dim); opacity:.45;
+    }
+    .evidence-empty-icon { font-size:32px; }
+    .evidence-empty-text {
+      font-size:clamp(8px,1vw,10px);
+      letter-spacing:.3em; text-transform:uppercase;
+    }
+
+    /* ════════════════════════════
+       TIMELINE PANEL
+    ════════════════════════════ */
+    #timeline-track {
+      position:relative;
+      min-height:220px;
+      border:1px solid var(--border);
+      background:rgba(10,8,6,.6);
+      padding:clamp(14px,2vw,20px);
+      margin-bottom:clamp(14px,2.5vh,20px);
+    }
+    .timeline-axis {
+      position:absolute;
+      left:clamp(14px,2vw,20px); right:clamp(14px,2vw,20px);
+      top:50%; height:2px;
+      background:linear-gradient(to right, transparent, rgba(168,131,46,.4), transparent);
+    }
+    .timeline-label {
+      font-size:clamp(7px,.85vw,9px);
+      letter-spacing:.3em; text-transform:uppercase;
+      color:var(--paper-dim); display:block;
+      margin-bottom:clamp(12px,1.8vh,16px);
+    }
+    .timeline-empty {
+      display:flex; align-items:center; justify-content:center;
+      height:140px; flex-direction:column; gap:10px;
+      color:var(--paper-dim); opacity:.4;
+      font-size:clamp(8px,1vw,10px);
+      letter-spacing:.25em; text-transform:uppercase;
+    }
+    .timeline-empty-icon { font-size:28px; }
+    .tl-features {
+      display:grid;
+      grid-template-columns:repeat(auto-fill, minmax(200px,1fr));
+      gap:clamp(8px,1.2vw,14px);
+    }
+    .tl-feat {
+      background:var(--panel); border:1px solid var(--border);
+      padding:clamp(10px,1.5vw,16px);
+      display:flex; gap:10px; align-items:flex-start;
+    }
+    .tl-feat-icon { font-size:16px; flex-shrink:0; margin-top:1px; }
+    .tl-feat-title {
+      font-family:'Special Elite',cursive;
+      font-size:clamp(10px,1.3vw,13px);
+      color:var(--paper); display:block; margin-bottom:3px;
+    }
+    .tl-feat-desc {
+      font-size:clamp(8px,.95vw,10px);
+      color:var(--paper-dim); line-height:1.55;
+    }
+
+    /* ════════════════════════════
+       INTERROGATION PANEL
+    ════════════════════════════ */
+    .interr-subject-row {
+      display:flex; gap:clamp(10px,1.5vw,16px);
+      margin-bottom:clamp(14px,2.5vh,20px);
+      flex-wrap:wrap;
+    }
+    .subject-card {
+      background:var(--panel); border:1px solid var(--border);
+      padding:clamp(10px,1.5vw,14px) clamp(14px,2vw,18px);
+      cursor:pointer; transition:border-color .2s;
+      display:flex; align-items:center; gap:10px; flex-shrink:0;
+    }
+    .subject-card:hover { border-color:var(--border-hi); }
+    .subject-avatar {
+      width:clamp(30px,4vw,42px); height:clamp(30px,4vw,42px);
+      background:rgba(168,131,46,.1);
+      border:1px solid var(--border);
+      border-radius:50%;
+      display:flex; align-items:center; justify-content:center;
+      font-size:clamp(14px,2vw,18px); flex-shrink:0;
+    }
+    .subject-name {
+      font-family:'Special Elite',cursive;
+      font-size:clamp(10px,1.3vw,13px);
+      color:var(--paper); display:block;
+    }
+    .subject-status {
+      font-size:clamp(6px,.75vw,8px);
+      letter-spacing:.2em; text-transform:uppercase;
+      color:var(--paper-dim); display:block;
+    }
+    .interr-subcategories {
+      display:grid;
+      grid-template-columns:repeat(auto-fill, minmax(200px,1fr));
+      gap:clamp(8px,1.2vw,14px);
+    }
+    .interr-sub {
+      background:var(--panel); border:1px solid var(--border);
+      padding:clamp(10px,1.5vw,16px);
+      cursor:pointer; transition:border-color .2s, transform .2s;
+    }
+    .interr-sub:hover { border-color:var(--border-hi); transform:translateY(-1px); }
+    .interr-sub-icon  { font-size:clamp(16px,2.2vw,20px); display:block; margin-bottom:6px; }
+    .interr-sub-title {
+      font-family:'Special Elite',cursive;
+      font-size:clamp(11px,1.4vw,14px);
+      color:var(--paper); display:block; margin-bottom:4px;
+    }
+    .interr-sub-desc {
+      font-size:clamp(8px,.95vw,10px);
+      color:var(--paper-dim); line-height:1.6;
+    }
+
+    /* ════════════════════════════
+       LAB PANEL
+    ════════════════════════════ */
+    .lab-grid {
+      display:grid;
+      grid-template-columns:repeat(auto-fill, minmax(clamp(220px,28vw,340px),1fr));
+      gap:clamp(14px,2vw,24px);
+    }
+    .lab-card {
+      background:var(--panel);
+      border:1px solid var(--border);
+      padding:clamp(16px,2.5vw,28px);
+      cursor:pointer;
+      transition:border-color .2s, transform .2s;
+      position:relative; overflow:hidden;
+    }
+    .lab-card:hover { border-color:var(--border-hi); transform:translateY(-3px); }
+    .lab-card.forensics { border-top:2px solid rgba(77,128,192,.4); }
+    .lab-card.audio     { border-top:2px solid rgba(58,154,90,.4); }
+    .lab-header { display:flex; align-items:center; gap:12px; margin-bottom:12px; }
+    .lab-icon { font-size:clamp(24px,3.5vw,36px); }
+    .lab-name {
+      font-family:'Special Elite',cursive;
+      font-size:clamp(16px,2.2vw,22px);
+      color:var(--paper);
+    }
+    .lab-name-sub {
+      font-size:clamp(7px,.85vw,9px);
+      letter-spacing:.3em; text-transform:uppercase;
+      color:var(--paper-dim); display:block;
+    }
+    .lab-desc {
+      font-size:clamp(9px,1.1vw,11px);
+      color:var(--paper-dim); line-height:1.7;
+      margin-bottom:clamp(12px,1.8vh,16px);
+    }
+    .lab-capabilities {
+      display:flex; flex-direction:column; gap:5px;
+    }
+    .lab-cap {
+      display:flex; align-items:center; gap:8px;
+      font-size:clamp(8px,.95vw,10px);
+      color:var(--paper-dim); line-height:1.4;
+    }
+    .lab-cap::before { content:'›'; color:var(--amber); flex-shrink:0; }
+    .lab-btn {
+      display:inline-block; margin-top:clamp(12px,1.8vh,18px);
+      font-family:'Courier Prime',monospace;
+      font-size:clamp(8px,1vw,10px);
+      letter-spacing:.25em; text-transform:uppercase;
+      color:var(--paper-dim);
+      border:1px solid var(--border);
+      padding:6px 16px; cursor:pointer;
+      background:none;
+      transition:color .2s, border-color .2s;
+    }
+    .lab-btn:hover { color:var(--amber); border-color:var(--border-hi); }
+
+    /* Waveform decoration on audio card */
+    .audio-wave {
+      display:flex; align-items:center; gap:2px;
+      height:24px; margin:10px 0;
+    }
+    .audio-wave-bar {
+      flex:1; background:rgba(58,154,90,.4); border-radius:1px;
+      animation:waveAnim 1.3s ease-in-out infinite alternate;
+    }
+    @keyframes waveAnim {
+      from{transform:scaleY(.3);opacity:.3}
+      to{transform:scaleY(1);opacity:.7}
+    }
+
+    /* ════════════════════════════
+       THEORY BUILDER PANEL
+    ════════════════════════════ */
+    .theory-steps {
+      display:grid;
+      grid-template-columns:repeat(auto-fill, minmax(clamp(160px,20vw,220px),1fr));
+      gap:clamp(10px,1.5vw,16px);
+      margin-bottom:clamp(16px,2.8vh,24px);
+    }
+    .theory-step {
+      background:var(--panel); border:1px solid var(--border);
+      padding:clamp(12px,1.8vw,18px);
+      position:relative;
+    }
+    .step-num {
+      font-family:'Playfair Display',serif;
+      font-size:clamp(28px,5vw,44px);
+      color:rgba(168,131,46,.12);
+      position:absolute; top:8px; right:12px;
+      font-style:italic; line-height:1;
+      pointer-events:none;
+    }
+    .step-icon  { font-size:clamp(16px,2vw,20px); display:block; margin-bottom:6px; }
+    .step-label {
+      font-size:clamp(6px,.8vw,8px);
+      letter-spacing:.35em; text-transform:uppercase;
+      color:var(--paper-dim); display:block; margin-bottom:4px;
+    }
+    .step-title {
+      font-family:'Special Elite',cursive;
+      font-size:clamp(12px,1.6vw,15px);
+      color:var(--paper); display:block; margin-bottom:6px;
+    }
+    .step-select {
+      width:100%;
+      font-family:'Courier Prime',monospace;
+      font-size:clamp(9px,1.1vw,11px);
+      color:var(--paper-dim);
+      background:rgba(10,8,6,.8);
+      border:1px solid var(--border);
+      padding:5px 8px;
+      appearance:none; cursor:pointer;
+      background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23a8832e'/%3E%3C/svg%3E");
+      background-repeat:no-repeat; background-position:right 8px center;
+      padding-right:26px;
+    }
+    .step-select:focus { outline:1px solid var(--amber); }
+    .step-select option { background:#1a1410; }
+
+    .theory-evidence-drop {
+      background:rgba(10,8,6,.6);
+      border:1px dashed rgba(168,131,46,.25);
+      padding:clamp(14px,2vw,20px);
+      min-height:80px;
+      display:flex; align-items:center; justify-content:center;
+      margin-bottom:clamp(14px,2.5vh,20px);
+      transition:border-color .2s, background .2s;
+    }
+    .theory-evidence-drop:hover { border-color:rgba(168,131,46,.5); background:rgba(168,131,46,.04); }
+    .drop-prompt {
+      font-size:clamp(8px,1vw,10px);
+      letter-spacing:.25em; text-transform:uppercase;
+      color:var(--paper-dim); opacity:.5; text-align:center;
+    }
+    .theory-actions { display:flex; gap:clamp(8px,1.2vw,14px); flex-wrap:wrap; }
+    .theory-btn {
+      font-family:'Special Elite',cursive;
+      font-size:clamp(10px,1.3vw,13px);
+      letter-spacing:.06em;
+      padding:clamp(8px,1.2vw,12px) clamp(16px,2.5vw,28px);
+      cursor:pointer; border:none;
+      transition:transform .15s, filter .15s;
+    }
+    .theory-btn:hover { transform:translateY(-1px); filter:brightness(1.1); }
+    .theory-btn.primary   { background:var(--amber); color:var(--ink); }
+    .theory-btn.secondary { background:none; color:var(--paper-dim); border:1px solid var(--border); }
+    .theory-btn.secondary:hover { color:var(--paper); border-color:var(--border-hi); }
+    .theory-result {
+      display:none;
+      margin-top:clamp(14px,2.5vh,20px);
+      padding:clamp(12px,1.8vw,18px);
+      border:1px solid rgba(196,124,26,.3);
+      background:rgba(196,124,26,.05);
+    }
+    .theory-result.show { display:block; }
+    .result-label {
+      font-size:clamp(7px,.85vw,9px);
+      letter-spacing:.35em; text-transform:uppercase;
+      color:var(--amber); display:block; margin-bottom:6px;
+    }
+    .result-text {
+      font-size:clamp(10px,1.3vw,13px);
+      color:var(--paper-dim); line-height:1.7;
+    }
+
+    /* ════════════════════════════
+       CASE SUMMARY PANEL
+    ════════════════════════════ */
+    .summary-grid {
+      display:grid;
+      grid-template-columns:repeat(auto-fill, minmax(clamp(240px,30vw,340px),1fr));
+      gap:clamp(10px,1.5vw,16px);
+    }
+    .summary-block {
+      background:var(--panel); border:1px solid var(--border);
+      padding:clamp(12px,1.8vw,18px);
+    }
+    .sum-block-title {
+      font-size:clamp(7px,.85vw,9px);
+      letter-spacing:.4em; text-transform:uppercase;
+      color:var(--amber); display:block;
+      margin-bottom:clamp(10px,1.5vh,14px);
+      padding-bottom:6px;
+      border-bottom:1px solid rgba(168,131,46,.15);
+    }
+    .sum-item {
+      display:flex; align-items:flex-start; gap:8px;
+      margin-bottom:7px;
+      font-size:clamp(9px,1.1vw,11px);
+      color:var(--paper-dim); line-height:1.5;
+    }
+    .sum-item::before { content:'·'; color:var(--amber); flex-shrink:0; margin-top:1px; }
+    .sum-item.open-q::before { content:'?'; color:var(--red-lit); }
+    .sum-item.lead-done::before { content:'✓'; color:var(--green-lit); }
+    .sum-item.lead-open::before { content:'◦'; color:var(--paper-dim); }
+
+    /* Progress bar */
+    .progress-wrap {
+      background:var(--panel); border:1px solid var(--border);
+      padding:clamp(14px,2vw,20px);
+      margin-bottom:clamp(12px,2vh,18px);
+    }
+    .progress-label {
+      display:flex; justify-content:space-between; align-items:center;
+      margin-bottom:8px;
+    }
+    .progress-title {
+      font-size:clamp(7px,.85vw,9px);
+      letter-spacing:.35em; text-transform:uppercase;
+      color:var(--paper-dim);
+    }
+    .progress-pct {
+      font-family:'Special Elite',cursive;
+      font-size:clamp(14px,2vw,18px);
+      color:var(--amber);
+    }
+    .progress-bar-bg {
+      height:6px; background:rgba(255,255,255,.05);
+      border:1px solid rgba(255,255,255,.06); overflow:hidden;
+    }
+    .progress-bar-fill {
+      height:100%;
+      background:linear-gradient(to right, #6a3a00, var(--amber));
+      transition:width 1s cubic-bezier(.4,0,.2,1);
+    }
+    .progress-phases {
+      display:flex; gap:clamp(6px,1vw,10px);
+      margin-top:clamp(12px,2vh,18px); flex-wrap:wrap;
+    }
+    .progress-phase {
+      font-size:clamp(7px,.85vw,9px);
+      letter-spacing:.2em; text-transform:uppercase;
+      padding:3px 10px; border:1px solid;
+    }
+    .progress-phase.done    { color:var(--green-lit); border-color:var(--green-lit); }
+    .progress-phase.current { color:var(--amber);     border-color:var(--amber); }
+    .progress-phase.future  { color:rgba(120,100,60,.35); border-color:rgba(120,100,60,.2); }
+
+    /* ════════════════════════════
+       DETECTIVE NOTES PANEL
+    ════════════════════════════ */
+    #notes-notebook {
+      max-width:680px;
+      background: rgba(224,208,176,.04);
+      border:1px solid var(--border);
+      padding:clamp(20px,3.5vw,40px);
+      position:relative;
+      /* ruled lines */
+      background-image:
+        repeating-linear-gradient(
+          to bottom,
+          transparent 0px, transparent 27px,
+          rgba(100,140,200,.07) 27px, rgba(100,140,200,.07) 28px
+        );
+    }
+    /* Red margin line */
+    #notes-notebook::before {
+      content:''; position:absolute;
+      top:0; bottom:0;
+      left:clamp(40px,6vw,60px);
+      width:1px;
+      background:rgba(196,48,48,.18);
+    }
+    .notebook-header {
+      display:flex; align-items:center;
+      justify-content:space-between;
+      margin-bottom:clamp(12px,2vh,18px);
+      padding-bottom:8px;
+      border-bottom:2px solid rgba(168,131,46,.2);
+    }
+    .notebook-title {
+      font-family:'Special Elite',cursive;
+      font-size:clamp(14px,2vw,18px);
+      color:var(--paper);
+    }
+    .notebook-meta {
+      font-size:clamp(7px,.85vw,9px);
+      letter-spacing:.25em; text-transform:uppercase;
+      color:var(--paper-dim);
+    }
+    #notes-area {
+      width:100%; min-height:clamp(200px,35vh,360px);
+      background:none; border:none;
+      font-family:'Caveat',cursive;
+      font-size:clamp(14px,1.8vw,18px);
+      color:var(--paper);
+      resize:none; outline:none;
+      line-height:28px;
+      caret-color:var(--amber);
+      padding-left:clamp(20px,3vw,30px);
+    }
+    #notes-area::placeholder {
+      color:rgba(120,100,60,.3);
+      font-style:italic;
+    }
+    .notebook-footer {
+      display:flex; align-items:center;
+      justify-content:space-between;
+      margin-top:clamp(12px,2vh,18px);
+      padding-top:10px;
+      border-top:1px solid rgba(168,131,46,.1);
+      flex-wrap:wrap; gap:10px;
+    }
+    .notes-saved {
+      font-size:clamp(7px,.85vw,9px);
+      letter-spacing:.25em; text-transform:uppercase;
+      color:var(--green-lit); opacity:0;
+      transition:opacity .3s;
+    }
+    .notes-saved.show { opacity:1; }
+    .notebook-actions { display:flex; gap:10px; }
+    .note-btn {
+      font-family:'Courier Prime',monospace;
+      font-size:clamp(8px,1vw,10px);
+      letter-spacing:.2em; text-transform:uppercase;
+      color:var(--paper-dim); background:none;
+      border:1px solid var(--border);
+      padding:5px 14px; cursor:pointer;
+      transition:color .2s, border-color .2s;
+    }
+    .note-btn:hover { color:var(--amber); border-color:var(--border-hi); }
+    .char-count {
+      font-size:clamp(7px,.85vw,9px);
+      letter-spacing:.15em; color:var(--paper-dim); opacity:.45;
+    }
+
+    /* ════════════════════════════
+       MOBILE SIDEBAR TOGGLE
+    ════════════════════════════ */
+    #sidebar-toggle {
+      display:none;
+      font-family:'Courier Prime',monospace;
+      font-size:clamp(8px,1vw,10px);
+      letter-spacing:.2em; text-transform:uppercase;
+      color:var(--paper-dim); background:none;
+      border:1px solid var(--border); padding:5px 10px;
+      cursor:pointer;
+    }
+    #sidebar-toggle:hover { color:var(--amber); }
+
+    @media (max-width:640px) {
+      :root { --sidebar-w: 220px; }
+      #sidebar { position:fixed; left:0; top:0; bottom:0; z-index:50; transform:translateX(-100%); transition:transform .3s; }
+      #sidebar.open { transform:translateX(0); }
+      #sidebar-toggle { display:block; }
+      #sidebar-overlay {
+        display:none; position:fixed; inset:0; z-index:49;
+        background:rgba(0,0,0,.5);
+      }
+      #sidebar.open + #sidebar-overlay { display:block; }
+    }
+  </style>
+</head>
+<body>
+
+  <div id="bg"></div>
+  <div id="grain"></div>
+  <div id="vignette"></div>
+
+  <div id="app">
+
+    <!-- TOPBAR -->
+    <div id="topbar">
+      <button id="back-btn" onclick="goBack()">← Board</button>
+      <div class="topbar-divider"></div>
+      <div>
+        <span class="topbar-title">Investigation Board</span>
+        <span class="topbar-case">COL-001-A</span>
+      </div>
+      <div class="topbar-right">
+        <button id="sidebar-toggle" onclick="toggleSidebar()">☰ Menu</button>
+        <span id="breadcrumb">Evidence <span>/</span> All Items</span>
+        <span id="versionTag">v0.1.0 · local</span>
+      </div>
+    </div>
+
+    <!-- BODY -->
+    <div id="body">
+
+      <!-- SIDEBAR -->
+      <nav id="sidebar">
+
+        <!-- Evidence -->
+        <div class="nav-section">
+          <div class="nav-item" onclick="toggleNav(this,'panel-evidence','Evidence / All Items')">
+            <span class="nav-icon">🗂</span>
+            <span class="nav-label">Evidence</span>
+            <span class="nav-arrow">›</span>
+          </div>
+          <div class="nav-subitems">
+            <div class="nav-subitem active" onclick="showPanel('panel-evidence','Evidence / All Items',this)">
+              <span class="nav-icon">📁</span><span class="nav-label">All Items</span>
+            </div>
+            <div class="nav-subitem" onclick="showPanel('panel-cctv','Evidence / CCTV',this)">
+              <span class="nav-icon">📷</span><span class="nav-label">CCTV Thumbnails</span>
+            </div>
+            <div class="nav-subitem" onclick="showPanel('panel-audio-files','Evidence / Audio Files',this)">
+              <span class="nav-icon">🎙</span><span class="nav-label">Audio Files</span>
+            </div>
+            <div class="nav-subitem" onclick="showPanel('panel-spectrograms','Evidence / Spectrograms',this)">
+              <span class="nav-icon">📊</span><span class="nav-label">Spectrograms</span>
+            </div>
+            <div class="nav-subitem" onclick="showPanel('panel-transcripts','Evidence / Transcripts',this)">
+              <span class="nav-icon">📄</span><span class="nav-label">Interrogation Transcripts</span>
+            </div>
+            <div class="nav-subitem" onclick="showPanel('panel-portraits','Evidence / Portraits',this)">
+              <span class="nav-icon">🪪</span><span class="nav-label">Character Portraits</span>
+            </div>
+            <div class="nav-subitem" onclick="showPanel('panel-metadata','Evidence / Metadata',this)">
+              <span class="nav-icon">🔎</span><span class="nav-label">Metadata Snippets</span>
+            </div>
+            <div class="nav-subitem" onclick="showPanel('panel-documents','Evidence / Documents',this)">
+              <span class="nav-icon">📋</span><span class="nav-label">Documents</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Timeline -->
+        <div class="nav-section">
+          <div class="nav-item" onclick="showPanel('panel-timeline','Timeline Reconstruction',this)">
+            <span class="nav-icon">⏱</span>
+            <span class="nav-label">Timeline</span>
+            <span class="nav-arrow">›</span>
+          </div>
+        </div>
+
+        <!-- Interrogation -->
+        <div class="nav-section">
+          <div class="nav-item" onclick="toggleNav(this,'panel-interrogation','Interrogation / Review',null)">
+            <span class="nav-icon">🎤</span>
+            <span class="nav-label">Interrogation</span>
+            <span class="nav-arrow">›</span>
+          </div>
+          <div class="nav-subitems">
+            <div class="nav-subitem" onclick="showPanel('panel-interrogation','Interrogation / Review',this)">
+              <span class="nav-icon">👁</span><span class="nav-label">Review</span>
+            </div>
+            <div class="nav-subitem" onclick="showPanel('panel-lie-detector','Interrogation / Lie Detector',this)">
+              <span class="nav-icon">📈</span><span class="nav-label">Lie Detector Output</span>
+            </div>
+            <div class="nav-subitem" onclick="showPanel('panel-stress','Interrogation / Stress Spikes',this)">
+              <span class="nav-icon">⚡</span><span class="nav-label">Stress Spikes</span>
+            </div>
+            <div class="nav-subitem" onclick="showPanel('panel-contradictions','Interrogation / Contradictions',this)">
+              <span class="nav-icon">⚔</span><span class="nav-label">Contradictions</span>
+            </div>
+            <div class="nav-subitem" onclick="showPanel('panel-personality','Interrogation / Personality',this)">
+              <span class="nav-icon">🧠</span><span class="nav-label">Personality Notes</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Lab -->
+        <div class="nav-section">
+          <div class="nav-item" onclick="showPanel('panel-lab','The Lab',this)">
+            <span class="nav-icon">🔬</span>
+            <span class="nav-label">The Lab</span>
+            <span class="nav-arrow">›</span>
+          </div>
+        </div>
+
+        <!-- Theory Builder -->
+        <div class="nav-section">
+          <div class="nav-item" onclick="showPanel('panel-theory','Theory Builder',this)">
+            <span class="nav-icon">💡</span>
+            <span class="nav-label">Theory Builder</span>
+            <span class="nav-arrow">›</span>
+          </div>
+        </div>
+
+        <!-- Case Summary -->
+        <div class="nav-section">
+          <div class="nav-item" onclick="showPanel('panel-summary','Case Summary',this)">
+            <span class="nav-icon">📌</span>
+            <span class="nav-label">Case Summary</span>
+            <span class="nav-arrow">›</span>
+          </div>
+        </div>
+
+        <!-- Detective Notes -->
+        <div class="nav-section">
+          <div class="nav-item" onclick="showPanel('panel-notes','Detective Notes',this)">
+            <span class="nav-icon">📓</span>
+            <span class="nav-label">Detective Notes</span>
+            <span class="nav-arrow">›</span>
+          </div>
+        </div>
+
+      </nav>
+      <div id="sidebar-overlay" onclick="toggleSidebar()"></div>
+
+      <!-- MAIN CONTENT -->
+      <div id="main">
+
+        <!-- ══ EVIDENCE — ALL ITEMS ══ -->
+        <div class="panel active" id="panel-evidence">
+          <div class="panel-head">
+            <div><span class="panel-title">Evidence</span><span class="panel-sub">All collected items · Case COL-001-A</span></div>
+            <span class="wip-badge">Items added as case progresses</span>
+          </div>
+          <div class="panel-rule"></div>
+          <div class="card-grid" id="evidence-category-grid">
+            <div class="card" onclick="showPanel('panel-cctv','Evidence / CCTV',null)">
+              <span class="card-count">0 items</span>
+              <span class="card-icon">📷</span>
+              <span class="card-title">CCTV Thumbnails</span>
+              <span class="card-desc">Surveillance footage stills from key locations and time windows.</span>
+            </div>
+            <div class="card" onclick="showPanel('panel-audio-files','Evidence / Audio Files',null)">
+              <span class="card-count">0 items</span>
+              <span class="card-icon">🎙</span>
+              <span class="card-title">Audio Files</span>
+              <span class="card-desc">Intercepted recordings, ambient audio, and voice samples.</span>
+            </div>
+            <div class="card" onclick="showPanel('panel-spectrograms','Evidence / Spectrograms',null)">
+              <span class="card-count">0 items</span>
+              <span class="card-icon">📊</span>
+              <span class="card-title">Spectrograms</span>
+              <span class="card-desc">Visual frequency analysis of audio evidence from the lab.</span>
+            </div>
+            <div class="card" onclick="showPanel('panel-transcripts','Evidence / Transcripts',null)">
+              <span class="card-count">0 items</span>
+              <span class="card-icon">📄</span>
+              <span class="card-title">Interrogation Transcripts</span>
+              <span class="card-desc">Full typed transcripts of all conducted interrogation sessions.</span>
+            </div>
+            <div class="card" onclick="showPanel('panel-portraits','Evidence / Portraits',null)">
+              <span class="card-count">0 items</span>
+              <span class="card-icon">🪪</span>
+              <span class="card-title">Character Portraits</span>
+              <span class="card-desc">Profile images, sketches, and identification photographs.</span>
+            </div>
+            <div class="card" onclick="showPanel('panel-metadata','Evidence / Metadata',null)">
+              <span class="card-count">0 items</span>
+              <span class="card-icon">🔎</span>
+              <span class="card-title">Metadata Snippets</span>
+              <span class="card-desc">File timestamps, GPS coordinates, EXIF data, and digital trails.</span>
+            </div>
+            <div class="card" onclick="showPanel('panel-documents','Evidence / Documents',null)">
+              <span class="card-count">0 items</span>
+              <span class="card-icon">📋</span>
+              <span class="card-title">Documents</span>
+              <span class="card-desc">Ledgers, letters, official records, and other paper evidence.</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- ══ EVIDENCE SUBCATEGORIES (empty state templates) ══ -->
+        <!-- Each one follows the same structure — easy to populate later -->
+        <div class="panel" id="panel-cctv">
+          <div class="panel-head"><div><span class="panel-title">CCTV Thumbnails</span><span class="panel-sub">Surveillance stills · Case COL-001-A</span></div><span class="wip-badge">Unlocked during investigation</span></div>
+          <div class="panel-rule"></div>
+          <div class="evidence-empty"><span class="evidence-empty-icon">📷</span><span class="evidence-empty-text">No CCTV footage collected yet</span></div>
+        </div>
+        <div class="panel" id="panel-audio-files">
+          <div class="panel-head"><div><span class="panel-title">Audio Files</span><span class="panel-sub">Recordings &amp; intercepts · Case COL-001-A</span></div><span class="wip-badge">Unlocked during investigation</span></div>
+          <div class="panel-rule"></div>
+          <div class="evidence-empty"><span class="evidence-empty-icon">🎙</span><span class="evidence-empty-text">No audio files collected yet</span></div>
+        </div>
+        <div class="panel" id="panel-spectrograms">
+          <div class="panel-head"><div><span class="panel-title">Spectrograms</span><span class="panel-sub">Frequency analysis · Case COL-001-A</span></div><span class="wip-badge">Generated in Audio Lab</span></div>
+          <div class="panel-rule"></div>
+          <div class="evidence-empty"><span class="evidence-empty-icon">📊</span><span class="evidence-empty-text">No spectrograms generated yet — visit the Audio Lab</span></div>
+        </div>
+        <div class="panel" id="panel-transcripts">
+          <div class="panel-head"><div><span class="panel-title">Interrogation Transcripts</span><span class="panel-sub">Session records · Case COL-001-A</span></div><span class="wip-badge">Available after interrogations</span></div>
+          <div class="panel-rule"></div>
+          <div class="evidence-empty"><span class="evidence-empty-icon">📄</span><span class="evidence-empty-text">No transcripts available yet</span></div>
+        </div>
+        <div class="panel" id="panel-portraits">
+          <div class="panel-head"><div><span class="panel-title">Character Portraits</span><span class="panel-sub">Person identification · Case COL-001-A</span></div><span class="wip-badge">Collected from suspects &amp; contacts</span></div>
+          <div class="panel-rule"></div>
+          <div class="evidence-empty"><span class="evidence-empty-icon">🪪</span><span class="evidence-empty-text">No portraits on file yet</span></div>
+        </div>
+        <div class="panel" id="panel-metadata">
+          <div class="panel-head"><div><span class="panel-title">Metadata Snippets</span><span class="panel-sub">Digital forensics · Case COL-001-A</span></div><span class="wip-badge">Extracted by Forensics Lab</span></div>
+          <div class="panel-rule"></div>
+          <div class="evidence-empty"><span class="evidence-empty-icon">🔎</span><span class="evidence-empty-text">No metadata extracted yet</span></div>
+        </div>
+        <div class="panel" id="panel-documents">
+          <div class="panel-head"><div><span class="panel-title">Documents</span><span class="panel-sub">Paper evidence · Case COL-001-A</span></div><span class="wip-badge">Found during investigation</span></div>
+          <div class="panel-rule"></div>
+          <div class="evidence-empty"><span class="evidence-empty-icon">📋</span><span class="evidence-empty-text">No documents logged yet</span></div>
+        </div>
+
+        <!-- ══ TIMELINE RECONSTRUCTION ══ -->
+        <div class="panel" id="panel-timeline">
+          <div class="panel-head">
+            <div><span class="panel-title">Timeline Reconstruction</span><span class="panel-sub">Sequence of events · Case COL-001-A</span></div>
+            <span class="wip-badge">Drag &amp; drop — coming soon</span>
+          </div>
+          <div class="panel-rule"></div>
+          <div id="timeline-track">
+            <div class="timeline-axis"></div>
+            <span class="timeline-label">Event Timeline — drag evidence here to place events</span>
+            <div class="timeline-empty">
+              <span class="timeline-empty-icon">⏱</span>
+              No events placed yet — collect evidence to begin reconstruction
+            </div>
+          </div>
+          <div class="tl-features">
+            <div class="tl-feat">
+              <span class="tl-feat-icon">📌</span>
+              <div><span class="tl-feat-title">Drag Evidence</span><span class="tl-feat-desc">Drag collected evidence cards onto the timeline to anchor events to specific times.</span></div>
+            </div>
+            <div class="tl-feat">
+              <span class="tl-feat-icon">🕐</span>
+              <div><span class="tl-feat-title">Match Timestamps</span><span class="tl-feat-desc">Align CCTV timestamps with audio recordings to establish an accurate sequence.</span></div>
+            </div>
+            <div class="tl-feat">
+              <span class="tl-feat-icon">📷</span>
+              <div><span class="tl-feat-title">CCTV vs Audio</span><span class="tl-feat-desc">Cross-reference visual evidence with audio clues to identify discrepancies.</span></div>
+            </div>
+            <div class="tl-feat">
+              <span class="tl-feat-icon">⚠</span>
+              <div><span class="tl-feat-title">Spot Inconsistencies</span><span class="tl-feat-desc">The system will flag alibi gaps and impossible timeline overlaps automatically.</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ══ INTERROGATION REVIEW ══ -->
+        <div class="panel" id="panel-interrogation">
+          <div class="panel-head">
+            <div><span class="panel-title">Interrogation Review</span><span class="panel-sub">Session analysis · Case COL-001-A</span></div>
+            <span class="wip-badge">Available after interrogations</span>
+          </div>
+          <div class="panel-rule"></div>
+          <span style="font-size:clamp(7px,.85vw,9px);letter-spacing:.3em;text-transform:uppercase;color:var(--paper-dim);display:block;margin-bottom:12px;">Subjects Interrogated</span>
+          <div class="interr-subject-row">
+            <div class="subject-card">
+              <div class="subject-avatar">👤</div>
+              <div><span class="subject-name">No subjects yet</span><span class="subject-status">Awaiting interrogation</span></div>
+            </div>
+          </div>
+          <div class="interr-subcategories">
+            <div class="interr-sub" onclick="showPanel('panel-transcripts','Evidence / Transcripts',null)">
+              <span class="interr-sub-icon">📄</span>
+              <span class="interr-sub-title">Transcripts</span>
+              <span class="interr-sub-desc">Full text records of every interrogation session, searchable and annotatable.</span>
+            </div>
+            <div class="interr-sub" onclick="showPanel('panel-lie-detector','Interrogation / Lie Detector',null)">
+              <span class="interr-sub-icon">📈</span>
+              <span class="interr-sub-title">Lie Detector Output</span>
+              <span class="interr-sub-desc">Polygraph chart readouts with flagged anomaly windows highlighted in red.</span>
+            </div>
+            <div class="interr-sub" onclick="showPanel('panel-stress','Interrogation / Stress Spikes',null)">
+              <span class="interr-sub-icon">⚡</span>
+              <span class="interr-sub-title">Stress Spikes</span>
+              <span class="interr-sub-desc">Voice stress analysis mapped against the transcript timeline.</span>
+            </div>
+            <div class="interr-sub" onclick="showPanel('panel-contradictions','Interrogation / Contradictions',null)">
+              <span class="interr-sub-icon">⚔</span>
+              <span class="interr-sub-title">Contradictions</span>
+              <span class="interr-sub-desc">Auto-detected contradictions between statements and known evidence.</span>
+            </div>
+            <div class="interr-sub" onclick="showPanel('panel-personality','Interrogation / Personality',null)">
+              <span class="interr-sub-icon">🧠</span>
+              <span class="interr-sub-title">Personality Notes</span>
+              <span class="interr-sub-desc">Behavioural assessments, tells, and psychological observations per subject.</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Interrogation sub-panels (empty states) -->
+        <div class="panel" id="panel-lie-detector">
+          <div class="panel-head"><div><span class="panel-title">Lie Detector Output</span><span class="panel-sub">Polygraph readouts · Case COL-001-A</span></div><span class="wip-badge">After interrogation</span></div>
+          <div class="panel-rule"></div>
+          <div class="evidence-empty"><span class="evidence-empty-icon">📈</span><span class="evidence-empty-text">No polygraph data available yet</span></div>
+        </div>
+        <div class="panel" id="panel-stress">
+          <div class="panel-head"><div><span class="panel-title">Stress Spikes</span><span class="panel-sub">Voice stress analysis · Case COL-001-A</span></div><span class="wip-badge">After interrogation</span></div>
+          <div class="panel-rule"></div>
+          <div class="evidence-empty"><span class="evidence-empty-icon">⚡</span><span class="evidence-empty-text">No stress analysis data yet</span></div>
+        </div>
+        <div class="panel" id="panel-contradictions">
+          <div class="panel-head"><div><span class="panel-title">Contradictory Statements</span><span class="panel-sub">Flagged inconsistencies · Case COL-001-A</span></div><span class="wip-badge">After interrogation</span></div>
+          <div class="panel-rule"></div>
+          <div class="evidence-empty"><span class="evidence-empty-icon">⚔</span><span class="evidence-empty-text">No contradictions flagged yet</span></div>
+        </div>
+        <div class="panel" id="panel-personality">
+          <div class="panel-head"><div><span class="panel-title">Personality Notes</span><span class="panel-sub">Behavioural assessments · Case COL-001-A</span></div><span class="wip-badge">After interrogation</span></div>
+          <div class="panel-rule"></div>
+          <div class="evidence-empty"><span class="evidence-empty-icon">🧠</span><span class="evidence-empty-text">No personality assessments on file</span></div>
+        </div>
+
+        <!-- ══ THE LAB ══ -->
+        <div class="panel" id="panel-lab">
+          <div class="panel-head">
+            <div><span class="panel-title">The Lab</span><span class="panel-sub">Scientific analysis division · Case COL-001-A</span></div>
+          </div>
+          <div class="panel-rule"></div>
+          <div class="lab-grid">
+
+            <div class="lab-card forensics" onclick="goTo('forensics.html')">
+              <div class="lab-header">
+                <span class="lab-icon">🔬</span>
+                <div><span class="lab-name">Forensics Lab</span><span class="lab-name-sub">Physical Evidence Analysis</span></div>
+              </div>
+              <p class="lab-desc">Analyse physical evidence collected from crime scenes. Process fingerprints, blood samples, fibre analysis, and boot print comparisons. Results feed directly into your Evidence Locker.</p>
+              <div class="lab-capabilities">
+                <span class="lab-cap">Fingerprint matching &amp; comparison</span>
+                <span class="lab-cap">Blood type &amp; DNA sample analysis</span>
+                <span class="lab-cap">Fibre &amp; textile origin identification</span>
+                <span class="lab-cap">Boot print cast comparison</span>
+                <span class="lab-cap">Document authentication</span>
+              </div>
+              <button class="lab-btn">Enter Forensics Lab →</button>
+            </div>
+
+            <div class="lab-card audio" onclick="goTo('audiolab.html')">
+              <div class="lab-header">
+                <span class="lab-icon">🎛</span>
+                <div><span class="lab-name">Audio Lab</span><span class="lab-name-sub">Signal &amp; Voice Analysis</span></div>
+              </div>
+              <p class="lab-desc">Process audio evidence — enhance recordings, generate spectrograms, run voice stress analysis, and cross-reference audio timestamps with CCTV footage.</p>
+              <div class="audio-wave" id="lab-wave"></div>
+              <div class="lab-capabilities">
+                <span class="lab-cap">Audio enhancement &amp; noise removal</span>
+                <span class="lab-cap">Spectrogram generation</span>
+                <span class="lab-cap">Voice stress &amp; deception analysis</span>
+                <span class="lab-cap">Timestamp synchronisation</span>
+                <span class="lab-cap">Speaker identification</span>
+              </div>
+              <button class="lab-btn">Enter Audio Lab →</button>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- ══ THEORY BUILDER ══ -->
+        <div class="panel" id="panel-theory">
+          <div class="panel-head">
+            <div><span class="panel-title">Theory Builder</span><span class="panel-sub">Construct your case · Forms basis of Final Report</span></div>
+          </div>
+          <div class="panel-rule"></div>
+
+          <div class="theory-steps">
+            <div class="theory-step">
+              <span class="step-num">1</span>
+              <span class="step-icon">👤</span>
+              <span class="step-label">Step 1</span>
+              <span class="step-title">Select Suspect</span>
+              <select class="step-select" id="theory-suspect" onchange="saveTheory()">
+                <option value="">— No suspect selected —</option>
+                <option value="victor-marre">Victor Marre</option>
+                <option value="elara-voss">Elara Voss</option>
+                <option value="unknown">Unknown — still investigating</option>
+              </select>
+            </div>
+            <div class="theory-step">
+              <span class="step-num">2</span>
+              <span class="step-icon">💰</span>
+              <span class="step-label">Step 2</span>
+              <span class="step-title">Choose Motive</span>
+              <select class="step-select" id="theory-motive" onchange="saveTheory()">
+                <option value="">— No motive selected —</option>
+                <option value="financial">Financial gain</option>
+                <option value="revenge">Personal revenge</option>
+                <option value="silencing">Silencing a witness</option>
+                <option value="power">Power / control</option>
+                <option value="unknown">Motive unclear</option>
+              </select>
+            </div>
+            <div class="theory-step">
+              <span class="step-num">3</span>
+              <span class="step-icon">🗡</span>
+              <span class="step-label">Step 3</span>
+              <span class="step-title">Choose Method</span>
+              <select class="step-select" id="theory-method" onchange="saveTheory()">
+                <option value="">— No method selected —</option>
+                <option value="direct">Direct physical act</option>
+                <option value="hired">Hired third party</option>
+                <option value="poisoning">Poisoning</option>
+                <option value="staged">Staged accident</option>
+                <option value="unknown">Method unclear</option>
+              </select>
+            </div>
+            <div class="theory-step">
+              <span class="step-num">4</span>
+              <span class="step-icon">🕐</span>
+              <span class="step-label">Step 4</span>
+              <span class="step-title">Choose Timeline</span>
+              <select class="step-select" id="theory-timeline" onchange="saveTheory()">
+                <option value="">— No timeline selected —</option>
+                <option value="mar04-night">Mar 04 · Late evening (21:00–23:00)</option>
+                <option value="mar04-midnight">Mar 04–05 · After midnight</option>
+                <option value="mar05-early">Mar 05 · Early morning</option>
+                <option value="unknown">Timeline unclear</option>
+              </select>
+            </div>
+            <div class="theory-step">
+              <span class="step-num">5</span>
+              <span class="step-icon">📎</span>
+              <span class="step-label">Step 5</span>
+              <span class="step-title">Attach Evidence</span>
+              <select class="step-select" id="theory-evidence" onchange="saveTheory()" multiple style="height:64px;padding-right:8px;">
+                <option value="e01">COL-001-A-E01 — Cigarette Case</option>
+                <option value="e02">COL-001-A-E02 — Threatening Letter</option>
+                <option value="e03">COL-001-A-E03 — Burner Phone</option>
+                <option value="e04">COL-001-A-E04 — Bloodstained Cloth</option>
+                <option value="e05">COL-001-A-E05 — Ledger</option>
+                <option value="e06">COL-001-A-E06 — CCTV USB Drive</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="theory-evidence-drop">
+            <span class="drop-prompt">Drag evidence cards here to attach them to your theory</span>
+          </div>
+
+          <div class="theory-actions">
+            <button class="theory-btn primary" onclick="testTheory()">Test Theory</button>
+            <button class="theory-btn secondary" onclick="clearTheory()">Clear</button>
+            <button class="theory-btn secondary" onclick="goTo('report.html')">Send to Final Report →</button>
+          </div>
+
+          <div class="theory-result" id="theory-result">
+            <span class="result-label">Theory Assessment</span>
+            <span class="result-text" id="result-text"></span>
+          </div>
+        </div>
+
+        <!-- ══ CASE SUMMARY ══ -->
+        <div class="panel" id="panel-summary">
+          <div class="panel-head">
+            <div><span class="panel-title">Case Summary</span><span class="panel-sub">Quick-access overview · COL-001-A</span></div>
+          </div>
+          <div class="panel-rule"></div>
+
+          <div class="progress-wrap">
+            <div class="progress-label">
+              <span class="progress-title">Overall Case Progress</span>
+              <span class="progress-pct" id="progress-pct">12%</span>
+            </div>
+            <div class="progress-bar-bg">
+              <div class="progress-bar-fill" id="progress-fill" style="width:12%"></div>
+            </div>
+            <div class="progress-phases">
+              <span class="progress-phase done">Scene Processing</span>
+              <span class="progress-phase current">Evidence Collection</span>
+              <span class="progress-phase future">Interrogations</span>
+              <span class="progress-phase future">Lab Analysis</span>
+              <span class="progress-phase future">Theory</span>
+              <span class="progress-phase future">Final Report</span>
+            </div>
+          </div>
+
+          <div class="summary-grid">
+            <div class="summary-block">
+              <span class="sum-block-title">Case Title</span>
+              <div class="sum-item">The Harlow Street Incident — COL-001-A</div>
+              <div class="sum-item">Reported: Mar 04 2026</div>
+              <div class="sum-item">Assigned: Det. Gary Langley</div>
+              <div class="sum-item">Status: Active · Open Investigation</div>
+            </div>
+            <div class="summary-block">
+              <span class="sum-block-title">Known Facts</span>
+              <div class="sum-item">Victim found in Harlow Street Alley, Mar 04</div>
+              <div class="sum-item">Monogrammed cigarette case links Victor Marre to scene</div>
+              <div class="sum-item">Threatening letter found at victim's apartment</div>
+              <div class="sum-item">Burner phone recovered from canal drain</div>
+              <div class="sum-item">Prescription bottle belongs to Elara Voss</div>
+            </div>
+            <div class="summary-block">
+              <span class="sum-block-title">Open Questions</span>
+              <div class="sum-item open-q">Who sent the threatening letter?</div>
+              <div class="sum-item open-q">What is on the burner phone?</div>
+              <div class="sum-item open-q">What is Elara Voss's connection to the victim?</div>
+              <div class="sum-item open-q">What does the ledger's coded entries refer to?</div>
+              <div class="sum-item open-q">Who is the figure on the CCTV footage?</div>
+            </div>
+            <div class="summary-block">
+              <span class="sum-block-title">Leads Followed</span>
+              <div class="sum-item lead-done">Crime scene processed — 8 items logged</div>
+              <div class="sum-item lead-done">Victor Marre's office searched</div>
+              <div class="sum-item lead-done">Canal drain sweep completed</div>
+            </div>
+            <div class="summary-block">
+              <span class="sum-block-title">Leads Remaining</span>
+              <div class="sum-item lead-open">Analyse burner phone memory</div>
+              <div class="sum-item lead-open">Interview Elara Voss</div>
+              <div class="sum-item lead-open">Decode ledger entries</div>
+              <div class="sum-item lead-open">Enhance CCTV footage from Harbour Authority</div>
+              <div class="sum-item lead-open">Typewriter font analysis on threatening letter</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ══ DETECTIVE NOTES ══ -->
+        <div class="panel" id="panel-notes">
+          <div class="panel-head">
+            <div><span class="panel-title">Detective Notes</span><span class="panel-sub">Personal field notebook · Auto-saved</span></div>
+          </div>
+          <div class="panel-rule"></div>
+
+          <div id="notes-notebook">
+            <div class="notebook-header">
+              <span class="notebook-title">Field Notes — Case COL-001-A</span>
+              <span class="notebook-meta" id="notes-date"></span>
+            </div>
+            <textarea
+              id="notes-area"
+              placeholder="Start typing your observations, theories, and hunches here..."
+              oninput="onNotesInput()"
+              spellcheck="false"
+            ></textarea>
+            <div class="notebook-footer">
+              <span class="notes-saved" id="notes-saved">✓ Saved</span>
+              <span class="char-count" id="char-count">0 chars</span>
+              <div class="notebook-actions">
+                <button class="note-btn" onclick="clearNotes()">Clear</button>
+                <button class="note-btn" onclick="exportNotes()">Export</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- /main -->
+    </div><!-- /body -->
+  </div><!-- /app -->
+
+  <audio id="bg-music" loop preload="auto">
+    <source src="Echoes_in_the_Concrete_Maze.mp3" type="audio/mpeg" />
+  </audio>
+
+  <script>
+    /* ════════════════════════════
+       PANEL NAVIGATION
+    ════════════════════════════ */
+    function showPanel(id, breadcrumb, triggerEl) {
+      document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+      const panel = document.getElementById(id);
+      if (panel) panel.classList.add('active');
+
+      document.getElementById('breadcrumb').innerHTML =
+        breadcrumb.replace(' / ', ' <span>/</span> ');
+
+      if (triggerEl) {
+        document.querySelectorAll('.nav-subitem').forEach(s => s.classList.remove('active'));
+        document.querySelectorAll('.nav-item').forEach(s => s.classList.remove('active'));
+        triggerEl.classList.add('active');
+      }
+
+      document.getElementById('main').scrollTop = 0;
+
+      // Close sidebar on mobile after selecting
+      if (window.innerWidth <= 640) closeSidebar();
+    }
+
+    function toggleNav(navItem, panelId, breadcrumb) {
+      const subitems = navItem.nextElementSibling;
+      const isOpen = subitems && subitems.classList.contains('open');
+
+      // Close all
+      document.querySelectorAll('.nav-subitems').forEach(s => s.classList.remove('open'));
+      document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('open'));
+
+      if (!isOpen && subitems) {
+        subitems.classList.add('open');
+        navItem.classList.add('open');
+      }
+
+      if (panelId) showPanel(panelId, breadcrumb, null);
+    }
+
+    // Open Evidence subitems by default
+    document.querySelector('.nav-section .nav-subitems').classList.add('open');
+    document.querySelector('.nav-section .nav-item').classList.add('open');
+
+    /* ════════════════════════════
+       MOBILE SIDEBAR
+    ════════════════════════════ */
+    function toggleSidebar() {
+      document.getElementById('sidebar').classList.toggle('open');
+    }
+    function closeSidebar() {
+      document.getElementById('sidebar').classList.remove('open');
+    }
+
+    /* ════════════════════════════
+       AUDIO LAB WAVEFORM
+    ════════════════════════════ */
+    const labWave = document.getElementById('lab-wave');
+    if (labWave) {
+      [.3,.7,.5,1,.4,.8,.6,.3,.9,.5,.7,.4,.6,.8,.3].forEach((h,i) => {
+        const b = document.createElement('div');
+        b.className = 'audio-wave-bar';
+        b.style.height = (h * 24) + 'px';
+        b.style.animationDelay  = (i * 0.09) + 's';
+        b.style.animationDuration = (1 + Math.random() * 0.5) + 's';
+        labWave.appendChild(b);
+      });
+    }
+
+    /* ════════════════════════════
+       THEORY BUILDER
+    ════════════════════════════ */
+    function saveTheory() {
+      const theory = {
+        suspect:  document.getElementById('theory-suspect').value,
+        motive:   document.getElementById('theory-motive').value,
+        method:   document.getElementById('theory-method').value,
+        timeline: document.getElementById('theory-timeline').value,
+        evidence: Array.from(document.getElementById('theory-evidence').selectedOptions).map(o => o.value),
+      };
+      localStorage.setItem('col_theory', JSON.stringify(theory));
+    }
+
+    function loadTheory() {
+      try {
+        const t = JSON.parse(localStorage.getItem('col_theory') || '{}');
+        if (t.suspect)  document.getElementById('theory-suspect').value  = t.suspect;
+        if (t.motive)   document.getElementById('theory-motive').value   = t.motive;
+        if (t.method)   document.getElementById('theory-method').value   = t.method;
+        if (t.timeline) document.getElementById('theory-timeline').value = t.timeline;
+        if (t.evidence) {
+          const sel = document.getElementById('theory-evidence');
+          t.evidence.forEach(v => {
+            Array.from(sel.options).forEach(o => { if (o.value === v) o.selected = true; });
+          });
+        }
+      } catch(e) {}
+    }
+    loadTheory();
+
+    function testTheory() {
+      const suspect  = document.getElementById('theory-suspect').value;
+      const motive   = document.getElementById('theory-motive').value;
+      const method   = document.getElementById('theory-method').value;
+      const timeline = document.getElementById('theory-timeline').value;
+      const evidence = Array.from(document.getElementById('theory-evidence').selectedOptions);
+
+      const result   = document.getElementById('theory-result');
+      const resultTxt = document.getElementById('result-text');
+
+      const filled = [suspect, motive, method, timeline].filter(Boolean).length;
+      const evCount = evidence.length;
+
+      let msg = '';
+      if (filled < 2) {
+        msg = 'Theory is too incomplete to assess. Select at least a suspect and a motive before testing.';
+      } else if (filled === 2 && evCount === 0) {
+        msg = 'You have a suspect and a motive, but no supporting evidence attached. The theory will not hold up in a Final Report.';
+      } else if (filled >= 3 && evCount >= 2) {
+        msg = `Theory appears viable. Suspect: ${document.getElementById('theory-suspect').options[document.getElementById('theory-suspect').selectedIndex].text}. ${evCount} evidence item(s) attached. Consider completing all five steps before filing your Final Report.`;
+      } else {
+        msg = `Partial theory — ${filled}/4 steps complete, ${evCount} evidence item(s) attached. Continue building before submitting.`;
+      }
+
+      resultTxt.textContent = msg;
+      result.classList.add('show');
+    }
+
+    function clearTheory() {
+      ['theory-suspect','theory-motive','theory-method','theory-timeline'].forEach(id => {
+        document.getElementById(id).value = '';
+      });
+      Array.from(document.getElementById('theory-evidence').options).forEach(o => o.selected = false);
+      document.getElementById('theory-result').classList.remove('show');
+      localStorage.removeItem('col_theory');
+    }
+
+    /* ════════════════════════════
+       DETECTIVE NOTES
+    ════════════════════════════ */
+    let notesSaveTimer = null;
+
+    function loadNotes() {
+      try {
+        const saved = localStorage.getItem('col_notes') || '';
+        const area  = document.getElementById('notes-area');
+        area.value  = saved;
+        updateCharCount(saved.length);
+      } catch(e) {}
+    }
+
+    function onNotesInput() {
+      const area = document.getElementById('notes-area');
+      updateCharCount(area.value.length);
+      clearTimeout(notesSaveTimer);
+      notesSaveTimer = setTimeout(() => {
+        localStorage.setItem('col_notes', area.value);
+        const saved = document.getElementById('notes-saved');
+        saved.classList.add('show');
+        setTimeout(() => saved.classList.remove('show'), 2000);
+      }, 800);
+    }
+
+    function updateCharCount(n) {
+      document.getElementById('char-count').textContent = n.toLocaleString() + ' chars';
+    }
+
+    function clearNotes() {
+      if (!confirm('Clear all detective notes? This cannot be undone.')) return;
+      document.getElementById('notes-area').value = '';
+      localStorage.removeItem('col_notes');
+      updateCharCount(0);
+    }
+
+    function exportNotes() {
+      const text = document.getElementById('notes-area').value;
+      if (!text.trim()) return;
+      const blob = new Blob([`CITY OF LIES — Detective Notes\nCase: COL-001-A\nDate: ${new Date().toLocaleDateString()}\n\n${text}`], {type:'text/plain'});
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'COL-001-A-detective-notes.txt';
+      a.click();
+    }
+
+    // Set date in notebook header
+    document.getElementById('notes-date').textContent = new Date().toLocaleDateString('en-GB', {day:'2-digit',month:'short',year:'numeric'});
+    loadNotes();
+
+    /* ════════════════════════════
+       MUSIC RESUME
+    ════════════════════════════ */
+    const music = document.getElementById('bg-music');
+    let musicEnabled = true;
+
+    (function resumeMusic() {
+      try {
+        const saved = JSON.parse(sessionStorage.getItem('col_music') || '{}');
+        musicEnabled = saved.enabled !== false;
+        if (!musicEnabled) return;
+        if (saved.time)   music.currentTime = saved.time;
+        music.volume = saved.volume ?? 0.42;
+        music.play().catch(() => {
+          const unlock = () => {
+            music.play().catch(() => {});
+            document.removeEventListener('click',      unlock);
+            document.removeEventListener('touchstart', unlock);
+          };
+          document.addEventListener('click',      unlock, { passive: true });
+          document.addEventListener('touchstart', unlock, { passive: true });
+        });
+      } catch(e) {}
+    })();
+
+    function saveMusicState() {
+      sessionStorage.setItem('col_music', JSON.stringify({
+        enabled: musicEnabled,
+        time:    music.currentTime,
+        volume:  music.volume,
+        src:     'Echoes_in_the_Concrete_Maze.mp3'
+      }));
+    }
+
+    /* ════════════════════════════
+       NAVIGATION
+    ════════════════════════════ */
+    function goBack() {
+      saveMusicState();
+      window.location.href = 'game.html';
+    }
+
+    function goTo(page) {
+      saveMusicState();
+      window.location.href = page;
+    }
+
+    /* ════════════════════════════
+       VERSION TAG
+    ════════════════════════════ */
+    async function updateCommitHash() {
+      try {
+        const res  = await fetch('https://api.github.com/repos/jellybean1979/CityOfLies/commits?per_page=1');
+        if (!res.ok) throw new Error();
+        const data = await res.json();
+        const sha  = data[0]?.sha?.substring(0, 7) ?? '-------';
+        document.getElementById('versionTag').textContent = `v0.1.0 · ${sha}`;
+      } catch {
+        document.getElementById('versionTag').textContent = 'v0.1.0 · local';
+      }
+    }
+    updateCommitHash();
+  </script>
+</body>
+</html>
