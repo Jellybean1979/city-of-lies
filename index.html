@@ -523,7 +523,7 @@
     -->
     <video
       id="intro-video"
-      src=""
+      src="Assets/Video/intro-city_of_lies.mp4"
       autoplay
       muted
       playsinline
@@ -538,7 +538,7 @@
         Set the src attribute on the &lt;video&gt; tag<br />
         to activate your intro footage
       </p>
-      <div class="fb-file">intro/city_of_lies_intro.mp4</div>
+      <div class="fb-file">Assets/Video/intro-city_of_lies.mp4</div>
     </div>
 
   </div>
@@ -698,7 +698,7 @@
       introVideo.addEventListener('error', () => {
         fallback.style.display = 'flex';
         fallback.querySelector('p').innerHTML =
-          'Video could not be loaded.<br/>Check that <strong>city_of_lies_intro.mp4</strong><br/>is in the same folder as index.html';
+          'Video could not be loaded.<br/>Check that <strong>Assets/Video/intro-city_of_lies.mp4</strong><br/>is correctly uploaded to your repo';
         setTimeout(launchMainUI, 4000);
       });
 
