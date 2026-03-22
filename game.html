@@ -1084,11 +1084,16 @@
     window.addEventListener('resize', drawStrings);
 
     /* ── Navigation ── */
+    // Pages that are built and ready
+    const READY_PAGES = ['evidence.html', 'settings.html', 'credits.html'];
+
     function navigate(page) {
       saveMusicState();
-      // Uncomment when pages exist:
-      // window.location.href = page;
-      console.log('[City of Lies] → Navigate to', page);
+      if (READY_PAGES.includes(page)) {
+        window.location.href = page;
+      } else {
+        console.log('[City of Lies] → Page not yet built:', page);
+      }
     }
     function goTo(page) {
       saveMusicState();
