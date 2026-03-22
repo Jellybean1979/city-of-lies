@@ -523,7 +523,7 @@
     -->
     <video
       id="intro-video"
-      src="city_of_lies_intro.mp4"
+      src=""
       autoplay
       muted
       playsinline
@@ -682,8 +682,29 @@
 
     } else if (hasSrc) {
       fallback.style.display = 'none';
+
+      // Explicitly call play() — autoplay attribute alone isn't reliable on mobile
+      introVideo.addEventListener('canplay', () => {
+        introVideo.play().catch(() => {
+          // If play() is blocked (e.g. non-muted autoplay), show fallback & advance
+          fallback.style.display = 'flex';
+          setTimeout(launchMainUI, 4000);
+        });
+      }, { once: true });
+
       introVideo.addEventListener('ended', launchMainUI);
-      introVideo.addEventListener('error', () => setTimeout(launchMainUI, 500));
+
+      // If video errors (wrong path, codec, etc.) — fallback gracefully
+      introVideo.addEventListener('error', () => {
+        fallback.style.display = 'flex';
+        fallback.querySelector('p').innerHTML =
+          'Video could not be loaded.<br/>Check that <strong>city_of_lies_intro.mp4</strong><br/>is in the same folder as index.html';
+        setTimeout(launchMainUI, 4000);
+      });
+
+      // Safety net — if video stalls and never fires 'ended', advance after 3 minutes
+      setTimeout(() => { if (!introComplete) launchMainUI(); }, 180000);
+
     } else {
       // No video yet — show fallback, auto-advance after studio credit plays
       setTimeout(launchMainUI, 5000);
