@@ -970,10 +970,14 @@
           <div class="panel-rule"></div>
           <div class="evidence-empty"><span class="evidence-empty-icon">📄</span><span class="evidence-empty-text">No transcripts available yet</span></div>
         </div>
-        <div class="panel" id="panel-portraits">
-          <div class="panel-head"><div><span class="panel-title">Character Portraits</span><span class="panel-sub">Person identification · Case COL-001-A</span></div><span class="wip-badge">Collected from suspects &amp; contacts</span></div>
+        <div class="panel active" id="panel-portraits">
+          <div class="panel-head"><div><span class="panel-title">Character Portraits</span><span class="panel-sub">Person identification · Case COL-001-A</span></div><span class="wip-badge">19 characters on file</span></div>
           <div class="panel-rule"></div>
-          <div class="evidence-empty"><span class="evidence-empty-icon">🪪</span><span class="evidence-empty-text">No portraits on file yet</span></div>
+          <div class="evidence-empty" style="display:flex;flex-direction:column;align-items:center;gap:14px;min-height:160px;justify-content:center;">
+            <span style="font-size:36px;">🪪</span>
+            <span style="font-size:clamp(9px,1.1vw,11px);letter-spacing:.3em;text-transform:uppercase;color:var(--paper-dim);">19 persons of interest on file</span>
+            <button onclick="goTo('portraits.html')" style="font-family:'Courier Prime',monospace;font-size:clamp(9px,1.1vw,11px);letter-spacing:.25em;text-transform:uppercase;color:var(--paper-dim);background:none;border:1px solid rgba(168,131,46,.25);padding:8px 20px;cursor:pointer;transition:color .2s,border-color .2s;" onmouseover="this.style.color='#c47c1a';this.style.borderColor='rgba(168,131,46,.6)'" onmouseout="this.style.color='';this.style.borderColor=''">Open Character Dossiers →</button>
+          </div>
         </div>
         <div class="panel" id="panel-metadata">
           <div class="panel-head"><div><span class="panel-title">Metadata Snippets</span><span class="panel-sub">Digital forensics · Case COL-001-A</span></div><span class="wip-badge">Extracted by Forensics Lab</span></div>
