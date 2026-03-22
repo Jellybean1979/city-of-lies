@@ -481,6 +481,63 @@
       pointer-events:none;
     }
 
+    /* ── CLASSIFICATION SELECTOR ── */
+    .classify-section {
+      margin-top: clamp(14px,2.5vh,20px);
+      padding-top: clamp(12px,2vh,18px);
+      border-top: 1px solid rgba(80,50,0,.2);
+    }
+    .classify-label {
+      font-size: clamp(7px,.85vw,9px); letter-spacing:.35em;
+      text-transform: uppercase; color: rgba(42,20,0,.5);
+      display: block; margin-bottom: clamp(8px,1.4vh,12px);
+    }
+    .classify-btns {
+      display: flex; gap: clamp(6px,1vw,10px); flex-wrap: wrap;
+    }
+    .classify-btn {
+      font-family: 'Courier Prime', monospace;
+      font-size: clamp(8px,1vw,10px); letter-spacing:.2em;
+      text-transform: uppercase; padding: 5px 12px;
+      border: 1px solid rgba(80,50,0,.25);
+      background: rgba(80,50,0,.06);
+      cursor: pointer; transition: all .2s;
+      color: rgba(42,20,0,.6);
+      display: flex; align-items: center; gap: 5px;
+    }
+    .classify-btn:hover { border-color: rgba(80,50,0,.5); color: #1a0c00; }
+    .classify-btn.selected {
+      color: #1a0c00; font-weight: 700;
+    }
+    .classify-btn.selected.sel-suspect   { background:rgba(122,26,26,.12);  border-color:rgba(122,26,26,.5); }
+    .classify-btn.selected.sel-witness   { background:rgba(64,128,192,.12); border-color:rgba(64,128,192,.5); }
+    .classify-btn.selected.sel-poi       { background:rgba(196,124,26,.12); border-color:rgba(196,124,26,.5); }
+    .classify-btn.selected.sel-informant { background:rgba(58,138,90,.12);  border-color:rgba(58,138,90,.5); }
+
+    /* Interaction consequence box */
+    .interaction-box {
+      margin-top: clamp(8px,1.5vh,12px);
+      padding: clamp(8px,1.2vw,12px);
+      border: 1px solid rgba(80,50,0,.2);
+      background: rgba(80,50,0,.05);
+      display: none;
+    }
+    .interaction-box.show { display: block; }
+    .interaction-box-label {
+      font-size: clamp(6px,.75vw,8px); letter-spacing:.35em;
+      text-transform: uppercase; color: rgba(42,20,0,.45);
+      display: block; margin-bottom: 4px;
+    }
+    .interaction-box-text {
+      font-size: clamp(9px,1.1vw,11px); color: rgba(42,20,0,.7); line-height:1.65;
+    }
+    .classify-saved {
+      font-size: clamp(7px,.85vw,9px); letter-spacing:.2em;
+      text-transform: uppercase; color: #3a6a3a;
+      opacity: 0; transition: opacity .3s; display:block; margin-top:6px;
+    }
+    .classify-saved.show { opacity:1; }
+
     /* ── RESPONSIVE ── */
     @media (max-width:480px) {
       .dossier-photo-section { flex-direction:column; align-items:center; }
@@ -591,6 +648,21 @@
             oninput="savePersonNote()"
           ></textarea>
           <span class="notes-saved" id="notes-saved-indicator">✓ Note saved</span>
+
+          <div class="classify-section">
+            <span class="classify-label">Player Classification — How do you classify this person?</span>
+            <div class="classify-btns">
+              <button class="classify-btn" data-role="suspect"   onclick="classifyChar('suspect')"  >🔴 Suspect</button>
+              <button class="classify-btn" data-role="witness"   onclick="classifyChar('witness')"  >🔵 Witness</button>
+              <button class="classify-btn" data-role="poi"       onclick="classifyChar('poi')"      >🟡 Person of Interest</button>
+              <button class="classify-btn" data-role="informant" onclick="classifyChar('informant')">🟢 Informant</button>
+            </div>
+            <div class="interaction-box" id="interaction-box">
+              <span class="interaction-box-label">How this affects interactions</span>
+              <span class="interaction-box-text" id="interaction-box-text"></span>
+            </div>
+            <span class="classify-saved" id="classify-saved-indicator">✓ Classification saved</span>
+          </div>
 
         </div>
       </div>
@@ -865,11 +937,22 @@
        ROLE CONFIG
     ════════════════════════════════════════════════ */
     const ROLE_CONFIG = {
-      suspect:   { label: 'Suspect',            cls: 'role-suspect' },
-      witness:   { label: 'Witness',            cls: 'role-witness' },
-      poi:       { label: 'Person of Interest', cls: 'role-poi' },
-      informant: { label: 'Informant',          cls: 'role-informant' },
-
+      suspect:   {
+        label: 'Suspect', cls: 'role-suspect', icon: '🔴',
+        interaction: 'Treated as a suspect — guarded and defensive in all interactions. Interrogation sessions will be adversarial. May invoke legal counsel early if your Influence Level is low.'
+      },
+      witness:   {
+        label: 'Witness', cls: 'role-witness', icon: '🔵',
+        interaction: 'Classified as a witness — will generally cooperate if City Corruption is below Street Credibility. Willingness to share information is tied to how much they trust the department.'
+      },
+      poi:       {
+        label: 'Person of Interest', cls: 'role-poi', icon: '🟡',
+        interaction: 'Person of interest — aware they are being observed. Will be evasive but not overtly hostile. May offer partial information to deflect suspicion from themselves.'
+      },
+      informant: {
+        label: 'Informant', cls: 'role-informant', icon: '🟢',
+        interaction: 'Handled as an informant — will provide intelligence in exchange for protection or favours. Reliability and willingness depend on your Street Credibility score.'
+      },
     };
 
     /* ════════════════════════════════════════════════
@@ -881,11 +964,14 @@
       const rc = ROLE_CONFIG[char.role];
       const card = document.createElement('div');
       card.className = 'portrait-card';
-      card.dataset.role = char.role;
+      const savedRole = localStorage.getItem(`col_classify_${char.id}`) || char.role;
+      card.dataset.role = savedRole;
+      card.dataset.id   = char.id;
       card.onclick = () => openDossier(char);
+      const cardRc = ROLE_CONFIG[savedRole];
       card.innerHTML = `
         <div class="portrait-polaroid">
-          <span class="portrait-role ${rc.cls}">${rc.label}</span>
+          <span class="portrait-role ${cardRc.cls}">${cardRc.label}</span>
           <img class="portrait-photo"
             src="Assets/JPG/Characters/${char.file}"
             alt="${char.name}"
@@ -921,11 +1007,14 @@
 
     function openDossier(char) {
       currentCharId = char.id;
-      const rc = ROLE_CONFIG[char.role];
+
+      // Load player's saved classification — fall back to data default
+      const savedRole = localStorage.getItem(`col_classify_${char.id}`) || char.role;
+      const rc = ROLE_CONFIG[savedRole];
 
       document.getElementById('dossier-photo').src = `Assets/JPG/Characters/${char.file}`;
       document.getElementById('dossier-photo').alt = char.name;
-      document.getElementById('dossier-stamp').textContent = char.stamp;
+      document.getElementById('dossier-stamp').textContent = rc.label.toUpperCase();
       document.getElementById('dossier-name').textContent = char.name;
       document.getElementById('dossier-occupation').textContent = char.occupation;
       document.getElementById('dossier-gender').textContent = char.gender;
@@ -935,7 +1024,7 @@
       document.getElementById('dossier-bio').textContent = char.bio;
       document.getElementById('dossier-connection').textContent = char.connection;
 
-      // Role badge
+      // Role badge — reflects player classification
       const badge = document.getElementById('dossier-role-badge');
       badge.textContent = rc.label;
       badge.className = `dossier-role-badge ${rc.cls}`;
@@ -955,10 +1044,68 @@
       document.getElementById('dossier-notes-field').value = savedNote;
       document.getElementById('notes-saved-indicator').classList.remove('show');
 
+      // Set classification buttons — highlight active
+      document.querySelectorAll('.classify-btn').forEach(btn => {
+        btn.classList.remove('selected','sel-suspect','sel-witness','sel-poi','sel-informant');
+        if (btn.dataset.role === savedRole) {
+          btn.classList.add('selected', `sel-${savedRole}`);
+        }
+      });
+
+      // Show interaction consequence for current classification
+      showInteraction(savedRole);
+      document.getElementById('classify-saved-indicator').classList.remove('show');
+
       // Open
       document.getElementById('dossier-overlay').classList.add('open');
       document.getElementById('dossier').scrollTop = 0;
       document.body.style.overflow = 'hidden';
+    }
+
+    function classifyChar(role) {
+      if (!currentCharId) return;
+
+      // Save player's classification
+      localStorage.setItem(`col_classify_${currentCharId}`, role);
+
+      // Update buttons
+      document.querySelectorAll('.classify-btn').forEach(btn => {
+        btn.classList.remove('selected','sel-suspect','sel-witness','sel-poi','sel-informant');
+        if (btn.dataset.role === role) btn.classList.add('selected', `sel-${role}`);
+      });
+
+      // Update role badge and stamp in dossier header
+      const rc = ROLE_CONFIG[role];
+      const badge = document.getElementById('dossier-role-badge');
+      badge.textContent = rc.label;
+      badge.className = `dossier-role-badge ${rc.cls}`;
+      document.getElementById('dossier-stamp').textContent = rc.label.toUpperCase();
+
+      // Update the grid card's role tag live
+      const card = document.querySelector(`.portrait-card[data-id="${currentCharId}"]`);
+      if (card) {
+        card.dataset.role = role;
+        const tag = card.querySelector('.portrait-role');
+        if (tag) {
+          tag.textContent = rc.label;
+          tag.className = `portrait-role ${rc.cls}`;
+        }
+      }
+
+      showInteraction(role);
+
+      // Flash saved
+      const ind = document.getElementById('classify-saved-indicator');
+      ind.classList.add('show');
+      setTimeout(() => ind.classList.remove('show'), 2000);
+    }
+
+    function showInteraction(role) {
+      const rc = ROLE_CONFIG[role];
+      if (!rc) return;
+      const box = document.getElementById('interaction-box');
+      document.getElementById('interaction-box-text').textContent = rc.interaction;
+      box.classList.add('show');
     }
 
     function closeDossier() {
@@ -1046,4 +1193,3 @@
   </script>
 </body>
 </html>
-
