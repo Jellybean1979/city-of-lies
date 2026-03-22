@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>City of Lies — Credits</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Special+Elite&family=Courier+Prime:ital,wght@0,400;0,700;1,400&family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,700&family=Caveat:wght@400;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --ink:        #1a1208;
+      --amber:      #c47c1a;
+      --gold:       #a8832e;
+      --blood:      #7a1a1a;
+      --paper:      #e8d9bb;
+      --sepia-mid:  #6b4c2a;
+      --sepia-pale: #c8a97e;
+    }
+
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    html, body {
+      width: 100%; height: 100%;
+      overflow: hidden;
+      background: #0a0602;
+      font-family: 'Special Elite', cursive;
+    }
+
+    body { animation: pageIn 1.2s ease forwards; }
+    @keyframes pageIn { from { opacity: 0; } to { opacity: 1; } }
+
+    /* ── Background ── */
+    #board-bg {
+      position: fixed; inset: 0;
+      background-image: url('background-mainUI.jpg');
+      background-size: cover;
+      background-position: center;
+      filter: brightness(0.2) saturate(0.4) sepia(0.6);
+    }
+    #bg-tint {
+      position: fixed; inset: 0;
+      background: radial-gradient(ellipse 70% 70% at 50% 50%, rgba(160,100,30,0.08) 0%, transparent 70%);
+    }
+    #vignette {
+      position: fixed; inset: 0; z-index: 2; pointer-events: none;
+      box-shadow: inset 0 0 200px rgba(2,1,0,0.98), inset 0 0 80px rgba(2,1,0,0.7);
+    }
+
+    /* ── CENTER STAGE ── */
+    #stage {
+      position: fixed; inset: 0; z-index: 10;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      padding: clamp(24px, 6vw, 60px);
+      text-align: center;
+    }
+
+    /* Decorative horizontal rule */
+    .rule-ornament {
+      display: flex;
+      align-items: center;
+      gap: clamp(10px, 2vw, 20px);
+      margin: clamp(20px, 4vh, 40px) 0;
+      width: clamp(200px, 50vw, 440px);
+    }
+    .rule-line {
+      flex: 1; height: 1px;
+      background: linear-gradient(to right, transparent, rgba(168,131,46,0.5), transparent);
+    }
+    .rule-glyph {
+      font-family: 'Courier Prime', monospace;
+      font-size: 12px;
+      color: rgba(168,131,46,0.4);
+      letter-spacing: 0.3em;
+    }
+
+    /* Eyebrow */
+    .credits-eyebrow {
+      font-family: 'Courier Prime', monospace;
+      font-size: clamp(9px, 1.3vw, 12px);
+      letter-spacing: 0.6em;
+      text-transform: uppercase;
+      color: rgba(168,131,46,0.5);
+      display: block;
+      margin-bottom: clamp(12px, 2vh, 20px);
+      animation: fadeUp 1s ease 0.3s both;
+    }
+
+    /* Game title */
+    .credits-game-title {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(38px, 8vw, 88px);
+      font-weight: 700;
+      font-style: italic;
+      line-height: 0.95;
+      letter-spacing: -0.02em;
+      color: var(--paper);
+      text-shadow: 0 2px 30px rgba(0,0,0,0.9), 0 0 60px rgba(180,120,30,0.1);
+      animation: fadeUp 1.2s ease 0.5s both;
+    }
+    .title-of {
+      font-weight: 400;
+      font-size: 0.65em;
+      color: var(--sepia-pale);
+      margin: 0 0.1em;
+    }
+    .title-lies {
+      color: var(--amber);
+    }
+
+    /* The credit block itself — styled like a typewritten card */
+    #credit-card {
+      position: relative;
+      background: rgba(232,217,187,0.04);
+      border: 1px solid rgba(168,131,46,0.15);
+      padding: clamp(24px, 4vw, 44px) clamp(32px, 6vw, 64px);
+      animation: fadeUp 1.4s ease 1.2s both;
+      /* slight tilt */
+      transform: rotate(-0.3deg);
+    }
+
+    /* Pin on the card */
+    #credit-card::before {
+      content: '';
+      position: absolute;
+      top: -9px; left: 50%; transform: translateX(-50%);
+      width: 16px; height: 16px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 35% 35%, #f55, #8b1a1a);
+      box-shadow: 0 2px 5px rgba(0,0,0,0.8);
+    }
+
+    .credit-role {
+      font-family: 'Courier Prime', monospace;
+      font-size: clamp(8px, 1.1vw, 11px);
+      letter-spacing: 0.5em;
+      text-transform: uppercase;
+      color: rgba(168,131,46,0.55);
+      display: block;
+      margin-bottom: clamp(8px, 1.5vh, 14px);
+    }
+
+    .credit-name {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(28px, 5.5vw, 58px);
+      font-weight: 700;
+      font-style: italic;
+      color: var(--paper);
+      display: block;
+      line-height: 1;
+      text-shadow: 0 2px 20px rgba(0,0,0,0.8);
+      letter-spacing: -0.01em;
+    }
+
+    .credit-year {
+      font-family: 'Courier Prime', monospace;
+      font-size: clamp(11px, 1.6vw, 16px);
+      letter-spacing: 0.4em;
+      color: rgba(168,131,46,0.45);
+      display: block;
+      margin-top: clamp(10px, 1.5vh, 16px);
+    }
+
+    /* Handwritten annotation */
+    .credit-note {
+      font-family: 'Caveat', cursive;
+      font-size: clamp(12px, 1.8vw, 18px);
+      color: rgba(200,169,126,0.35);
+      display: block;
+      margin-top: clamp(12px, 2vh, 20px);
+      transform: rotate(-1.5deg);
+    }
+
+    /* Back button */
+    #back-btn {
+      margin-top: clamp(28px, 5vh, 50px);
+      font-family: 'Special Elite', cursive;
+      font-size: clamp(11px, 1.6vw, 14px);
+      letter-spacing: 0.15em;
+      color: rgba(168,131,46,0.45);
+      background: none;
+      border: 1px solid rgba(168,131,46,0.2);
+      padding: clamp(8px, 1.2vw, 12px) clamp(24px, 4vw, 40px);
+      cursor: pointer;
+      transition: color 0.25s, border-color 0.25s, transform 0.2s;
+      animation: fadeUp 1s ease 2s both;
+    }
+    #back-btn:hover {
+      color: var(--paper);
+      border-color: rgba(168,131,46,0.6);
+      transform: translateY(-2px);
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(16px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    /* preserve credit-card tilt */
+    #credit-card { animation: fadeUpCard 1.4s ease 1.2s both; }
+    @keyframes fadeUpCard {
+      from { opacity: 0; transform: rotate(-0.3deg) translateY(16px); }
+      to   { opacity: 1; transform: rotate(-0.3deg) translateY(0); }
+    }
+
+    /* ── VERSION ── */
+    #version-bar {
+      position: fixed; bottom: 16px; right: 20px; z-index: 50;
+    }
+    #versionTag {
+      font-family: 'Courier Prime', monospace;
+      font-size: 9px; letter-spacing: 0.2em;
+      color: #2a1c08; text-transform: uppercase;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="board-bg"></div>
+  <div id="bg-tint"></div>
+  <div id="vignette"></div>
+
+  <div id="stage">
+
+    <span class="credits-eyebrow">A Jellybean1979 Production</span>
+
+    <div class="credits-game-title">
+      City<span class="title-of"> of </span><span class="title-lies">Lies</span>
+    </div>
+
+    <div class="rule-ornament">
+      <div class="rule-line"></div>
+      <span class="rule-glyph">✦</span>
+      <div class="rule-line"></div>
+    </div>
+
+    <div id="credit-card">
+      <span class="credit-role">Created by</span>
+      <span class="credit-name">Gary Langley</span>
+      <span class="credit-year">2026</span>
+      <span class="credit-note">All investigations are fictional.<br/>Any resemblance to real crimes is purely coincidental.</span>
+    </div>
+
+    <button id="back-btn" onclick="goBack()">← Back to Menu</button>
+
+  </div>
+
+  <div id="version-bar"><span id="versionTag">v0.1.0 · local</span></div>
+
+  <audio id="bg-music" loop preload="auto">
+    <source src="Echoes_in_the_Concrete_Maze.mp3" type="audio/mpeg" />
+  </audio>
+
+  <script>
+    const music = document.getElementById('bg-music');
+    let musicEnabled = true;
+
+    /* ── Resume music from session ── */
+    (function resumeMusic() {
+      try {
+        const saved = JSON.parse(sessionStorage.getItem('col_music') || '{}');
+        musicEnabled = saved.enabled !== false;
+        if (!musicEnabled) return;
+
+        if (saved.time)   music.currentTime = saved.time;
+        if (saved.volume) music.volume = saved.volume;
+        else              music.volume = 0.42;
+
+        music.play().catch(() => {
+          const unlock = () => {
+            music.play().catch(() => {});
+            document.removeEventListener('click',      unlock);
+            document.removeEventListener('touchstart', unlock);
+          };
+          document.addEventListener('click',      unlock, { passive: true });
+          document.addEventListener('touchstart', unlock, { passive: true });
+        });
+      } catch(e) {}
+    })();
+
+    function saveMusicState() {
+      sessionStorage.setItem('col_music', JSON.stringify({
+        enabled: musicEnabled,
+        time:    music.currentTime,
+        volume:  music.volume,
+        src:     'Echoes_in_the_Concrete_Maze.mp3'
+      }));
+    }
+
+    function goBack() {
+      saveMusicState();
+      window.location.href = 'index.html';
+    }
+
+    /* ── Version tag ── */
+    async function updateCommitHash() {
+      try {
+        const res  = await fetch('https://api.github.com/repos/jellybean1979/CityOfLies/commits?per_page=1');
+        if (!res.ok) throw new Error();
+        const data = await res.json();
+        const sha  = data[0]?.sha?.substring(0, 7) ?? '-------';
+        document.getElementById('versionTag').textContent = `v0.1.0 · ${sha}`;
+      } catch {
+        document.getElementById('versionTag').textContent = 'v0.1.0 · local';
+      }
+    }
+    updateCommitHash();
+  </script>
+</body>
+</html>
