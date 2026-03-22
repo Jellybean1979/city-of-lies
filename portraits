@@ -1,0 +1,1049 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>City of Lies — Character Portraits</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Special+Elite&family=Courier+Prime:ital,wght@0,400;0,700;1,400&family=Caveat:wght@400;600;700&family=Playfair+Display:ital,wght@0,700;1,400&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --ink:        #0a0806;
+      --amber:      #c47c1a;
+      --gold:       #a8832e;
+      --blood:      #7a1a1a;
+      --paper:      #d8c8a8;
+      --paper-dim:  #8a7a5a;
+      --folder:     #c8a85a;
+      --folder-tab: #b8962e;
+      --folder-drk: #8a6a10;
+      --border:     rgba(168,131,46,0.2);
+      --panel:      rgba(14,10,6,0.88);
+
+      /* Role tag colours */
+      --role-suspect:   #c43030;
+      --role-witness:   #4080c0;
+      --role-poi:       #c47c1a;
+      --role-informant: #3a9a5a;
+
+    }
+
+    *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+
+    html, body {
+      width:100%; height:100%;
+      background: var(--ink);
+      font-family: 'Courier Prime', monospace;
+      overflow: hidden;
+    }
+
+    body { animation: pageIn .6s ease forwards; }
+    @keyframes pageIn { from{opacity:0} to{opacity:1} }
+
+    /* ── BACKGROUND ── */
+    #bg {
+      position:fixed; inset:0;
+      background-image: url('Assets/JPG/Backgrounds/background-mainUI.jpg');
+      background-size:cover; background-position:center;
+      filter: brightness(0.18) saturate(0.4) sepia(0.5);
+    }
+    #vignette {
+      position:fixed; inset:0; z-index:1; pointer-events:none;
+      box-shadow: inset 0 0 180px rgba(2,1,0,.98), inset 0 0 60px rgba(2,1,0,.6);
+    }
+    #grain {
+      position:fixed; inset:0; z-index:1; pointer-events:none; opacity:.03;
+      background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='220' height='220' filter='url(%23n)'/%3E%3C/svg%3E");
+      background-size:180px;
+    }
+
+    /* ── APP SHELL ── */
+    #app {
+      position:fixed; inset:0; z-index:10;
+      display:flex; flex-direction:column;
+    }
+
+    /* ── TOPBAR ── */
+    #topbar {
+      display:flex; align-items:center; gap:12px;
+      padding: 0 clamp(14px,2.5vw,28px);
+      height: clamp(44px,7vh,56px);
+      background: rgba(6,4,2,.88);
+      border-bottom: 1px solid var(--border);
+      flex-shrink:0;
+      backdrop-filter: blur(8px);
+    }
+    #back-btn {
+      font-family:'Courier Prime',monospace;
+      font-size:clamp(8px,1vw,10px);
+      letter-spacing:.25em; text-transform:uppercase;
+      color:var(--paper-dim); background:none;
+      border:1px solid var(--border); padding:5px 12px;
+      cursor:pointer; transition:color .2s, border-color .2s, transform .15s;
+      white-space:nowrap; flex-shrink:0;
+    }
+    #back-btn:hover { color:var(--amber); border-color:rgba(168,131,46,.5); transform:translateX(-2px); }
+    .topbar-div { width:1px; height:22px; background:var(--border); flex-shrink:0; }
+    .topbar-title {
+      font-family:'Special Elite',cursive;
+      font-size:clamp(13px,2vw,18px); color:var(--paper);
+    }
+    .topbar-sub {
+      font-size:clamp(7px,.85vw,9px); letter-spacing:.35em;
+      text-transform:uppercase; color:var(--amber); opacity:.7;
+    }
+    .topbar-right { margin-left:auto; display:flex; align-items:center; gap:16px; }
+    #versionTag {
+      font-size:8px; letter-spacing:.2em;
+      color:rgba(120,100,60,.35); text-transform:uppercase;
+    }
+
+    /* ── FILTER BAR ── */
+    #filterbar {
+      display:flex; align-items:center; gap:clamp(6px,1vw,12px);
+      padding: clamp(8px,1.2vh,12px) clamp(14px,2.5vw,28px);
+      background: rgba(6,4,2,.7);
+      border-bottom: 1px solid var(--border);
+      flex-shrink:0; flex-wrap:wrap;
+      backdrop-filter: blur(4px);
+    }
+    .filter-label {
+      font-size:clamp(7px,.85vw,9px); letter-spacing:.3em;
+      text-transform:uppercase; color:var(--paper-dim);
+      flex-shrink:0;
+    }
+    .filter-btn {
+      font-family:'Courier Prime',monospace;
+      font-size:clamp(7px,.9vw,9px); letter-spacing:.2em;
+      text-transform:uppercase; color:var(--paper-dim);
+      background:none; border:1px solid rgba(168,131,46,.15);
+      padding:3px 10px; cursor:pointer;
+      transition:color .2s, border-color .2s;
+      flex-shrink:0;
+    }
+    .filter-btn:hover, .filter-btn.active { color:var(--amber); border-color:rgba(168,131,46,.5); }
+    .filter-count {
+      margin-left:auto;
+      font-size:clamp(7px,.85vw,9px); letter-spacing:.2em;
+      text-transform:uppercase; color:var(--paper-dim);
+      flex-shrink:0;
+    }
+    .filter-count span { color:var(--amber); }
+
+    /* ── GRID ── */
+    #grid-wrap {
+      flex:1; overflow-y:auto; overflow-x:hidden;
+      padding: clamp(16px,2.5vw,28px) clamp(14px,2.5vw,28px);
+      scrollbar-width:thin;
+      scrollbar-color:rgba(168,131,46,.2) transparent;
+    }
+    #grid-wrap::-webkit-scrollbar { width:4px; }
+    #grid-wrap::-webkit-scrollbar-thumb { background:rgba(168,131,46,.2); border-radius:2px; }
+
+    #portrait-grid {
+      display:grid;
+      grid-template-columns: repeat(auto-fill, minmax(clamp(140px,18vw,190px), 1fr));
+      gap: clamp(12px,2vw,20px);
+    }
+
+    /* ── PORTRAIT CARD (grid thumbnail) ── */
+    .portrait-card {
+      cursor:pointer;
+      transition: transform .2s cubic-bezier(.34,1.3,.64,1), filter .2s;
+      position:relative;
+      animation: cardIn .4s ease both;
+    }
+    @keyframes cardIn {
+      from{opacity:0;transform:translateY(10px)}
+      to{opacity:1;transform:translateY(0)}
+    }
+    .portrait-card:hover { transform:translateY(-4px) scale(1.03); }
+    .portrait-card.hidden { display:none; }
+
+    /* polaroid frame */
+    .portrait-polaroid {
+      background: #f0ece0;
+      padding: clamp(6px,1vw,10px) clamp(6px,1vw,10px) clamp(20px,3vw,30px);
+      box-shadow: 2px 4px 16px rgba(0,0,0,.7), 0 1px 3px rgba(0,0,0,.4);
+      border:1px solid #d0c8b0;
+      position:relative;
+    }
+    .portrait-polaroid::before {
+      /* push-pin */
+      content:'';
+      position:absolute;
+      top:-8px; left:50%; transform:translateX(-50%);
+      width:14px; height:14px; border-radius:50%;
+      background:radial-gradient(circle at 35% 35%, #f55, #8b1a1a);
+      box-shadow:0 2px 4px rgba(0,0,0,.7);
+      z-index:2;
+    }
+    .portrait-photo {
+      width:100%; aspect-ratio:1;
+      object-fit:cover; object-position:center top;
+      display:block;
+      background:#1a1208;
+    }
+    .portrait-name {
+      font-family:'Caveat',cursive;
+      font-size:clamp(11px,1.5vw,15px);
+      color:#2a1a0a; text-align:center;
+      display:block; margin-top:4px; line-height:1.2;
+    }
+
+    /* Role tag on polaroid */
+    .portrait-role {
+      position:absolute;
+      top: clamp(6px,1vw,10px);
+      right: clamp(4px,.8vw,8px);
+      font-size:clamp(5px,.65vw,7px);
+      letter-spacing:.2em; text-transform:uppercase;
+      padding:2px 5px; border:1px solid;
+      line-height:1.2;
+    }
+    .role-suspect        { color:var(--role-suspect);   border-color:var(--role-suspect); }
+    .role-witness        { color:var(--role-witness);   border-color:var(--role-witness); }
+    .role-poi            { color:var(--role-poi);       border-color:var(--role-poi); }
+    .role-informant      { color:var(--role-informant); border-color:var(--role-informant); }
+
+
+    /* Stagger card animations */
+    .portrait-card:nth-child(1)  { animation-delay:.03s }
+    .portrait-card:nth-child(2)  { animation-delay:.06s }
+    .portrait-card:nth-child(3)  { animation-delay:.09s }
+    .portrait-card:nth-child(4)  { animation-delay:.12s }
+    .portrait-card:nth-child(5)  { animation-delay:.15s }
+    .portrait-card:nth-child(6)  { animation-delay:.18s }
+    .portrait-card:nth-child(7)  { animation-delay:.21s }
+    .portrait-card:nth-child(8)  { animation-delay:.24s }
+    .portrait-card:nth-child(9)  { animation-delay:.27s }
+    .portrait-card:nth-child(10) { animation-delay:.30s }
+    .portrait-card:nth-child(11) { animation-delay:.33s }
+    .portrait-card:nth-child(12) { animation-delay:.36s }
+    .portrait-card:nth-child(13) { animation-delay:.39s }
+    .portrait-card:nth-child(14) { animation-delay:.42s }
+    .portrait-card:nth-child(15) { animation-delay:.45s }
+    .portrait-card:nth-child(16) { animation-delay:.48s }
+    .portrait-card:nth-child(17) { animation-delay:.51s }
+    .portrait-card:nth-child(18) { animation-delay:.54s }
+    .portrait-card:nth-child(19) { animation-delay:.57s }
+
+    /* ════════════════════════════
+       DOSSIER MODAL — Manila folder
+    ════════════════════════════ */
+    #dossier-overlay {
+      position:fixed; inset:0; z-index:100;
+      background:rgba(0,0,0,.75);
+      display:flex; align-items:center; justify-content:center;
+      padding: clamp(16px,3vw,40px);
+      opacity:0; pointer-events:none;
+      transition:opacity .25s ease;
+      backdrop-filter:blur(4px);
+    }
+    #dossier-overlay.open {
+      opacity:1; pointer-events:all;
+    }
+
+    #dossier {
+      position:relative;
+      width:100%; max-width:620px;
+      max-height:90vh;
+      overflow-y:auto;
+      scrollbar-width:thin;
+      scrollbar-color:rgba(139,105,20,.3) transparent;
+      transform:scale(.94) translateY(10px);
+      transition:transform .28s cubic-bezier(.34,1.2,.64,1);
+    }
+    #dossier-overlay.open #dossier {
+      transform:scale(1) translateY(0);
+    }
+    #dossier::-webkit-scrollbar { width:4px; }
+    #dossier::-webkit-scrollbar-thumb { background:rgba(139,105,20,.3); }
+
+    /* Folder body */
+    .folder-wrap {
+      background: var(--folder);
+      border: 1px solid var(--folder-drk);
+      position:relative;
+      /* slight rotation for realism */
+      transform: rotate(-.3deg);
+    }
+
+    /* Tab at top */
+    .folder-tab-bar {
+      background: var(--folder-tab);
+      height:clamp(26px,4vh,34px);
+      display:flex; align-items:center;
+      padding: 0 clamp(12px,2vw,20px);
+      border-bottom:2px solid var(--folder-drk);
+      gap:10px;
+    }
+    .folder-tab-text {
+      font-family:'Courier Prime',monospace;
+      font-size:clamp(7px,.9vw,9px);
+      letter-spacing:.35em; text-transform:uppercase;
+      color:#2a1400; font-weight:700;
+    }
+    .folder-case-ref {
+      margin-left:auto;
+      font-family:'Courier Prime',monospace;
+      font-size:clamp(6px,.75vw,8px);
+      letter-spacing:.2em; color:rgba(42,20,0,.55);
+    }
+
+    /* Inner paper */
+    .folder-inner {
+      background: #d4b870;
+      padding: clamp(16px,3vw,30px);
+      /* ruled lines */
+      background-image:
+        repeating-linear-gradient(
+          to bottom,
+          transparent 0px, transparent 23px,
+          rgba(80,50,0,.12) 23px, rgba(80,50,0,.12) 24px
+        );
+    }
+
+    /* Photo + paperclip section */
+    .dossier-photo-section {
+      display:flex; gap:clamp(14px,2.5vw,24px);
+      margin-bottom:clamp(14px,2.5vh,22px);
+      align-items:flex-start;
+    }
+
+    .dossier-photo-wrap {
+      position:relative; flex-shrink:0;
+      width:clamp(100px,18vw,150px);
+    }
+
+    /* Paperclip SVG */
+    .paperclip {
+      position:absolute;
+      top:-14px; left:50%; transform:translateX(-50%);
+      width:clamp(20px,3.5vw,30px);
+      z-index:5;
+    }
+
+    .dossier-photo {
+      width:100%;
+      aspect-ratio:.75;
+      object-fit:cover; object-position:center top;
+      display:block;
+      border:3px solid #f0e8d0;
+      box-shadow:2px 3px 10px rgba(0,0,0,.5);
+      background:#1a1208;
+      margin-top:10px;
+    }
+
+    /* Photo stamp */
+    .photo-stamp {
+      position:absolute;
+      bottom:4px; right:-8px;
+      font-family:'Special Elite',cursive;
+      font-size:clamp(8px,1.1vw,11px);
+      color:rgba(139,26,26,.5);
+      border:2px solid rgba(139,26,26,.4);
+      padding:1px 6px;
+      transform:rotate(-12deg);
+      background:rgba(212,184,112,.7);
+      white-space:nowrap;
+    }
+
+    /* Dossier header info */
+    .dossier-header { flex:1; padding-top:8px; }
+
+    .dossier-name {
+      font-family:'Special Elite',cursive;
+      font-size:clamp(18px,3vw,26px);
+      color:#1a0c00; line-height:1;
+      display:block; margin-bottom:4px;
+    }
+    .dossier-title {
+      font-family:'Courier Prime',monospace;
+      font-size:clamp(8px,1.1vw,11px);
+      letter-spacing:.2em; text-transform:uppercase;
+      color:rgba(42,20,0,.65); display:block;
+      margin-bottom:clamp(10px,1.8vh,16px);
+    }
+
+    /* Info fields */
+    .dossier-fields {
+      display:flex; flex-direction:column; gap:5px;
+    }
+    .dossier-field {
+      display:flex; gap:8px; align-items:baseline;
+    }
+    .field-label {
+      font-family:'Courier Prime',monospace;
+      font-size:clamp(6px,.75vw,8px);
+      letter-spacing:.25em; text-transform:uppercase;
+      color:rgba(42,20,0,.5); flex-shrink:0;
+      min-width:clamp(50px,8vw,70px);
+    }
+    .field-val {
+      font-family:'Courier Prime',monospace;
+      font-size:clamp(9px,1.2vw,11px);
+      color:#2a1400; line-height:1.4;
+    }
+
+    /* Role badge in dossier */
+    .dossier-role-badge {
+      display:inline-block;
+      font-size:clamp(7px,.9vw,9px);
+      letter-spacing:.25em; text-transform:uppercase;
+      padding:3px 10px; border:1px solid;
+      margin-top:8px;
+    }
+
+    /* Divider */
+    .folder-rule {
+      width:100%; height:1px;
+      background:linear-gradient(to right, rgba(80,50,0,.3), transparent);
+      margin: clamp(12px,2vh,18px) 0;
+    }
+
+    /* Bio section */
+    .dossier-section-title {
+      font-family:'Special Elite',cursive;
+      font-size:clamp(10px,1.3vw,13px);
+      color:rgba(42,20,0,.7);
+      letter-spacing:.08em;
+      display:block; margin-bottom:6px;
+      padding-bottom:3px;
+      border-bottom:1px solid rgba(80,50,0,.2);
+    }
+    .dossier-bio {
+      font-family:'Courier Prime',monospace;
+      font-size:clamp(9px,1.2vw,12px);
+      color:#2a1400; line-height:1.8;
+      margin-bottom:clamp(12px,2vh,18px);
+    }
+
+    /* Known associates */
+    .associates-list {
+      display:flex; flex-wrap:wrap; gap:6px;
+      margin-bottom:clamp(12px,2vh,18px);
+    }
+    .associate-tag {
+      font-family:'Courier Prime',monospace;
+      font-size:clamp(7px,.85vw,9px);
+      letter-spacing:.15em;
+      color:rgba(42,20,0,.7);
+      border:1px solid rgba(80,50,0,.3);
+      padding:2px 8px; background:rgba(80,50,0,.06);
+    }
+
+    /* Notes area */
+    .dossier-notes {
+      background:rgba(255,255,255,.12);
+      border:1px solid rgba(80,50,0,.2);
+      padding:clamp(8px,1.5vw,14px);
+      min-height:60px;
+      font-family:'Caveat',cursive;
+      font-size:clamp(11px,1.6vw,15px);
+      color:#2a1400; line-height:1.6;
+      width:100%; resize:vertical;
+      outline:none;
+      background-image:repeating-linear-gradient(
+        to bottom,
+        transparent 0px, transparent 23px,
+        rgba(80,50,0,.1) 23px, rgba(80,50,0,.1) 24px
+      );
+    }
+    .dossier-notes::placeholder { color:rgba(42,20,0,.3); font-style:italic; }
+    .notes-saved {
+      font-size:clamp(7px,.85vw,9px); letter-spacing:.2em;
+      text-transform:uppercase; color:#3a6a3a;
+      opacity:0; transition:opacity .3s; display:block;
+      margin-top:4px;
+    }
+    .notes-saved.show { opacity:1; }
+
+    /* Close button */
+    #dossier-close {
+      position:absolute; top:clamp(36px,6vh,46px); right:-4px;
+      font-family:'Courier Prime',monospace;
+      font-size:clamp(8px,1vw,10px); letter-spacing:.2em;
+      text-transform:uppercase; color:rgba(42,20,0,.5);
+      background:none; border:none; cursor:pointer;
+      transition:color .2s; z-index:10;
+      writing-mode:vertical-rl;
+    }
+    #dossier-close:hover { color:#2a1400; }
+
+    /* Click outside hint */
+    .overlay-hint {
+      position:fixed; bottom:20px; left:50%; transform:translateX(-50%);
+      font-family:'Courier Prime',monospace;
+      font-size:clamp(7px,.85vw,9px); letter-spacing:.3em;
+      text-transform:uppercase; color:rgba(168,131,46,.35);
+      pointer-events:none;
+    }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width:480px) {
+      .dossier-photo-section { flex-direction:column; align-items:center; }
+      .dossier-photo-wrap { width:clamp(120px,45vw,160px); }
+      #portrait-grid { grid-template-columns:repeat(auto-fill, minmax(130px,1fr)); }
+    }
+  </style>
+</head>
+<body>
+
+  <div id="bg"></div>
+  <div id="grain"></div>
+  <div id="vignette"></div>
+
+  <div id="app">
+
+    <!-- TOPBAR -->
+    <div id="topbar">
+      <button id="back-btn" onclick="goBack()">← Board</button>
+      <div class="topbar-div"></div>
+      <div>
+        <span class="topbar-title">Character Portraits</span>
+        <span class="topbar-sub">Case COL-001-A · Persons of Interest</span>
+      </div>
+      <div class="topbar-right">
+        <span id="versionTag">v0.1.0 · local</span>
+      </div>
+    </div>
+
+    <!-- FILTER BAR -->
+    <div id="filterbar">
+      <span class="filter-label">Filter:</span>
+      <button class="filter-btn active" onclick="filterBy('all',this)">All</button>
+      <button class="filter-btn" onclick="filterBy('suspect',this)">Suspect</button>
+      <button class="filter-btn" onclick="filterBy('witness',this)">Witness</button>
+      <button class="filter-btn" onclick="filterBy('poi',this)">Person of Interest</button>
+      <button class="filter-btn" onclick="filterBy('informant',this)">Informant</button>
+      <span class="filter-count">Showing <span id="showing-count">19</span> of 19</span>
+    </div>
+
+    <!-- PORTRAIT GRID -->
+    <div id="grid-wrap">
+      <div id="portrait-grid"></div>
+    </div>
+
+  </div>
+
+  <!-- DOSSIER MODAL -->
+  <div id="dossier-overlay" onclick="handleOverlayClick(event)">
+    <div id="dossier">
+      <div class="folder-wrap">
+        <div class="folder-tab-bar">
+          <span class="folder-tab-text">City of Lies P.D. — Personnel Dossier</span>
+          <span class="folder-case-ref">Case No. COL-001-A</span>
+        </div>
+        <div class="folder-inner">
+
+          <div class="dossier-photo-section">
+            <div class="dossier-photo-wrap">
+              <!-- Paperclip SVG -->
+              <svg class="paperclip" viewBox="0 0 30 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M15 4 C8 4 4 9 4 15 L4 44 C4 52 9 56 15 56 C21 56 26 52 26 44 L26 18 C26 12 22 8 17 8 C12 8 9 12 9 18 L9 42 C9 46 11 49 15 49 C19 49 21 46 21 42 L21 20" stroke="#8a7050" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+              </svg>
+              <img id="dossier-photo" class="dossier-photo" src="" alt="" />
+              <span class="photo-stamp" id="dossier-stamp">PERSON OF INTEREST</span>
+            </div>
+            <div class="dossier-header">
+              <span class="dossier-name" id="dossier-name"></span>
+              <span class="dossier-title" id="dossier-occupation"></span>
+              <div class="dossier-fields">
+                <div class="dossier-field">
+                  <span class="field-label">Gender</span>
+                  <span class="field-val" id="dossier-gender"></span>
+                </div>
+                <div class="dossier-field">
+                  <span class="field-label">Age</span>
+                  <span class="field-val" id="dossier-age"></span>
+                </div>
+                <div class="dossier-field">
+                  <span class="field-label">Status</span>
+                  <span class="field-val" id="dossier-status"></span>
+                </div>
+                <div class="dossier-field">
+                  <span class="field-label">First seen</span>
+                  <span class="field-val" id="dossier-seen"></span>
+                </div>
+              </div>
+              <span class="dossier-role-badge" id="dossier-role-badge"></span>
+            </div>
+          </div>
+
+          <div class="folder-rule"></div>
+
+          <span class="dossier-section-title">Background</span>
+          <p class="dossier-bio" id="dossier-bio"></p>
+
+          <span class="dossier-section-title">Connection to Case</span>
+          <p class="dossier-bio" id="dossier-connection"></p>
+
+          <span class="dossier-section-title">Known Associates</span>
+          <div class="associates-list" id="dossier-associates"></div>
+
+          <div class="folder-rule"></div>
+
+          <span class="dossier-section-title">Detective Notes</span>
+          <textarea class="dossier-notes" id="dossier-notes-field"
+            placeholder="Add your observations about this person..."
+            oninput="savePersonNote()"
+          ></textarea>
+          <span class="notes-saved" id="notes-saved-indicator">✓ Note saved</span>
+
+        </div>
+      </div>
+      <button id="dossier-close" onclick="closeDossier()">Close ✕</button>
+    </div>
+    <span class="overlay-hint">Tap outside to close</span>
+  </div>
+
+  <audio id="bg-music" loop preload="auto">
+    <source src="Assets/Audio/Background music/Echoes_in_the_Concrete_Maze.mp3" type="audio/mpeg" />
+  </audio>
+
+  <script>
+    /* ════════════════════════════════════════════════
+       CHARACTER DATA
+       To update a character: find their entry below
+       and edit name, bio, connection, role, etc.
+       Image filenames must match exactly what's in
+       Assets/JPG/Characters/ in your repo.
+    ════════════════════════════════════════════════ */
+    const CHARACTERS = [
+      {
+        id: 'city-councilman',
+        file: 'City-councilman.jpg',
+        name: 'Alderman Raymond Cross',
+        occupation: 'City Council Member — District 4',
+        gender: 'Male', age: '58', status: 'Active — Council in session',
+        seen: 'Mar 05 2026',
+        role: 'suspect',
+        stamp: 'SUSPECT',
+        bio: 'Raymond Cross has served on the city council for eighteen years, long enough to know where every skeleton is buried — and to have helped bury a few himself. Publicly a champion of urban renewal, privately he has accepted campaign contributions from several developers with ties to the Marre family.',
+        connection: 'Cross was one of only four people who had access to the victim\'s confidential testimony before it was due to be filed. His office has also been linked to the planning approval for the Kessler Warehouse District where a bloodstained cloth fragment was found.',
+        associates: ['Victor Marre', 'Elara Voss', 'Unknown Developer']
+      },
+      {
+        id: 'er-doctor',
+        file: 'ER-Doctor.jpg',
+        name: 'Dr. Marcus Hale',
+        occupation: 'Emergency Physician — City General Hospital',
+        gender: 'Male', age: '44', status: 'On shift rotation',
+        seen: 'Mar 06 2026',
+        role: 'witness',
+        stamp: 'WITNESS',
+        bio: 'Dr. Hale has worked in the city\'s ER for eleven years and has seen the results of its violence up close. He is known for meticulous record-keeping and a refusal to sign off on anything that doesn\'t add up medically. He treated a patient on the night of Mar 04 whose injuries he found inconsistent with the stated cause.',
+        connection: 'Hale filed an anomalous incident report on the night of the crime that was quietly archived by hospital administration. He has indicated he is willing to speak with investigators but has received threats advising him not to.',
+        associates: ['Hospital Administrator Venn', 'Unknown Patient (Mar 04)']
+      },
+      {
+        id: 'female-bar-worker',
+        file: 'Female-Bar-worker.jpg',
+        name: 'Cass Delray',
+        occupation: 'Bartender — The Blue Meridian',
+        gender: 'Female', age: '29', status: 'Working regular shifts',
+        seen: 'Mar 04 2026',
+        role: 'witness',
+        stamp: 'WITNESS',
+        bio: 'Cass has worked behind the bar at The Blue Meridian for three years and knows most of the regulars by drink order. She is observant, sharp, and deeply unimpressed by authority — which makes her valuable and difficult in equal measure.',
+        connection: 'The Blue Meridian backs onto Harlow Street Alley — the primary crime scene. Cass was working the closing shift on the night of Mar 04 and claims she heard an argument outside at approximately 21:40, roughly 20 minutes before the estimated time of the incident.',
+        associates: ['Victor Marre', 'Blue Meridian Owner (name unknown)']
+      },
+      {
+        id: 'female-corporate-executive',
+        file: 'Female-Corporate-executive .jpg',
+        name: 'Diana Whitmore',
+        occupation: 'Chief Operating Officer — Whitmore Capital Group',
+        gender: 'Female', age: '51', status: 'Uncooperative — legal counsel engaged',
+        seen: 'Mar 07 2026',
+        role: 'poi',
+        stamp: 'PERSON OF INTEREST',
+        bio: 'Diana Whitmore built Whitmore Capital from a regional investment firm into one of the city\'s most powerful financial entities. She is meticulous, politically connected, and has a documented history of making problems disappear through legal channels.',
+        connection: 'Financial records indicate Whitmore Capital transferred $80,000 to a shell company linked to the Marre Import Co. ledger three weeks before the incident. The nature of this transaction is not yet understood.',
+        associates: ['Victor Marre', 'Alderman Cross', 'Whitmore Legal Team']
+      },
+      {
+        id: 'female-data-analyst',
+        file: 'Female-Data-analyst.jpg',
+        name: 'Priya Nair',
+        occupation: 'Data Analyst — City Harbour Authority',
+        gender: 'Female', age: '31', status: 'Cooperative — under protective observation',
+        seen: 'Mar 06 2026',
+        role: 'informant',
+        stamp: 'INFORMANT',
+        bio: 'Priya is a mid-level analyst who stumbled across anomalies in the Harbour Authority\'s CCTV archival logs while running a routine audit. She quietly preserved the footage before it could be overwritten and reached out to a journalist contact, who passed her details to investigators.',
+        connection: 'Priya recovered the USB drive containing footage from Bay 7 covering the night of the incident. She has also identified at least three other gaps in the CCTV archive that appear to have been manually created between Mar 01 and Mar 05.',
+        associates: ['Harbour Authority Director (name unknown)', 'Media Contact']
+      },
+      {
+        id: 'female-elderly-woman-2',
+        file: 'Female-Elderly-woman-2.jpg',
+        name: 'Agnes Whittle',
+        occupation: 'Retired — Former City Archivist',
+        gender: 'Female', age: '74', status: 'Cooperative',
+        seen: 'Mar 08 2026',
+        role: 'witness',
+        stamp: 'WITNESS',
+        bio: 'Agnes spent thirty years managing the city\'s public records before retiring. She has a near-photographic memory for documents and an elderly woman\'s gift of being underestimated. She lives two streets from Harlow Street Alley.',
+        connection: 'Agnes saw a vehicle parked in the alley entrance at approximately 21:30 on Mar 04 — a dark saloon with no plates visible. She noted the make and sketched it from memory the following morning. Her sketch is now in evidence.',
+        associates: ['None identified']
+      },
+      {
+        id: 'female-elderly-woman',
+        file: 'Female-Elderly-woman.jpg',
+        name: 'Dorothy Osei',
+        occupation: 'Retired Nurse — City General Hospital',
+        gender: 'Female', age: '69', status: 'Cooperative',
+        seen: 'Mar 09 2026',
+        role: 'witness',
+        stamp: 'WITNESS',
+        bio: 'Dorothy worked alongside Dr. Hale at City General for several years before retiring. She maintains close friendships with current hospital staff and hears things through informal channels that formal interviews rarely surface.',
+        connection: 'Dorothy has indicated she overheard a conversation between two hospital administrators on the morning of Mar 05 regarding the suppression of Dr. Hale\'s incident report. She is willing to provide a formal statement.',
+        associates: ['Dr. Marcus Hale', 'Hospital Administrator Venn']
+      },
+      {
+        id: 'female-social-worker',
+        file: 'Female-Social-worker.jpg',
+        name: 'Tomoe Reyes',
+        occupation: 'Senior Social Worker — City Crisis Unit',
+        gender: 'Female', age: '38', status: 'Cooperative',
+        seen: 'Mar 07 2026',
+        role: 'poi',
+        stamp: 'PERSON OF INTEREST',
+        bio: 'Tomoe works with the city\'s most vulnerable residents and has documented dozens of cases where people were coerced, displaced, or threatened by forces connected to property development in the harbour district. She maintains her own unofficial case files.',
+        connection: 'Tomoe was the victim\'s social services contact and met with them three days before the incident. She has refused to disclose what was discussed, citing client confidentiality, but has indicated she has documentation that may be relevant.',
+        associates: ['Victim (COL-001-A)', 'Activist Group contacts']
+      },
+      {
+        id: 'female-socialite',
+        file: 'Female-Socialite.jpg',
+        name: 'Isabelle Crane',
+        occupation: 'Independent — Philanthropist / Social Figure',
+        gender: 'Female', age: '46', status: 'Evasive — travelling frequently',
+        seen: 'Mar 05 2026',
+        role: 'poi',
+        stamp: 'PERSON OF INTEREST',
+        bio: 'Isabelle Crane moves through the city\'s elite circles with practiced ease. She attends the right events, donates to the right causes, and is rarely photographed with anyone who hasn\'t already been approved by her legal team. Her source of income beyond inheritance is unclear.',
+        connection: 'Isabelle was photographed at an event attended by Victor Marre and Alderman Cross four days before the incident. She departed the country on Mar 05 — the day after the crime — for a trip she claims was planned months in advance.',
+        associates: ['Victor Marre', 'Alderman Cross', 'Diana Whitmore']
+      },
+      {
+        id: 'female-undercover-detective',
+        file: 'Female-Undercover-detective.jpg',
+        name: 'Det. Sylvia Okafor',
+        occupation: 'Undercover Detective — Internal Affairs Division',
+        gender: 'Female', age: '35', status: 'Identity unconfirmed — approach with caution',
+        seen: 'Mar 04 2026',
+        role: 'poi',
+        stamp: 'PERSON OF INTEREST',
+        bio: 'Identity and affiliation are unconfirmed. This individual was captured on CCTV entering the alley entrance at 21:22 on Mar 04 — six minutes before the estimated time of the incident — and was not seen leaving via the same route. No badge number has been matched to the description.',
+        connection: 'Presence at the scene at a critical time window makes this individual a high-priority contact. Whether she is law enforcement, a witness, or something else entirely is the central open question of this thread.',
+        associates: ['Unknown — under investigation']
+      },
+      {
+        id: 'graffiti-artist',
+        file: 'Graffiti-artist.jpg',
+        name: 'Reno (surname unknown)',
+        occupation: 'Graffiti Artist / Street presence — Harbour District',
+        gender: 'Male', age: 'Approx. 24', status: 'Located — intermittently cooperative',
+        seen: 'Mar 06 2026',
+        role: 'informant',
+        stamp: 'INFORMANT',
+        bio: 'Reno is a fixture of the harbour district\'s street scene and tags walls within a three-block radius of the crime scene. He has no fixed address and no criminal record, and he knows exactly who moves through the alleys at night and when.',
+        connection: 'Reno claims to have witnessed an exchange near the Harlow Street alley on the evening of Mar 04 involving two individuals he can describe but not name. He has provided one partial description and is being cultivated as an ongoing source.',
+        associates: ['Street-level contacts (names withheld)']
+      },
+      {
+        id: 'it-specialist',
+        file: 'IT-specialist.jpg',
+        name: 'Felix Drummond',
+        occupation: 'IT Infrastructure Specialist — City Communications Authority',
+        gender: 'Male', age: '33', status: 'Cooperative — nervous',
+        seen: 'Mar 07 2026',
+        role: 'witness',
+        stamp: 'WITNESS',
+        bio: 'Felix manages cell tower infrastructure for the northern and harbour districts. He is the person who pulled the cell tower ping data placing a device two blocks from the crime scene at 21:44 on Mar 04. He did so at the request of a colleague he now cannot locate.',
+        connection: 'Felix can verify the legitimacy of the cell data in evidence. He has also flagged that someone accessed the tower\'s historical log remotely on Mar 05 — the day after the incident — and deleted three hours of records.',
+        associates: ['Unknown colleague (missing)', 'Priya Nair']
+      },
+      {
+        id: 'maintenance-worker-2',
+        file: 'Maintenance-worker-2.jpg',
+        name: 'Deko Brannigan',
+        occupation: 'Night Maintenance — Kessler Warehouse District',
+        gender: 'Male', age: '41', status: 'Cooperative',
+        seen: 'Mar 07 2026',
+        role: 'witness',
+        stamp: 'WITNESS',
+        bio: 'Deko has worked the night shift in the warehouse district for six years. He is quiet, reliable, and keeps to himself. He found the bloodstained cloth fragment snagged on the chain-link fence during his morning walk-through on Mar 06 and immediately called it in.',
+        connection: 'First person to report the cloth fragment — now logged as evidence COL-001-A-E04. Deko also reported seeing a vehicle consistent with Agnes Whittle\'s sketch in the area on the night of Mar 04, parked briefly before departing.',
+        associates: ['Agnes Whittle (independently)']
+      },
+      {
+        id: 'maintenance-worker',
+        file: 'Maintenance-worker.jpg',
+        name: 'Hector Suárez',
+        occupation: 'Building Maintenance — 14B Creston Apartments',
+        gender: 'Male', age: '55', status: 'Cooperative',
+        seen: 'Mar 05 2026',
+        role: 'witness',
+        stamp: 'WITNESS',
+        bio: 'Hector has managed maintenance for the Creston Apartments building for nine years. He knows every tenant, every regular visitor, and every face that doesn\'t belong. He is a meticulous note-taker who logs every entry and exit in a personal journal.',
+        connection: 'Hector\'s log shows that an individual matching Elara Voss\'s description visited the victim\'s apartment on three separate occasions in the two weeks before the incident — always between 6 and 8 PM, always for less than thirty minutes.',
+        associates: ['Elara Voss', 'Victim (COL-001-A)']
+      },
+      {
+        id: 'office-worker',
+        file: 'Office-worker.jpg',
+        name: 'Patrick Lorne',
+        occupation: 'Administrative Assistant — Marre Import Co.',
+        gender: 'Male', age: '27', status: 'Evasive — not yet interviewed',
+        seen: 'Mar 08 2026',
+        role: 'poi',
+        stamp: 'PERSON OF INTEREST',
+        bio: 'Patrick has worked as an administrator at Marre Import Co. for two years. Multiple colleagues have mentioned him in passing interviews as someone who "knew things" and "kept records." He has not responded to requests for interview and appears to have called in sick for work since Mar 05.',
+        connection: 'His proximity to the ledger discovered in Victor Marre\'s office makes him a person of significant interest. If he handled documents, he may know what the coded entries refer to.',
+        associates: ['Victor Marre', 'Marre Import Co. staff']
+      },
+      {
+        id: 'offixe-worker-2',
+        file: 'Offixe-worker-2.jpg',
+        name: 'Gerald Tench',
+        occupation: 'Accounts Manager — Whitmore Capital Group',
+        gender: 'Male', age: '49', status: 'Cleared — alibi verified',
+        seen: 'Mar 09 2026',
+        role: 'witness',
+        stamp: 'WITNESS',
+        bio: 'Gerald initially appeared on a list of individuals with access to financial records linking Whitmore Capital to the Marre ledger. Following a full alibi verification — confirmed by hotel records placing him in another city on the night of Mar 04 — he was removed from the persons of interest list.',
+        connection: 'Cleared of direct involvement. However Gerald has provided voluntary testimony indicating that internal financial irregularities at Whitmore Capital predate his own employment — suggesting the shell company arrangement is long-standing.',
+        associates: ['Diana Whitmore', 'Patrick Lorne']
+      },
+      {
+        id: 'security-guard',
+        file: 'Security-guard.jpg',
+        name: 'Bowen Ashford',
+        occupation: 'Night Security — City Harbour Authority, Bay 7',
+        gender: 'Male', age: '38', status: 'Suspended — pending internal review',
+        seen: 'Mar 06 2026',
+        role: 'suspect',
+        stamp: 'SUSPECT',
+        bio: 'Bowen was the security officer on duty at Bay 7 on the night of Mar 04. He submitted an incident log stating nothing notable occurred during his shift — a claim directly contradicted by the CCTV footage recovered by Priya Nair, which shows two individuals in his designated patrol zone at 21:48.',
+        connection: 'Bowen has no explanation for the discrepancy in his incident log. His bank records show a deposit of $4,000 in cash three days before the incident. He is currently suspended and has engaged legal counsel.',
+        associates: ['Harbour Authority Director', 'Unknown (cash source)']
+      },
+      {
+        id: 'street-level-informant-2',
+        file: 'Street-level-informant-2.jpg',
+        name: '"Two-Stop" (real name unknown)',
+        occupation: 'Street-level contact — Harbour District underworld',
+        gender: 'Male', age: 'Approx. 40', status: 'Active — identity protected',
+        seen: 'Mar 06 2026',
+        role: 'informant',
+        stamp: 'INFORMANT',
+        bio: 'Known only by his street name, Two-Stop operates as a low-level runner and information broker in the harbour district. He has provided reliable intelligence to law enforcement on two previous occasions, both times under identity protection.',
+        connection: 'Two-Stop claims knowledge of who commissioned the delivery that Reno witnessed on Mar 04. He will not provide the name without assurances of protection and — depending on the player\'s Street Credibility — without additional incentive.',
+        associates: ['Reno', 'Unknown syndicate contact']
+      },
+      {
+        id: 'street-level-informant',
+        file: 'Street-level-informant.jpg',
+        name: '"Patch" (real name unknown)',
+        occupation: 'Street presence — Harbour District',
+        gender: 'Male', age: 'Approx. 32', status: 'Intermittently available',
+        seen: 'Mar 05 2026',
+        role: 'informant',
+        stamp: 'INFORMANT',
+        bio: 'Patch is a well-known figure in the district\'s informal economy. He is not affiliated with any syndicate — a fact that makes him both less dangerous and less protected than most who operate at street level. He trades information for favours rather than cash.',
+        connection: 'Patch was in the vicinity of Harlow Street on the night of Mar 04 and has alluded to knowing something about the vehicle seen by Agnes Whittle and Deko Brannigan. He has so far declined to be specific, citing personal safety concerns.',
+        associates: ['Reno', 'Two-Stop', 'Agnes Whittle (unknowingly)']
+      }
+    ];
+
+    /* ════════════════════════════════════════════════
+       ROLE CONFIG
+    ════════════════════════════════════════════════ */
+    const ROLE_CONFIG = {
+      suspect:   { label: 'Suspect',            cls: 'role-suspect' },
+      witness:   { label: 'Witness',            cls: 'role-witness' },
+      poi:       { label: 'Person of Interest', cls: 'role-poi' },
+      informant: { label: 'Informant',          cls: 'role-informant' },
+
+    };
+
+    /* ════════════════════════════════════════════════
+       BUILD GRID
+    ════════════════════════════════════════════════ */
+    const grid = document.getElementById('portrait-grid');
+
+    CHARACTERS.forEach((char, i) => {
+      const rc = ROLE_CONFIG[char.role];
+      const card = document.createElement('div');
+      card.className = 'portrait-card';
+      card.dataset.role = char.role;
+      card.onclick = () => openDossier(char);
+      card.innerHTML = `
+        <div class="portrait-polaroid">
+          <span class="portrait-role ${rc.cls}">${rc.label}</span>
+          <img class="portrait-photo"
+            src="Assets/JPG/Characters/${char.file}"
+            alt="${char.name}"
+            onerror="this.style.background='#2a1a08';this.style.opacity='.4'"
+          />
+          <span class="portrait-name">${char.name.split(' ').slice(-1)[0]}</span>
+        </div>
+      `;
+      grid.appendChild(card);
+    });
+
+    /* ════════════════════════════════════════════════
+       FILTER
+    ════════════════════════════════════════════════ */
+    function filterBy(role, btn) {
+      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+
+      let count = 0;
+      document.querySelectorAll('.portrait-card').forEach(card => {
+        const match = role === 'all' || card.dataset.role === role;
+        card.classList.toggle('hidden', !match);
+        if (match) count++;
+      });
+      document.getElementById('showing-count').textContent = count;
+    }
+
+    /* ════════════════════════════════════════════════
+       DOSSIER MODAL
+    ════════════════════════════════════════════════ */
+    let currentCharId = null;
+    let noteTimer = null;
+
+    function openDossier(char) {
+      currentCharId = char.id;
+      const rc = ROLE_CONFIG[char.role];
+
+      document.getElementById('dossier-photo').src = `Assets/JPG/Characters/${char.file}`;
+      document.getElementById('dossier-photo').alt = char.name;
+      document.getElementById('dossier-stamp').textContent = char.stamp;
+      document.getElementById('dossier-name').textContent = char.name;
+      document.getElementById('dossier-occupation').textContent = char.occupation;
+      document.getElementById('dossier-gender').textContent = char.gender;
+      document.getElementById('dossier-age').textContent = char.age;
+      document.getElementById('dossier-status').textContent = char.status;
+      document.getElementById('dossier-seen').textContent = char.seen;
+      document.getElementById('dossier-bio').textContent = char.bio;
+      document.getElementById('dossier-connection').textContent = char.connection;
+
+      // Role badge
+      const badge = document.getElementById('dossier-role-badge');
+      badge.textContent = rc.label;
+      badge.className = `dossier-role-badge ${rc.cls}`;
+
+      // Associates
+      const assocEl = document.getElementById('dossier-associates');
+      assocEl.innerHTML = '';
+      char.associates.forEach(a => {
+        const tag = document.createElement('span');
+        tag.className = 'associate-tag';
+        tag.textContent = a;
+        assocEl.appendChild(tag);
+      });
+
+      // Load saved note
+      const savedNote = localStorage.getItem(`col_note_${char.id}`) || '';
+      document.getElementById('dossier-notes-field').value = savedNote;
+      document.getElementById('notes-saved-indicator').classList.remove('show');
+
+      // Open
+      document.getElementById('dossier-overlay').classList.add('open');
+      document.getElementById('dossier').scrollTop = 0;
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeDossier() {
+      document.getElementById('dossier-overlay').classList.remove('open');
+      document.body.style.overflow = '';
+      currentCharId = null;
+    }
+
+    function handleOverlayClick(e) {
+      if (e.target === document.getElementById('dossier-overlay')) closeDossier();
+    }
+
+    function savePersonNote() {
+      if (!currentCharId) return;
+      clearTimeout(noteTimer);
+      noteTimer = setTimeout(() => {
+        const val = document.getElementById('dossier-notes-field').value;
+        localStorage.setItem(`col_note_${currentCharId}`, val);
+        const ind = document.getElementById('notes-saved-indicator');
+        ind.classList.add('show');
+        setTimeout(() => ind.classList.remove('show'), 2000);
+      }, 700);
+    }
+
+    // Close on Escape key
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') closeDossier(); });
+
+    /* ════════════════════════════════════════════════
+       MUSIC RESUME
+    ════════════════════════════════════════════════ */
+    const music = document.getElementById('bg-music');
+    let musicEnabled = true;
+
+    (function resumeMusic() {
+      try {
+        const saved = JSON.parse(sessionStorage.getItem('col_music') || '{}');
+        musicEnabled = saved.enabled !== false;
+        if (!musicEnabled) return;
+        if (saved.time)   music.currentTime = saved.time;
+        music.volume = saved.volume ?? 0.42;
+        music.play().catch(() => {
+          const unlock = () => {
+            music.play().catch(() => {});
+            document.removeEventListener('click',      unlock);
+            document.removeEventListener('touchstart', unlock);
+          };
+          document.addEventListener('click',      unlock, { passive: true });
+          document.addEventListener('touchstart', unlock, { passive: true });
+        });
+      } catch(e) {}
+    })();
+
+    function saveMusicState() {
+      sessionStorage.setItem('col_music', JSON.stringify({
+        enabled: musicEnabled,
+        time:    music.currentTime,
+        volume:  music.volume,
+        src:     'Assets/Audio/Background music/Echoes_in_the_Concrete_Maze.mp3'
+      }));
+    }
+
+    /* ════════════════════════════════════════════════
+       NAVIGATION
+    ════════════════════════════════════════════════ */
+    function goBack() {
+      saveMusicState();
+      window.location.href = 'board.html';
+    }
+
+    /* ════════════════════════════════════════════════
+       VERSION TAG
+    ════════════════════════════════════════════════ */
+    async function updateCommitHash() {
+      try {
+        const res  = await fetch('https://api.github.com/repos/jellybean1979/CityOfLies/commits?per_page=1');
+        if (!res.ok) throw new Error();
+        const data = await res.json();
+        const sha  = data[0]?.sha?.substring(0, 7) ?? '-------';
+        document.getElementById('versionTag').textContent = `v0.1.0 · ${sha}`;
+      } catch {
+        document.getElementById('versionTag').textContent = 'v0.1.0 · local';
+      }
+    }
+    updateCommitHash();
+  </script>
+</body>
+</html>
+
