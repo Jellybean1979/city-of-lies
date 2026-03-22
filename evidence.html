@@ -131,7 +131,7 @@
     }
 
     .page-title {
-      font-family: 'Special Elite', cursive;
+      font-family: 'Courier Prime', monospace;
       font-size: clamp(22px, 4.5vw, 42px);
       color: var(--paper);
       letter-spacing: 0.04em;
@@ -160,7 +160,7 @@
       margin-bottom: 2px;
     }
     .case-id {
-      font-family: 'Special Elite', cursive;
+      font-family: 'Courier Prime', monospace;
       font-size: clamp(14px, 2.2vw, 22px);
       color: var(--amber);
       letter-spacing: 0.1em;
@@ -322,7 +322,7 @@
     }
 
     .ev-item-name {
-      font-family: 'Special Elite', cursive;
+      font-family: 'Courier Prime', monospace;
       font-size: clamp(11px, 1.4vw, 14px);
       color: var(--paper);
       display: block;
@@ -453,7 +453,7 @@
       margin-bottom: 4px;
     }
     .detail-name {
-      font-family: 'Special Elite', cursive;
+      font-family: 'Courier Prime', monospace;
       font-size: clamp(16px, 2.5vw, 24px);
       color: var(--paper);
       display: block;
@@ -487,6 +487,33 @@
       font-size: clamp(10px, 1.3vw, 13px);
       color: var(--paper-dim);
       line-height: 1.7;
+    }
+
+    /* Blocked state */
+    .detail-blocked {
+      margin-top: clamp(10px, 1.5vh, 16px);
+      padding: clamp(14px, 2vw, 20px);
+      border: 1px solid rgba(168,131,46, .12);
+      background: rgba(14,12,9,.4);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      gap: 8px;
+    }
+    .detail-blocked-icon  { font-size: clamp(24px, 3.5vw, 32px); opacity: .5; }
+    .detail-blocked-title {
+      font-family: 'Courier Prime', monospace;
+      font-size: clamp(10px, 1.3vw, 12px);
+      letter-spacing: .2em;
+      text-transform: uppercase;
+      color: var(--paper-dim);
+    }
+    .detail-blocked-text {
+      font-size: clamp(9px, 1.1vw, 11px);
+      color: rgba(138,125,96,.45);
+      line-height: 1.7;
+      max-width: 380px;
     }
 
     /* ════════════════════════════
@@ -636,9 +663,25 @@
         <span class="detail-field-val" id="dp-status"></span>
       </div>
     </div>
-    <div class="detail-why">
+
+    <!-- Shown only when status is Logged -->
+    <div class="detail-why" id="dp-why-section">
       <span class="detail-field-label">Why It Is In Evidence</span>
       <span class="detail-why-text" id="dp-why"></span>
+    </div>
+
+    <!-- Shown when status is In Analysis -->
+    <div class="detail-blocked" id="dp-blocked-analysis" style="display:none;">
+      <span class="detail-blocked-icon">🔬</span>
+      <span class="detail-blocked-title">Currently In Analysis</span>
+      <span class="detail-blocked-text">This item has been submitted to the Forensics Lab. Full case details will be available once analysis is complete and the item is returned to the Evidence Locker.</span>
+    </div>
+
+    <!-- Shown when status is Pending -->
+    <div class="detail-blocked" id="dp-blocked-pending" style="display:none;">
+      <span class="detail-blocked-icon">⏳</span>
+      <span class="detail-blocked-title">Awaiting Processing</span>
+      <span class="detail-blocked-text">This item is logged but has not yet been processed. Submit it to the Forensics Lab to begin analysis, or wait for it to be assigned to a case file.</span>
     </div>
   </div>
 
@@ -782,7 +825,6 @@
           <div class="cell ev-id">${item.id}</div>
           <div class="cell">
             <span class="ev-item-name">${item.name}</span>
-            <span class="ev-item-why">${item.why}</span>
           </div>
           <div class="cell ev-location hide-mobile">${item.location.split('—')[0].trim()}</div>
           <div class="cell ev-date hide-mobile">${item.date.split('·')[0].trim()}</div>
@@ -827,11 +869,31 @@
 
       document.getElementById('dp-id').textContent       = item.id;
       document.getElementById('dp-name').textContent     = item.name;
-      document.getElementById('dp-location').textContent = item.location;
-      document.getElementById('dp-date').textContent     = item.date;
-      document.getElementById('dp-owner').textContent    = item.owner;
       document.getElementById('dp-status').textContent   = statusLabel(item.status);
-      document.getElementById('dp-why').textContent      = item.why;
+
+      // Gate location/date/owner details — only show for logged items
+      const isLocked = item.status === 'analysis' || item.status === 'pending';
+      document.getElementById('dp-location').textContent = isLocked ? '— Restricted —' : item.location;
+      document.getElementById('dp-date').textContent     = isLocked ? '— Restricted —' : item.date;
+      document.getElementById('dp-owner').textContent    = isLocked ? '— Restricted —' : item.owner;
+
+      // Show/hide the correct bottom section
+      const whySection      = document.getElementById('dp-why-section');
+      const blockedAnalysis = document.getElementById('dp-blocked-analysis');
+      const blockedPending  = document.getElementById('dp-blocked-pending');
+
+      whySection.style.display      = 'none';
+      blockedAnalysis.style.display = 'none';
+      blockedPending.style.display  = 'none';
+
+      if (item.status === 'logged') {
+        document.getElementById('dp-why').textContent = item.why;
+        whySection.style.display = 'block';
+      } else if (item.status === 'analysis') {
+        blockedAnalysis.style.display = 'flex';
+      } else if (item.status === 'pending') {
+        blockedPending.style.display = 'flex';
+      }
 
       document.getElementById('detail-panel').classList.add('open');
     }
