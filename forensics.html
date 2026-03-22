@@ -844,11 +844,24 @@
     ];
 
     // Apply localStorage status overrides and extra evidence items
+    // Only show evidence items that have been released (wave system)
     (function applyOverrides() {
       try {
-        const saved      = JSON.parse(localStorage.getItem('col_evidence_status') || '{}');
-        const extraItems = JSON.parse(localStorage.getItem('col_evidence_extra')  || '[]');
-        EVIDENCE.forEach(e => { if (saved[e.id]) e.status = saved[e.id]; });
+        const savedStatus = JSON.parse(localStorage.getItem('col_evidence_status') || '{}');
+        const extraItems  = JSON.parse(localStorage.getItem('col_evidence_extra')  || '[]');
+        const waveState   = JSON.parse(localStorage.getItem('col_evidence_waves')  || '{}');
+
+        // Only include items whose wave has been released
+        EVIDENCE.forEach((e, i) => {
+          const waveKey = 'released_' + e.id;
+          // Remove items not yet released (no waveState entry and no savedStatus)
+          if (!waveState[waveKey] && !savedStatus[e.id]) {
+            EVIDENCE.splice(i, 1);
+          } else if (savedStatus[e.id]) {
+            e.status = savedStatus[e.id];
+          }
+        });
+
         extraItems.forEach(extra => {
           if (!EVIDENCE.find(e => e.id === extra.id)) EVIDENCE.push(extra);
         });
