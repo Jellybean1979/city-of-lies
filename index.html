@@ -98,6 +98,15 @@
       letter-spacing: 0.1em;
     }
 
+    /* Transparent overlay — intercepts taps to prevent browser pausing the video */
+    #video-tap-overlay {
+      position: absolute;
+      inset: 0;
+      z-index: 6;
+      background: transparent;
+      cursor: pointer;
+    }
+
     /* Letterbox bars over video */
     .letterbox {
       position: absolute;
@@ -556,6 +565,9 @@
       preload="auto"
     ></video>
 
+    <!-- Transparent overlay intercepts taps so the browser doesn't pause the video -->
+    <div id="video-tap-overlay"></div>
+
     <!-- Shown while no video src is set -->
     <div id="video-fallback">
       <div class="fb-icon">🎬</div>
@@ -671,10 +683,16 @@
       if (musicUnlocked) return;
       musicUnlocked = true;
 
+      // Remove the tap interceptor — no longer needed
+      const overlay = document.getElementById('video-tap-overlay');
+      if (overlay) overlay.remove();
+
       // Unmute the intro video now that we have a user gesture
       if (hasSrc && !introComplete) {
         introVideo.muted = false;
         introVideo.volume = 1.0;
+        // Resume in case the browser paused it before the gesture
+        introVideo.play().catch(() => {});
       }
 
       // Only start bg music if the main UI is already showing
