@@ -966,9 +966,22 @@
           <div class="evidence-empty"><span class="evidence-empty-icon">📊</span><span class="evidence-empty-text">No spectrograms generated yet — visit the Audio Lab</span></div>
         </div>
         <div class="panel" id="panel-transcripts">
-          <div class="panel-head"><div><span class="panel-title">Interrogation Transcripts</span><span class="panel-sub">Session records · Case COL-001-A</span></div><span class="wip-badge">Available after interrogations</span></div>
+          <div class="panel-head"><div><span class="panel-title">Interrogation Transcripts</span><span class="panel-sub">Session records · Case COL-001-A</span></div><span class="wip-badge">2 sessions on file</span></div>
           <div class="panel-rule"></div>
-          <div class="evidence-empty"><span class="evidence-empty-icon">📄</span><span class="evidence-empty-text">No transcripts available yet</span></div>
+          <div class="card-grid">
+            <div class="card" onclick="goTo('transcript.html?t=witness-cass')">
+              <span class="card-count">Witness</span>
+              <span class="card-icon">📄</span>
+              <span class="card-title">Cass Delray</span>
+              <span class="card-desc">Bartender at The Blue Meridian. Present on the night of Mar 04. Heard voices in the alley.</span>
+            </div>
+            <div class="card" onclick="goTo('transcript.html?t=suspect-bowen')">
+              <span class="card-count">Suspect</span>
+              <span class="card-icon">📄</span>
+              <span class="card-title">Bowen Ashford</span>
+              <span class="card-desc">Night security, Bay 7. Incident log contradicts CCTV footage. $4,000 cash deposit unexplained.</span>
+            </div>
+          </div>
         </div>
         <div class="panel active" id="panel-portraits">
           <div class="panel-head"><div><span class="panel-title">Character Portraits</span><span class="panel-sub">Person identification · Case COL-001-A</span></div><span class="wip-badge">19 characters on file</span></div>
