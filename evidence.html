@@ -674,7 +674,7 @@
     <div class="detail-blocked" id="dp-blocked-analysis" style="display:none;">
       <span class="detail-blocked-icon">🔬</span>
       <span class="detail-blocked-title">Currently In Analysis</span>
-      <span class="detail-blocked-text">This item has been submitted to the Forensics Lab. Full case details will be available once analysis is complete and the item is returned to the Evidence Locker.</span>
+      <span class="detail-blocked-text" id="dp-blocked-analysis-text">This item has been submitted to the Forensics Lab. Full case details will be available once analysis is complete and the item is returned to the Evidence Locker.</span>
     </div>
 
     <!-- Shown when status is Pending (results processing, about to become Logged) -->
@@ -915,6 +915,19 @@
         document.getElementById('dp-why').textContent = item.why;
         whySection.style.display = 'block';
       } else if (item.status === 'analysis') {
+        // Show which lab it's in
+        const timer   = labTimers[item.id];
+        const labKey  = timer?.lab;
+        const labNames = {
+          dna:'Forensic DNA Lab', tox:'Toxicology Lab', trace:'Trace Evidence Lab',
+          ballistics:'Ballistics Lab', digital:'Digital & Multimedia Lab',
+          chemistry:'Forensic Chemistry Lab', latent:'Latent Print Lab',
+          document:'Document Analysis Lab', anthro:'Forensic Anthropology Lab',
+          bio:'Biocontainment Lab', metal:'Metallurgy Lab', intake:'Evidence Intake'
+        };
+        const labName = labNames[labKey] || 'Forensics Lab';
+        document.getElementById('dp-blocked-analysis-text').textContent =
+          `This item is currently being processed by the ${labName}. Full details will be available once analysis is complete and the item is returned to the Evidence Locker.`;
         blockedAnalysis.style.display = 'flex';
       } else if (item.status === 'pending') {
         blockedPending.style.display = 'flex';
@@ -952,55 +965,214 @@
     const PENDING_MS       = 1  * 60 * 1000;
     const WAVE_PENDING_MS  = 1  * 60 * 1000;  // intake pending before logged
 
-    /* New evidence that can be unlocked by lab analysis (60% chance on return).
-       Each entry: triggered when a specific item is analysed.
-       Add more entries as the story develops.                               */
+    /* ════════════════════════════════════════
+       LAB NEW EVIDENCE MATRIX
+       Structure: LAB_NEW_EVIDENCE[itemId][labKey]
+       Each entry has a 60% chance of unlocking
+       when that specific item is returned from
+       that specific lab.
+
+       Items with no entry for a given lab return
+       nothing new — the lab found nothing useful.
+
+       New item IDs: E09–E26 reserved for lab results.
+    ════════════════════════════════════════ */
     const LAB_NEW_EVIDENCE = {
+
+      /* ── E01: Monogrammed Cigarette Case ── */
       [`${CURRENT_CASE}-E01`]: {
-        id:       `${CURRENT_CASE}-E09`,
-        name:     'Partial Fingerprint — Cigarette Case Lid',
-        location: 'Recovered during lab analysis of E01',
-        date:     'Lab result — Mar 2026',
-        owner:    'Unknown — AFIS search in progress',
-        why:      'A latent partial print was lifted from the inner lid of the cigarette case during forensic processing. The ridge detail is sufficient for comparison. AFIS returned no immediate match but the print is now on file.',
-        status:   'logged'
+        latent: {
+          id:    `${CURRENT_CASE}-E09`,
+          name:  'Partial Fingerprint — Cigarette Case Lid',
+          location: 'Recovered during Latent Print analysis of E01',
+          date:  'Lab result — Mar 2026',
+          owner: 'Unknown — AFIS search in progress',
+          why:   'A latent partial print was lifted from the inner lid of the cigarette case. The ridge detail is sufficient for AFIS comparison. No immediate match was returned but the print is on file and active in the database.',
+          status:'logged'
+        },
+        dna: {
+          id:    `${CURRENT_CASE}-E10`,
+          name:  'Saliva Trace — Cigarette Case Inner Rim',
+          location: 'Recovered during DNA analysis of E01',
+          date:  'Lab result — Mar 2026',
+          owner: 'Unknown — CODIS search pending',
+          why:   'Trace saliva was recovered from the inner rim of the cigarette case hinge — consistent with someone moistening the clasp to open it. A partial DNA profile has been submitted to CODIS. Results pending.',
+          status:'logged'
+        },
+        trace: {
+          id:    `${CURRENT_CASE}-E11`,
+          name:  'Tobacco Blend Identification — Cigarette Case',
+          location: 'Recovered during Trace Evidence analysis of E01',
+          date:  'Lab result — Mar 2026',
+          owner: 'Supplier: Possibly Marre Import Co.',
+          why:   'Residual tobacco dust inside the case was identified as a rare Balkan blend unavailable in domestic retailers. The blend is imported through a small number of licensed distributors — one of which is listed in the Marre Import Co. ledger.',
+          status:'logged'
+        },
       },
+
+      /* ── E02: Unsigned Threatening Letter ── */
       [`${CURRENT_CASE}-E02`]: {
-        id:       `${CURRENT_CASE}-E10`,
-        name:     'Typewriter Font Sample — Threatening Letter',
-        location: 'Recovered during lab analysis of E02',
-        date:     'Lab result — Mar 2026',
-        owner:    'Unknown',
-        why:      'Document analysis identified the typeface as consistent with a Hermes 3000 portable typewriter, manufactured between 1958 and 1967. The specific wear pattern on the letter "e" may allow individual machine identification.',
-        status:   'logged'
+        document: {
+          id:    `${CURRENT_CASE}-E12`,
+          name:  'Typewriter Font Analysis — Threatening Letter',
+          location: 'Recovered during Document Analysis of E02',
+          date:  'Lab result — Mar 2026',
+          owner: 'Unknown — machine not yet identified',
+          why:   'The letter was typed on a Hermes 3000 portable typewriter, manufactured 1958–1967. A distinctive wear pattern on the lowercase "e" key is machine-specific and could allow individual identification if the typewriter is recovered.',
+          status:'logged'
+        },
+        dna: {
+          id:    `${CURRENT_CASE}-E13`,
+          name:  'Saliva Trace — Threatening Letter Envelope',
+          location: 'Recovered during DNA analysis of E02',
+          date:  'Lab result — Mar 2026',
+          owner: 'Unknown — CODIS search pending',
+          why:   'The envelope seal was licked rather than self-adhesive. A partial DNA profile was recovered from the gummed strip. The profile does not match the victim. CODIS search is active — no hit yet.',
+          status:'logged'
+        },
+        latent: {
+          id:    `${CURRENT_CASE}-E14`,
+          name:  'Smudged Partial Print — Letter Corner',
+          location: 'Recovered during Latent Print analysis of E02',
+          date:  'Lab result — Mar 2026',
+          owner: 'Unknown',
+          why:   'A smudged partial fingerprint was recovered from the lower right corner of the letter, suggesting it was handled without gloves at some point. Ridge detail is degraded but the loop pattern is distinct enough for comparison against known suspects.',
+          status:'logged'
+        },
       },
+
+      /* ── E03: Burner Mobile Phone ── */
       [`${CURRENT_CASE}-E03`]: {
-        id:       `${CURRENT_CASE}-E11`,
-        name:     'Recovered Photo Fragment — Burner Phone',
-        location: 'Recovered during digital analysis of E03',
-        date:     'Lab result — Mar 2026',
-        owner:    'Unknown',
-        why:      'A partially overwritten image file was recovered from the phone\'s internal memory. The fragment shows what appears to be the exterior of a building. Metadata places it at 21:12 on Mar 04 — approximately 30 minutes before the incident.',
-        status:   'logged'
+        digital: {
+          id:    `${CURRENT_CASE}-E15`,
+          name:  'Recovered Photo Fragment — Burner Phone',
+          location: 'Recovered during Digital Lab analysis of E03',
+          date:  'Lab result — Mar 2026',
+          owner: 'Unknown',
+          why:   'A partially overwritten image file was recovered from the phone\'s internal memory. The fragment shows the exterior of a building consistent with the Harlow Street area. Embedded metadata places the photo at 21:12 on Mar 04 — approximately 30 minutes before the incident.',
+          status:'logged'
+        },
+        metal: {
+          id:    `${CURRENT_CASE}-E16`,
+          name:  'IMEI Batch Trace — Burner Phone',
+          location: 'Recovered during Metallurgy analysis of E03',
+          date:  'Lab result — Mar 2026',
+          owner: 'Retailer: Canal Street Electronics (now closed)',
+          why:   'The phone\'s IMEI number was traced to a manufacturing batch sold exclusively through a single canal district retailer that closed 18 months ago. Records obtained from the liquidator list cash purchases in the weeks prior to closure — no names recorded.',
+          status:'logged'
+        },
       },
+
+      /* ── E04: Bloodstained Cloth Fragment ── */
       [`${CURRENT_CASE}-E04`]: {
-        id:       `${CURRENT_CASE}-E12`,
-        name:     'Fibre Sample — Bloodstained Cloth',
-        location: 'Recovered during trace analysis of E04',
-        date:     'Lab result — Mar 2026',
-        owner:    'Unknown',
-        why:      'Trace fibres embedded in the cloth fragment were identified as consistent with the interior lining of a high-end vehicle — specifically a dark grey or black saloon. Cross-reference with Agnes Whittle\'s vehicle sketch is recommended.',
-        status:   'logged'
+        dna: {
+          id:    `${CURRENT_CASE}-E17`,
+          name:  'Secondary Blood Profile — Cloth Fragment',
+          location: 'Recovered during DNA analysis of E04',
+          date:  'Lab result — Mar 2026',
+          owner: 'Unknown — not the victim',
+          why:   'In addition to the victim\'s blood type, a second distinct DNA profile was recovered from the cloth. This profile does not match the victim and has been submitted to CODIS. Its presence suggests physical contact between the cloth and a second individual at the scene.',
+          status:'logged'
+        },
+        trace: {
+          id:    `${CURRENT_CASE}-E18`,
+          name:  'Vehicle Fibre Sample — Bloodstained Cloth',
+          location: 'Recovered during Trace Evidence analysis of E04',
+          date:  'Lab result — Mar 2026',
+          owner: 'Unknown — vehicle not identified',
+          why:   'Trace fibres embedded in the cloth were identified as consistent with the premium interior lining of a high-end European saloon. Colour is dark grey or charcoal. Cross-reference with Agnes Whittle\'s vehicle sketch and Deko Brannigan\'s sighting is recommended.',
+          status:'logged'
+        },
       },
+
+      /* ── E05: Ledger — Handwritten Accounts ── */
+      [`${CURRENT_CASE}-E05`]: {
+        document: {
+          id:    `${CURRENT_CASE}-E19`,
+          name:  'Ink Dating Report — Ledger',
+          location: 'Recovered during Document Analysis of E05',
+          date:  'Lab result — Mar 2026',
+          owner: 'Victor Marre',
+          why:   'Ink composition analysis confirms the ledger entries were made progressively over approximately six months — not backdated or entered in a single session. The chemical degradation pattern is consistent with genuine contemporaneous record-keeping, which strengthens its evidentiary value.',
+          status:'logged'
+        },
+        latent: {
+          id:    `${CURRENT_CASE}-E20`,
+          name:  'Multi-Author Fingerprint Set — Ledger',
+          location: 'Recovered during Latent Print analysis of E05',
+          date:  'Lab result — Mar 2026',
+          owner: 'Multiple — at least 3 individuals',
+          why:   'Fingerprint analysis of the ledger pages identified at least three distinct sets of prints. One set matches Victor Marre on file. The other two are unidentified. This confirms that more than one person handled the ledger — the book did not belong to Marre alone.',
+          status:'logged'
+        },
+      },
+
+      /* ── E06: Security Footage USB Drive ── */
       [`${CURRENT_CASE}-E06`]: {
-        id:       `${CURRENT_CASE}-E13`,
-        name:     'Enhanced CCTV Still — Bay 7 Figure',
-        location: 'Recovered during digital analysis of E06',
-        date:     'Lab result — Mar 2026',
-        owner:    'Unknown',
-        why:      'Digital enhancement of the Bay 7 footage produced a single usable still of the unidentified figure at 21:48. Resolution is sufficient for facial comparison. The image has been forwarded to the portrait identification queue.',
-        status:   'logged'
+        digital: {
+          id:    `${CURRENT_CASE}-E21`,
+          name:  'Enhanced CCTV Still — Bay 7 Figure',
+          location: 'Recovered during Digital Lab analysis of E06',
+          date:  'Lab result — Mar 2026',
+          owner: 'Unknown — facial comparison pending',
+          why:   'Frame-by-frame digital enhancement produced a usable still of the unidentified figure in the Bay 7 patrol zone at 21:48. Resolution is sufficient for facial comparison against suspect profiles. The image has been forwarded to the portrait identification queue.',
+          status:'logged'
+        },
+        metal: {
+          id:    `${CURRENT_CASE}-E22`,
+          name:  'USB Manufacture Trace — Bay 7 Drive',
+          location: 'Recovered during Metallurgy analysis of E06',
+          date:  'Lab result — Mar 2026',
+          owner: 'City Harbour Authority (confirmed)',
+          why:   'Metallurgical analysis of the USB drive\'s casing confirmed it belongs to a batch of 50 drives procured by the City Harbour Authority in 2024. The batch number is logged in the Authority\'s asset register, confirming chain of custody back to the original procurement.',
+          status:'logged'
+        },
       },
+
+      /* ── E07: Prescription Medicine Bottle ── */
+      [`${CURRENT_CASE}-E07`]: {
+        dna: {
+          id:    `${CURRENT_CASE}-E23`,
+          name:  'DNA Profile — Medicine Bottle Rim',
+          location: 'Recovered during DNA analysis of E07',
+          date:  'Lab result — Mar 2026',
+          owner: 'Elara Voss — confirmed',
+          why:   'A full DNA profile was recovered from the bottle rim and matched against the prescription registrant — Elara Voss. The profile confirms that Voss personally handled the bottle. Her access to the victim\'s apartment is now biologically corroborated.',
+          status:'logged'
+        },
+        tox: {
+          id:    `${CURRENT_CASE}-E24`,
+          name:  'Residue Analysis — Medicine Bottle Contents',
+          location: 'Recovered during Toxicology analysis of E07',
+          date:  'Lab result — Mar 2026',
+          owner: 'Elara Voss (prescribee)',
+          why:   'Residue analysis of the bottle interior identified the prescribed compound plus an unexpected trace of a second substance — a sedative not present on the label. The quantity is sub-therapeutic but its presence in the bottle is unexplained and warrants further investigation.',
+          status:'logged'
+        },
+      },
+
+      /* ── E08: Partial Boot Print Cast ── */
+      [`${CURRENT_CASE}-E08`]: {
+        trace: {
+          id:    `${CURRENT_CASE}-E25`,
+          name:  'Soil Composition Match — Boot Print Cast',
+          location: 'Recovered during Trace Evidence analysis of E08',
+          date:  'Lab result — Mar 2026',
+          owner: 'Unknown',
+          why:   'Soil embedded in the boot print tread contains a specific mineral composition found only in the reclaimed land adjacent to the Kessler Warehouse District — not the muddy lot where the cast was taken. The wearer walked through the warehouse area before arriving at the alley.',
+          status:'logged'
+        },
+        anthro: {
+          id:    `${CURRENT_CASE}-E26`,
+          name:  'Gait Analysis Report — Boot Print',
+          location: 'Recovered during Forensic Anthropology analysis of E08',
+          date:  'Lab result — Mar 2026',
+          owner: 'Unknown — physical profile estimated',
+          why:   'Stride length and weight distribution analysis of the boot print places the wearer at approximately 6\'1"–6\'3" and 190–210 lbs. The gait pattern shows a slight left-side pronation consistent with an old lower-leg injury. This profile can be used to eliminate suspects who do not match.',
+          status:'logged'
+        },
+      },
+
     };
 
     /* ── State ── */
@@ -1145,11 +1317,12 @@
           item.status = 'pending';
           changed = true;
         } else if (item.status === 'pending' && now >= t.pendingEnd) {
-          // Move to logged — run new evidence check
+          // Move to logged — run new evidence check with the specific lab key
           item.status = 'logged';
+          const labKey = t.lab;
           delete labTimers[itemId];
           changed = true;
-          tryUnlockNewEvidence(itemId);
+          tryUnlockNewEvidence(itemId, labKey);
         }
       });
 
@@ -1162,20 +1335,23 @@
     }
 
     /* ── 60% chance to unlock new evidence on lab return ── */
-    function tryUnlockNewEvidence(itemId) {
-      if (Math.random() > 0.6) return;                      // 40% — nothing new
-      const template = LAB_NEW_EVIDENCE[itemId];
-      if (!template) return;                                 // no template for this item
-      if (EVIDENCE.find(e => e.id === template.id)) return; // already exists
+    function tryUnlockNewEvidence(itemId, labKey) {
+      if (Math.random() > 0.6) return;                          // 40% — nothing new
+
+      const itemEntries = LAB_NEW_EVIDENCE[itemId];
+      if (!itemEntries) return;                                  // no results defined for this item
+
+      const template = itemEntries[labKey];
+      if (!template) return;                                     // this lab has no result for this item
+
+      if (EVIDENCE.find(e => e.id === template.id)) return;     // already unlocked
 
       const newItem = { ...template };
       EVIDENCE.push(newItem);
 
-      // Persist extra items
       extraItems.push(newItem);
       localStorage.setItem('col_evidence_extra', JSON.stringify(extraItems));
 
-      // Flash a notification
       showNewEvidenceToast(newItem.name);
     }
 
