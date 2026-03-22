@@ -243,7 +243,7 @@
     ════════════════════════════ */
     #table-head {
       display: grid;
-      grid-template-columns: 90px 1fr 120px 100px 110px 130px;
+      grid-template-columns: 90px 1fr 120px 100px 110px 130px 110px;
       gap: 0 clamp(8px, 1.2vw, 16px);
       padding: 6px clamp(10px, 1.5vw, 16px);
       background: rgba(26,28,40,0.6);
@@ -281,7 +281,7 @@
     /* ── Evidence row ── */
     .ev-row {
       display: grid;
-      grid-template-columns: 90px 1fr 120px 100px 110px 130px;
+      grid-template-columns: 90px 1fr 120px 100px 110px 130px 110px;
       gap: 0 clamp(8px, 1.2vw, 16px);
       padding: clamp(10px, 1.5vh, 16px) clamp(10px, 1.5vw, 16px);
       border-bottom: 1px solid rgba(168,131,46,0.08);
@@ -370,8 +370,28 @@
     }
     .ev-status.logged   { color: var(--green-lit); border-color: var(--green-lit); }
     .ev-status.analysis { color: var(--amber);     border-color: var(--amber); }
-    .ev-status.critical { color: var(--red-lit);   border-color: var(--red-lit); }
     .ev-status.pending  { color: var(--paper-dim); border-color: rgba(138,125,96,0.3); }
+
+    /* ── Send to Lab button ── */
+    .lab-btn {
+      font-family: 'Courier Prime', monospace;
+      font-size: clamp(6px, 0.75vw, 8px);
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--paper-dim);
+      background: none;
+      border: 1px solid rgba(168,131,46,0.2);
+      padding: 3px 8px;
+      cursor: pointer;
+      transition: color 0.2s, border-color 0.2s;
+      white-space: nowrap;
+      align-self: flex-start;
+    }
+    .lab-btn:hover { color: var(--amber); border-color: rgba(168,131,46,0.5); }
+    .lab-btn:disabled {
+      opacity: 0.3; cursor: default;
+      border-color: rgba(168,131,46,0.1);
+    }
 
     /* ── Empty state ── */
     #empty-state {
@@ -560,10 +580,7 @@
     <!-- ── TOOLBAR ── -->
     <div id="toolbar">
       <div class="toolbar-stat">Items: <span id="count-total">0</span></div>
-      <div class="toolbar-stat">Critical: <span id="count-critical">0</span></div>
-      <div class="toolbar-sep"></div>
       <button class="filter-btn active" onclick="filterItems('all', this)">All</button>
-      <button class="filter-btn" onclick="filterItems('critical', this)">Critical</button>
       <button class="filter-btn" onclick="filterItems('analysis', this)">In Analysis</button>
       <button class="filter-btn" onclick="filterItems('logged', this)">Logged</button>
       <button class="filter-btn" onclick="filterItems('pending', this)">Pending</button>
@@ -577,6 +594,7 @@
       <div class="th">Date Found</div>
       <div class="th">Belongs To</div>
       <div class="th">Status</div>
+      <div class="th">Lab</div>
     </div>
 
     <!-- ── EVIDENCE LIST ── -->
@@ -643,7 +661,7 @@
     /* ════════════════════════════════════════
        EVIDENCE DATA
        Each item: id, name, location, date,
-       owner, why, status (logged|analysis|critical|pending)
+       owner, why, status (logged|analysis|pending)
        
        Placeholder items — replace/extend as
        the game's story develops.
@@ -665,7 +683,7 @@
         date:     'Mar 05 2026 · 09:30',
         owner:    'Unknown',
         why:      'Letter warns the victim to "stop digging or face the same fate as the others." Written on a typewriter — font analysis in progress. No prints recovered. May indicate premeditation.',
-        status:   'critical'
+        status:   'analysis'
       },
       {
         id:       `${CURRENT_CASE}-E03`,
@@ -683,7 +701,7 @@
         date:     'Mar 06 2026 · 07:10',
         owner:    'Unknown',
         why:      'Fabric snagged on fence consistent with a struggle. Blood type matches victim. Textile analysis may identify garment origin. No DNA results yet.',
-        status:   'critical'
+        status:   'analysis'
       },
       {
         id:       `${CURRENT_CASE}-E05`,
@@ -753,8 +771,13 @@
         const row = document.createElement('div');
         row.className = 'ev-row' + (selectedIndex === i ? ' selected' : '');
         row.setAttribute('data-index', i);
-        row.onclick = () => openDetail(item, row);
+        row.setAttribute('data-id', item.id);
+        row.onclick = (e) => {
+          if (e.target.classList.contains('lab-btn')) return;
+          openDetail(item, row);
+        };
 
+        const inAnalysis = item.status === 'analysis';
         row.innerHTML = `
           <div class="cell ev-id">${item.id}</div>
           <div class="cell">
@@ -769,17 +792,22 @@
           <div class="cell">
             <span class="ev-status ${item.status}">${statusLabel(item.status)}</span>
           </div>
+          <div class="cell hide-mobile">
+            <button class="lab-btn" onclick="sendToLab('${item.id}')"
+              ${inAnalysis ? 'disabled' : ''}>
+              ${inAnalysis ? '✓ In Lab' : '→ Send to Lab'}
+            </button>
+          </div>
         `;
         list.appendChild(row);
       });
 
       // Update counts
       document.getElementById('count-total').textContent    = EVIDENCE.length;
-      document.getElementById('count-critical').textContent = EVIDENCE.filter(e => e.status === 'critical').length;
     }
 
     function statusLabel(s) {
-      return { logged: 'Logged', analysis: 'In Analysis', critical: 'Critical', pending: 'Pending' }[s] || s;
+      return { logged: 'Logged', analysis: 'In Analysis', pending: 'Pending' }[s] || s;
     }
 
     function filterItems(filter, btn) {
@@ -819,9 +847,37 @@
       if (!e.target.closest('.ev-row')) closeDetail();
     });
 
-    /* ════════════════════════════════════════
-       INITIAL RENDER
-    ════════════════════════════════════════ */
+    /* ── Send to Lab ── */
+    function sendToLab(itemId) {
+      const item = EVIDENCE.find(e => e.id === itemId);
+      if (!item || item.status === 'analysis') return;
+
+      item.status = 'analysis';
+
+      // Persist to localStorage
+      const saved = JSON.parse(localStorage.getItem('col_evidence_status') || '{}');
+      saved[itemId] = 'analysis';
+      localStorage.setItem('col_evidence_status', JSON.stringify(saved));
+
+      // Re-render the current filter view
+      renderList(activeFilter);
+
+      // Show brief confirmation in detail panel if open
+      const dp = document.getElementById('dp-status');
+      if (dp && document.getElementById('detail-panel').classList.contains('open')) {
+        dp.textContent = 'In Analysis';
+      }
+    }
+
+    /* ── Load persisted status overrides on startup ── */
+    (function loadStatusOverrides() {
+      try {
+        const saved = JSON.parse(localStorage.getItem('col_evidence_status') || '{}');
+        EVIDENCE.forEach(item => {
+          if (saved[item.id]) item.status = saved[item.id];
+        });
+      } catch(e) {}
+    })();
     renderList('all');
 
     /* ════════════════════════════════════════
