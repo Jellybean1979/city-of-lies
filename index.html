@@ -663,25 +663,32 @@
     const fallback    = document.getElementById('video-fallback');
     const skipBtn     = document.getElementById('skip-btn');
 
+    /* ── Video src check — declared early so unlockAudio can reference it ── */
+    const hasSrc = introVideo.getAttribute('src') && introVideo.getAttribute('src').trim() !== '';
+
     /* ── Unlock audio on first user gesture anywhere ── */
     function unlockAudio() {
       if (musicUnlocked) return;
       musicUnlocked = true;
-      // Only actually play if the main UI is already showing
+
+      // Unmute the intro video now that we have a user gesture
+      if (hasSrc && !introComplete) {
+        introVideo.muted = false;
+        introVideo.volume = 1.0;
+      }
+
+      // Only start bg music if the main UI is already showing
       if (introComplete && musicEnabled) {
         music.volume = 0;
         music.play().then(() => fadeInAudio(music, 0.42, 80)).catch(() => {});
       }
-      document.removeEventListener('click',     unlockAudio);
-      document.removeEventListener('keydown',   unlockAudio);
+      document.removeEventListener('click',      unlockAudio);
+      document.removeEventListener('keydown',    unlockAudio);
       document.removeEventListener('touchstart', unlockAudio);
     }
     document.addEventListener('click',      unlockAudio, { passive: true });
     document.addEventListener('keydown',    unlockAudio, { passive: true });
     document.addEventListener('touchstart', unlockAudio, { passive: true });
-
-    /* ── Video setup ── */
-    const hasSrc = introVideo.getAttribute('src') && introVideo.getAttribute('src').trim() !== '';
 
     /* ── If returning from game, skip intro and resume music directly ── */
     const returning = sessionStorage.getItem('col_music') !== null;
