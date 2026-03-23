@@ -1634,18 +1634,11 @@
 
             <div class="cctv-card" onclick="openCCTV(3)">
               <div class="cctv-screen">
-                <div class="cctv-gap-screen">
-                  <video class="cctv-preview" src="Assets/Video/Urban_Alley_CCTV_Surveillance_Footage.mp4"
-                    muted loop playsinline preload="metadata"
-                    style="opacity:.3;filter:contrast(0.4)"></video>
-                  <div class="cctv-gap-label">
-                    <span class="cctv-gap-icon">⚠</span>
-                    <span class="cctv-gap-text">3-MIN GAP<br/>DETECTED</span>
-                  </div>
-                </div>
+                <video class="cctv-preview" src="Assets/Video/Security_Camera_Footage_Generation.mp4"
+                  muted loop playsinline preload="metadata"></video>
                 <div class="cctv-overlay">
                   <span class="cctv-overlay-cam">CAM 3 — BAY 7 HARBOUR</span>
-                  <span class="cctv-overlay-ts">21:45:00 → 21:48:00</span>
+                  <span class="cctv-overlay-ts">21:48:22</span>
                 </div>
                 <div class="cctv-play-hint">▶ View Footage</div>
                 <div class="cctv-scanlines"></div>
@@ -1653,8 +1646,8 @@
               <div class="cctv-meta">
                 <span class="cctv-ref">COL-001-A · CCTV-004</span>
                 <span class="cctv-title">City Harbour — Bay 7 Patrol Zone</span>
-                <span class="cctv-detail">Mar 04 2026 · 18:00–22:00 · Harbour exterior</span>
-                <span class="cctv-flag flag-critical">⚑ Recording Gap — 3 mins deleted</span>
+                <span class="cctv-detail">Mar 04 2026 · 21:45–21:54 · Harbour exterior</span>
+                <span class="cctv-flag flag-critical">⚑ Figure does not match Ashford</span>
               </div>
             </div>
 
@@ -2474,7 +2467,7 @@
           { label:'IMEI',             val:'354842106714390' },
         ],
         hex: '43 45 4C 4C 3A 20 43 4F 4C 2D 30 34 35 31 00 00  CELL: COL-0451..\n54 53 3A 20 32 31 32 38 33 31 00 53 54 41 54 3A  TS: 212831.STAT:\n53 54 41 54 49 4F 4E 41 52 59 00 44 55 52 3A 20  STATIONARY.DUR: ',
-        note:'Device remained stationary in the Bay 7 area for over 23 minutes — consistent with a planned meeting at that location. The return handoff to the Harlow Street tower at 21:51 places the device back at the primary scene just before the estimated incident window.',
+        note:'Device remained stationary in the Bay 7 area for over 23 minutes — consistent with a planned meeting at that location. The return handoff to the Harlow Street tower at 21:51 places the device back at the primary scene just before the estimated incident window. CCTV footage from Bay 7 identifies the figure in the patrol zone at 21:48 as consistent with Det. Sylvia Okafor (Internal Affairs) — not Ashford.',
       },
       {
         id: 'META-004', category:'exif', source:'E15 — Recovered Photo Fragment',
@@ -2514,7 +2507,7 @@
           { label:'Verified By',      val:'DML-COL-001-A-001 (Digital Lab report)' },
         ],
         hex: '4D 50 34 20 48 45 41 44 45 52 00 00 01 78 66 74  MP4 HEADER...xft\n79 70 6D 70 34 32 00 00 00 00 6D 70 34 32 69 73  yp mp42....mp42is\n6F 6D 00 00 00 00 47 41 50 3A 20 31 38 30 73 00  om....GAP: 180s.',
-        note:'A 3-minute gap in the Bay 7 recording is unexplained. No power failure, system error, or maintenance event is logged during this window. The gap immediately precedes the earliest confirmed footage of the unidentified subject. Manual interference with the recording system cannot be ruled out.',
+        note:'A 3-minute gap in the Bay 7 recording is unexplained. No power failure, system error, or maintenance event is logged during this window. The gap immediately precedes footage showing a figure consistent with Det. Sylvia Okafor (Internal Affairs) in the patrol zone — not Ashford. The deletion appears designed to conceal how and when she arrived at Bay 7.',
       },
       {
         id: 'META-006', category:'financial', source:'E05 — Ledger',
@@ -2956,8 +2949,8 @@
 
       'COL-001-A-E21': { lab:'Digital & Multimedia Laboratory', division:'Video Analysis & Enhancement Unit', analyst:'Analyst T. Vasquez', exhibit:'COL-001-A-E06 — Security Footage USB Drive (Bay 7)', reportId:'DML-COL-001-A-002', name:'Enhanced CCTV Still — Bay 7 Figure',
         methodology:'Raw footage was extracted from the USB drive and ingested into Amped FIVE. The target sequence (21:45–21:52) was subjected to frame-by-frame enhancement using spatial noise reduction, deblurring (Wiener filter), and super-resolution upscaling (4x factor). The optimal frame was processed using AI-assisted facial region enhancement.',
-        findings:['Target sequence successfully enhanced — significant improvement in subject visibility achieved.','Subject identified in frame at timestamp 21:48:22 — position consistent with Bay 7 patrol zone.','Enhanced still produced at sufficient resolution for facial comparison.','Subject is wearing a dark jacket and appearing to hold a small object — consistent with an envelope or document.','A second partial figure is visible at the extreme right edge of frame 21:48:37 — further enhancement requested.'],
-        conclusion:'The enhanced still provides a usable facial image of the subject present at Bay 7 at 21:48 on the night of the incident. The image has been forwarded to the Portrait Identification Queue for facial comparison.',
+        findings:['Target sequence successfully enhanced — significant improvement in subject visibility achieved.','Subject identified in frame at timestamp 21:48:22 — position consistent with Bay 7 patrol zone.','Subject presents as female — long dark hair worn in a ponytail. Dark jacket, dark trousers.','Subject\'s physical profile is inconsistent with Bowen Ashford (male, stocky build, shaved head, beard). This individual is not Ashford.','Subject appears to be holding a small object at waist height — consistent with a document or envelope.','A second partial figure is visible at the extreme right edge of frame 21:48:37 — further enhancement ongoing.'],
+        conclusion:'The figure present in Bay 7 at 21:48 is not Bowen Ashford. Following comparison against persons of interest on file, the subject\'s profile — female, long dark hair in a ponytail, approximately 5\'6"–5\'8" — is consistent with Det. Sylvia Okafor, Internal Affairs Division. A formal identification request has been submitted. Ashford\'s credentials were used to delete the 3 minutes preceding this footage, suggesting he facilitated access rather than being present himself. The nature of Det. Okafor\'s presence at Bay 7 on the night of the incident requires urgent clarification.',
         analystTitle:'Digital Forensics Analyst — Video Enhancement', reviewedBy:'Dr. K. Ellison, Unit Supervisor' },
 
       'COL-001-A-E22': { lab:'Metallurgy Laboratory', division:'Material Provenance & Manufacturing Analysis Unit', analyst:'Examiner R. Tran', exhibit:'COL-001-A-E06 — Security Footage USB Drive (Bay 7)', reportId:'MET-COL-001-A-002', name:'USB Manufacture Trace — Bay 7 Drive',
@@ -3159,13 +3152,13 @@
         note:   'Covers approach to victim\'s apartment. Cross-reference with building RFID access log META-009 (unregistered fob, 20:58).',
       },
       {
-        src:    'Assets/Video/Urban_Alley_CCTV_Surveillance_Footage.mp4',
+        src:    'Assets/Video/Security_Camera_Footage_Generation.mp4',
         cam:    'CAM 3 — BAY 7 HARBOUR PATROL ZONE',
         ref:    'COL-001-A · CCTV-004',
         loc:    'City Harbour Authority — Bay 7 Exterior',
-        date:   'Mar 04 2026 · 18:00–22:00',
-        status: '⚑ RECORDING GAP — 21:45:00 to 21:48:00',
-        note:   'Three-minute segment deleted via remote admin login. Credentials: B. Ashford. See META-012 and DML-COL-001-A-001 for full analysis.',
+        date:   'Mar 04 2026 · 21:45–21:54',
+        status: '⚑ Subject does not match Ashford — identity unconfirmed',
+        note:   'Figure visible at 21:48:22 — female, long dark hair in ponytail, dark jacket. Physical profile is consistent with Det. Sylvia Okafor, Internal Affairs Division. Ashford\'s credentials were used to delete the 3 minutes prior to this footage, suggesting he facilitated her access rather than being present himself. Why was an Internal Affairs detective at Bay 7 that night? Refer to DML-COL-001-A-002.',
       },
     ];
 
