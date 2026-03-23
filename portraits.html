@@ -551,6 +551,36 @@
     }
     .classify-saved.show { opacity:1; }
 
+    /* ── Fixed role indicator ── */
+    .classify-locked {
+      margin-top: clamp(14px,2.5vh,20px);
+      padding: clamp(10px,1.8vw,14px);
+      background: rgba(80,50,0,.06);
+      border: 1px solid rgba(80,50,0,.15);
+      border-left: 3px solid rgba(168,131,46,.4);
+      display: none;
+    }
+    .classify-locked.show { display: block; }
+    .classify-locked-title {
+      font-size: clamp(7px,.85vw,9px); letter-spacing:.3em;
+      text-transform: uppercase; color: var(--amber); opacity:.8;
+      display: block; margin-bottom: 5px;
+    }
+    .classify-locked-text {
+      font-size: clamp(9px,1.1vw,11px); color: rgba(42,20,0,.6); line-height:1.65;
+    }
+    .classify-locked-role {
+      display: inline-flex; align-items: center; gap: 5px;
+      font-size: clamp(7px,.85vw,9px); letter-spacing:.2em;
+      text-transform: uppercase; margin-top: 7px;
+      padding: 3px 10px; border: 1px solid rgba(80,50,0,.2);
+      color: rgba(42,20,0,.5);
+    }
+    /* Disable buttons when locked */
+    .classify-btns.is-locked .classify-btn {
+      opacity: .25; cursor: not-allowed; pointer-events: none;
+    }
+
     /* ── RESPONSIVE ── */
     @media (max-width:480px) {
       .dossier-photo-section { flex-direction:column; align-items:center; }
@@ -664,8 +694,8 @@
           <span class="notes-saved" id="notes-saved-indicator">✓ Note saved</span>
 
           <div class="classify-section">
-            <span class="classify-label">Player Classification — How do you classify this person?</span>
-            <div class="classify-btns">
+            <span class="classify-label" id="classify-label-text">Player Classification — How do you classify this person?</span>
+            <div class="classify-btns" id="classify-btns-wrap">
               <button class="classify-btn" data-role="suspect"   onclick="classifyChar('suspect')"  >🔴 Suspect</button>
               <button class="classify-btn" data-role="witness"   onclick="classifyChar('witness')"  >🔵 Witness</button>
               <button class="classify-btn" data-role="poi"       onclick="classifyChar('poi')"      >🟡 Person of Interest</button>
@@ -676,6 +706,11 @@
               <span class="interaction-box-text" id="interaction-box-text"></span>
             </div>
             <span class="classify-saved" id="classify-saved-indicator">✓ Classification saved</span>
+            <div class="classify-locked" id="classify-locked">
+              <span class="classify-locked-title">Classification Determined by Investigation</span>
+              <span class="classify-locked-text" id="classify-locked-text"></span>
+              <span class="classify-locked-role" id="classify-locked-role"></span>
+            </div>
           </div>
 
         </div>
@@ -969,15 +1004,37 @@
     };
 
     /* ════════════════════════════════════════════════
-       BUILD GRID
+       FIXED ROLES
+       Characters whose classification is determined
+       by the investigation, not the player.
+       Value: { role, reason }
     ════════════════════════════════════════════════ */
+    const FIXED_ROLES = {
+      // Informants — their function in the case is unambiguous
+      'female-data-analyst':       { role:'informant', reason:'Priya Nair is an active intelligence source who voluntarily supplies data analysis to the investigation. Her role as an informant is established by the nature of her assistance, not by player discretion.' },
+      'street-level-informant-2':  { role:'informant', reason:'Two-Stop operates as a registered street-level contact under identity protection. His informant status was established prior to this investigation and is a matter of departmental record.' },
+      'street-level-informant':    { role:'informant', reason:'Patch has provided intelligence on two prior occasions under formal protection arrangements. His informant relationship with the department predates Case COL-001-A.' },
+      'graffiti-artist':           { role:'informant', reason:'Reno has been formally designated as a civilian contact under the Harbour District community liaison programme. His informant status is protected and cannot be altered without senior authorisation.' },
+      // Witnesses — their connection to the case is purely observational
+      'er-doctor':                 { role:'witness',   reason:'Dr. Marcus Hale\'s involvement is limited to professional contact with a person connected to this case. There is no evidence of any further connection. He is a witness by the nature of his observations alone.' },
+      'female-elderly-woman-2':    { role:'witness',   reason:'Agnes Whittle reported a vehicle sighting on the night of the incident. Her status as a witness is confirmed — she has no established connection to any party in this case.' },
+      'female-elderly-woman':      { role:'witness',   reason:'Dorothy Osei provided a voluntary statement regarding activity near Harlow Street. She is a witness. Reclassification would not be supported by the available evidence.' },
+      'it-specialist':             { role:'witness',   reason:'Felix Drummond noticed and reported a technical anomaly relevant to this case. His involvement is entirely incidental — he is a witness to a specific event and nothing more.' },
+      'female-bar-worker':         { role:'witness',   reason:'Cass Delray was on duty at The Blue Meridian on the night of the incident. Her testimony is already on record as a witness statement. No evidence connects her to any other role in this case.' },
+    };
     const grid = document.getElementById('portrait-grid');
 
     CHARACTERS.forEach((char, i) => {
       const rc = ROLE_CONFIG[char.role];
       const card = document.createElement('div');
       card.className = 'portrait-card';
-      const savedRole = localStorage.getItem(`col_classify_${char.id}`) || char.role;
+
+      // Fixed roles always override player classification on the grid
+      const fixedEntry  = FIXED_ROLES[char.id];
+      const savedRole   = fixedEntry
+        ? fixedEntry.role
+        : (localStorage.getItem(`col_classify_${char.id}`) || char.role);
+
       card.dataset.role = savedRole;
       card.dataset.id   = char.id;
       card.onclick = () => openDossier(char);
@@ -1036,9 +1093,15 @@
     function openDossier(char) {
       currentCharId = char.id;
 
-      // Load player's saved classification — fall back to data default
-      const savedRole = localStorage.getItem(`col_classify_${char.id}`) || char.role;
-      const rc = ROLE_CONFIG[savedRole];
+      // Check if this character has a fixed role
+      const fixedEntry = FIXED_ROLES[char.id];
+      const isFixed    = !!fixedEntry;
+
+      // Use fixed role if applicable, otherwise player's saved classification
+      const activeRole = isFixed
+        ? fixedEntry.role
+        : (localStorage.getItem(`col_classify_${char.id}`) || char.role);
+      const rc = ROLE_CONFIG[activeRole];
 
       document.getElementById('dossier-photo').src = `Assets/JPG/Characters/${char.file}`;
       document.getElementById('dossier-photo').alt = char.name;
@@ -1052,7 +1115,7 @@
       document.getElementById('dossier-bio').textContent = char.bio;
       document.getElementById('dossier-connection').textContent = char.connection;
 
-      // Role badge — reflects player classification
+      // Role badge
       const badge = document.getElementById('dossier-role-badge');
       badge.textContent = rc.label;
       badge.className = `dossier-role-badge ${rc.cls}`;
@@ -1072,17 +1135,47 @@
       document.getElementById('dossier-notes-field').value = savedNote;
       document.getElementById('notes-saved-indicator').classList.remove('show');
 
-      // Set classification buttons — highlight active
-      document.querySelectorAll('.classify-btn').forEach(btn => {
-        btn.classList.remove('selected','sel-suspect','sel-witness','sel-poi','sel-informant');
-        if (btn.dataset.role === savedRole) {
-          btn.classList.add('selected', `sel-${savedRole}`);
-        }
-      });
+      // Classification buttons
+      const btnsWrap    = document.getElementById('classify-btns-wrap');
+      const labelEl     = document.getElementById('classify-label-text');
+      const lockedEl    = document.getElementById('classify-locked');
+      const lockedText  = document.getElementById('classify-locked-text');
+      const lockedRole  = document.getElementById('classify-locked-role');
+      const interactBox = document.getElementById('interaction-box');
 
-      // Show interaction consequence for current classification
-      showInteraction(savedRole);
-      document.getElementById('classify-saved-indicator').classList.remove('show');
+      if (isFixed) {
+        // Lock the buttons and show the locked indicator
+        btnsWrap.classList.add('is-locked');
+        labelEl.textContent = 'Classification — Determined by Investigation';
+        lockedEl.classList.add('show');
+        lockedText.textContent = fixedEntry.reason;
+        lockedRole.textContent = `${rc.icon || ''} ${rc.label}`.trim();
+        interactBox.classList.remove('show');
+        document.getElementById('classify-saved-indicator').classList.remove('show');
+
+        // Still highlight the correct button for visual reference
+        document.querySelectorAll('.classify-btn').forEach(btn => {
+          btn.classList.remove('selected','sel-suspect','sel-witness','sel-poi','sel-informant');
+          if (btn.dataset.role === activeRole) {
+            btn.classList.add('selected', `sel-${activeRole}`);
+          }
+        });
+      } else {
+        // Unlocked — normal classification behaviour
+        btnsWrap.classList.remove('is-locked');
+        labelEl.textContent = 'Player Classification — How do you classify this person?';
+        lockedEl.classList.remove('show');
+
+        document.querySelectorAll('.classify-btn').forEach(btn => {
+          btn.classList.remove('selected','sel-suspect','sel-witness','sel-poi','sel-informant');
+          if (btn.dataset.role === activeRole) {
+            btn.classList.add('selected', `sel-${activeRole}`);
+          }
+        });
+
+        showInteraction(activeRole);
+        document.getElementById('classify-saved-indicator').classList.remove('show');
+      }
 
       // Open
       document.getElementById('dossier-overlay').classList.add('open');
@@ -1092,6 +1185,9 @@
 
     function classifyChar(role) {
       if (!currentCharId) return;
+
+      // Block classification for fixed-role characters
+      if (FIXED_ROLES[currentCharId]) return;
 
       // Save player's classification
       localStorage.setItem(`col_classify_${currentCharId}`, role);
