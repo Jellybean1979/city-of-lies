@@ -472,6 +472,236 @@
     }
 
     /* ════════════════════════════
+       CCTV PANEL
+    ════════════════════════════ */
+    .cctv-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(clamp(200px,28vw,280px),1fr));
+      gap: clamp(10px,1.5vw,16px);
+    }
+
+    .cctv-card {
+      cursor: pointer;
+      transition: transform .2s;
+    }
+    .cctv-card:hover { transform: translateY(-3px); }
+    .cctv-card:hover .cctv-play-hint { opacity: 1; }
+    .cctv-card:hover .cctv-screen { border-color: rgba(168,131,46,.5); }
+
+    .cctv-screen {
+      position: relative;
+      aspect-ratio: 4/3;
+      background: #000;
+      border: 1px solid var(--border);
+      overflow: hidden;
+      transition: border-color .2s;
+    }
+
+    .cctv-preview {
+      width: 100%; height: 100%;
+      object-fit: cover;
+      display: block;
+      filter: grayscale(1) contrast(1.1) brightness(0.85);
+    }
+
+    /* Scanline overlay */
+    .cctv-scanlines {
+      position: absolute; inset: 0; pointer-events: none;
+      background: repeating-linear-gradient(
+        to bottom,
+        transparent 0, transparent 3px,
+        rgba(0,0,0,.18) 3px, rgba(0,0,0,.18) 4px
+      );
+    }
+
+    /* Top overlay bar — cam ID and timestamp */
+    .cctv-overlay {
+      position: absolute; top: 0; left: 0; right: 0;
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 4px 7px;
+      background: rgba(0,0,0,.65);
+      pointer-events: none;
+    }
+    .cctv-overlay-cam {
+      font-family: 'Courier Prime', monospace;
+      font-size: clamp(6px,.72vw,8px); letter-spacing: .18em;
+      color: rgba(45,220,160,.8); text-transform: uppercase;
+    }
+    .cctv-overlay-ts {
+      font-family: 'Courier Prime', monospace;
+      font-size: clamp(6px,.72vw,8px); letter-spacing: .15em;
+      color: rgba(45,220,160,.7);
+    }
+
+    /* Play hint on hover */
+    .cctv-play-hint {
+      position: absolute; inset: 0;
+      display: flex; align-items: center; justify-content: center;
+      background: rgba(0,0,0,.45);
+      font-family: 'Courier Prime', monospace;
+      font-size: clamp(9px,1.2vw,12px); letter-spacing: .3em;
+      text-transform: uppercase; color: var(--amber);
+      opacity: 0; transition: opacity .2s;
+      pointer-events: none;
+    }
+
+    /* Gap screen variant */
+    .cctv-gap-screen {
+      position: relative; width: 100%; height: 100%;
+    }
+    .cctv-gap-label {
+      position: absolute; inset: 0;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      gap: 4px; background: rgba(0,0,0,.6);
+    }
+    .cctv-gap-icon {
+      font-size: clamp(18px,2.5vw,26px); color: var(--blood);
+      animation: gapPulse 1.5s ease infinite;
+    }
+    @keyframes gapPulse { 0%,100%{opacity:1} 50%{opacity:.3} }
+    .cctv-gap-text {
+      font-family: 'Courier Prime', monospace;
+      font-size: clamp(8px,1vw,11px); letter-spacing: .2em;
+      text-transform: uppercase; color: var(--blood);
+      text-align: center; line-height: 1.4;
+    }
+
+    /* Meta strip below each card */
+    .cctv-meta {
+      background: rgba(14,11,8,.9);
+      border: 1px solid var(--border);
+      border-top: none;
+      padding: clamp(7px,1.2vw,10px) clamp(8px,1.2vw,12px);
+      display: flex; flex-direction: column; gap: 3px;
+    }
+    .cctv-ref {
+      font-size: clamp(6px,.72vw,8px); letter-spacing: .25em;
+      text-transform: uppercase; color: var(--amber); opacity: .7;
+    }
+    .cctv-title {
+      font-size: clamp(10px,1.3vw,13px); color: var(--paper);
+      line-height: 1.2;
+    }
+    .cctv-detail {
+      font-size: clamp(7px,.85vw,9px); letter-spacing: .1em;
+      color: var(--paper-dim);
+    }
+    .cctv-flag {
+      font-size: clamp(6px,.75vw,8px); letter-spacing: .2em;
+      text-transform: uppercase; margin-top: 3px;
+      display: inline-block; padding: 2px 7px; border: 1px solid;
+    }
+    .cctv-flag.flag-critical { color: var(--blood);    border-color: rgba(139,26,26,.5); }
+    .cctv-flag.flag-notable  { color: var(--amber);    border-color: rgba(168,131,46,.4); }
+    .cctv-flag.flag-clean    { color: var(--green-lit);border-color: rgba(58,154,90,.3); }
+
+    /* ── CCTV VIEWER MODAL ── */
+    #cctv-modal-overlay {
+      position: fixed; inset: 0; z-index: 60;
+      background: rgba(0,0,0,.92);
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      padding: clamp(12px,3vw,32px);
+      opacity: 0; pointer-events: none;
+      transition: opacity .25s;
+      backdrop-filter: blur(8px);
+    }
+    #cctv-modal-overlay.open { opacity: 1; pointer-events: all; }
+
+    #cctv-modal {
+      width: 100%; max-width: 720px;
+      display: flex; flex-direction: column; gap: 0;
+      transform: scale(.96);
+      transition: transform .3s cubic-bezier(.34,1.1,.64,1);
+    }
+    #cctv-modal-overlay.open #cctv-modal { transform: scale(1); }
+
+    /* Modal top bar */
+    #cctv-modal-bar {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 8px 12px;
+      background: rgba(0,0,0,.8);
+      border: 1px solid rgba(45,220,160,.2);
+      border-bottom: none;
+    }
+    .cctv-modal-cam {
+      font-family: 'Courier Prime', monospace;
+      font-size: clamp(7px,.85vw,9px); letter-spacing: .25em;
+      color: rgba(45,220,160,.8); text-transform: uppercase;
+    }
+    .cctv-modal-rec {
+      display: flex; align-items: center; gap: 5px;
+      font-family: 'Courier Prime', monospace;
+      font-size: clamp(7px,.85vw,9px); letter-spacing: .2em;
+      color: rgba(200,60,60,.8); text-transform: uppercase;
+    }
+    .cctv-rec-dot {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: var(--blood); flex-shrink: 0;
+      animation: blink 1.1s ease infinite;
+    }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.1} }
+
+    /* Video container */
+    #cctv-modal-video-wrap {
+      position: relative;
+      background: #000;
+      border: 1px solid rgba(45,220,160,.2);
+      overflow: hidden;
+    }
+    #cctv-modal-video {
+      width: 100%; display: block;
+      filter: grayscale(1) contrast(1.1) brightness(0.85);
+      max-height: 60vh; object-fit: contain;
+    }
+    #cctv-modal-scanlines {
+      position: absolute; inset: 0; pointer-events: none;
+      background: repeating-linear-gradient(
+        to bottom,
+        transparent 0, transparent 3px,
+        rgba(0,0,0,.14) 3px, rgba(0,0,0,.14) 4px
+      );
+    }
+
+    /* Info strip below video */
+    #cctv-modal-info {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(120px,1fr));
+      gap: 0;
+      border: 1px solid rgba(45,220,160,.15);
+      border-top: none;
+      background: rgba(6,4,2,.9);
+    }
+    .cctv-info-cell {
+      padding: 8px 12px;
+      border-right: 1px solid rgba(45,220,160,.08);
+    }
+    .cctv-info-cell:last-child { border-right: none; }
+    .cctv-info-label {
+      font-size: clamp(6px,.72vw,8px); letter-spacing: .3em;
+      text-transform: uppercase; color: rgba(45,220,160,.4);
+      display: block; margin-bottom: 2px;
+    }
+    .cctv-info-val {
+      font-size: clamp(8px,1vw,10px); color: var(--paper-dim);
+      font-family: 'Courier Prime', monospace;
+    }
+    .cctv-info-val.hi { color: var(--amber); }
+
+    /* Close button */
+    #cctv-modal-close {
+      margin-top: 12px; align-self: center;
+      font-family: 'Courier Prime', monospace;
+      font-size: clamp(8px,1vw,10px); letter-spacing: .3em;
+      text-transform: uppercase; color: var(--paper-dim);
+      background: none; border: 1px solid rgba(168,131,46,.2);
+      padding: 7px 28px; cursor: pointer;
+      transition: color .2s, border-color .2s;
+    }
+    #cctv-modal-close:hover { color: var(--amber); border-color: rgba(168,131,46,.5); }
+
+    /* ════════════════════════════
        METADATA PANEL
     ════════════════════════════ */
     #meta-filter-bar {
@@ -1099,7 +1329,7 @@
           <div class="panel-rule"></div>
           <div class="card-grid" id="evidence-category-grid">
             <div class="card" onclick="showPanel('panel-cctv','Investigation Files / CCTV',null)">
-              <span class="card-count">0 items</span>
+              <span class="card-count">4 recordings</span>
               <span class="card-icon">📷</span>
               <span class="card-title">CCTV Thumbnails</span>
               <span class="card-desc">Surveillance footage stills from key locations and time windows.</span>
@@ -1146,9 +1376,99 @@
         <!-- ══ EVIDENCE SUBCATEGORIES (empty state templates) ══ -->
         <!-- Each one follows the same structure — easy to populate later -->
         <div class="panel" id="panel-cctv">
-          <div class="panel-head"><div><span class="panel-title">CCTV Thumbnails</span><span class="panel-sub">Surveillance stills · Case COL-001-A</span></div><span class="wip-badge">Unlocked during investigation</span></div>
+          <div class="panel-head">
+            <div><span class="panel-title">CCTV Thumbnails</span><span class="panel-sub">Surveillance footage · Case COL-001-A</span></div>
+            <span class="wip-badge">4 recordings on file</span>
+          </div>
           <div class="panel-rule"></div>
-          <div class="evidence-empty"><span class="evidence-empty-icon">📷</span><span class="evidence-empty-text">No CCTV footage collected yet</span></div>
+
+          <!-- CCTV grid -->
+          <div class="cctv-grid" id="cctv-grid">
+
+            <div class="cctv-card" onclick="openCCTV(0)">
+              <div class="cctv-screen">
+                <video class="cctv-preview" src="Assets/Video/Urban_Alley_CCTV_Surveillance_Footage.mp4"
+                  muted loop playsinline preload="metadata"></video>
+                <div class="cctv-overlay">
+                  <span class="cctv-overlay-cam">CAM 3 — HARLOW ST ALLEY</span>
+                  <span class="cctv-overlay-ts">21:48:22</span>
+                </div>
+                <div class="cctv-play-hint">▶ View Footage</div>
+                <div class="cctv-scanlines"></div>
+              </div>
+              <div class="cctv-meta">
+                <span class="cctv-ref">COL-001-A · CCTV-001</span>
+                <span class="cctv-title">Harlow Street Alley</span>
+                <span class="cctv-detail">Mar 04 2026 · 21:45–21:54 · Exterior</span>
+                <span class="cctv-flag flag-critical">⚑ Primary Scene</span>
+              </div>
+            </div>
+
+            <div class="cctv-card" onclick="openCCTV(1)">
+              <div class="cctv-screen">
+                <video class="cctv-preview" src="Assets/Video/Eerie_CCTV_Parking_Garage_Video.mp4"
+                  muted loop playsinline preload="metadata"></video>
+                <div class="cctv-overlay">
+                  <span class="cctv-overlay-cam">CAM 7 — KESSLER CARPARK</span>
+                  <span class="cctv-overlay-ts">21:22:05</span>
+                </div>
+                <div class="cctv-play-hint">▶ View Footage</div>
+                <div class="cctv-scanlines"></div>
+              </div>
+              <div class="cctv-meta">
+                <span class="cctv-ref">COL-001-A · CCTV-002</span>
+                <span class="cctv-title">Kessler Warehouse District — Carpark</span>
+                <span class="cctv-detail">Mar 04 2026 · 21:15–21:35 · Underground</span>
+                <span class="cctv-flag flag-notable">● Person of Interest</span>
+              </div>
+            </div>
+
+            <div class="cctv-card" onclick="openCCTV(2)">
+              <div class="cctv-screen">
+                <video class="cctv-preview" src="Assets/Video/CCTV_Hallway_Footage_Generation.mp4"
+                  muted loop playsinline preload="metadata"></video>
+                <div class="cctv-overlay">
+                  <span class="cctv-overlay-cam">CAM 2 — CRESTON APTS FL.6</span>
+                  <span class="cctv-overlay-ts">20:57:44</span>
+                </div>
+                <div class="cctv-play-hint">▶ View Footage</div>
+                <div class="cctv-scanlines"></div>
+              </div>
+              <div class="cctv-meta">
+                <span class="cctv-ref">COL-001-A · CCTV-003</span>
+                <span class="cctv-title">14B Creston Apartments — Floor 6 Hallway</span>
+                <span class="cctv-detail">Mar 04 2026 · 20:55–21:10 · Interior</span>
+                <span class="cctv-flag flag-notable">● Entry Corridor</span>
+              </div>
+            </div>
+
+            <div class="cctv-card" onclick="openCCTV(3)">
+              <div class="cctv-screen">
+                <div class="cctv-gap-screen">
+                  <video class="cctv-preview" src="Assets/Video/Urban_Alley_CCTV_Surveillance_Footage.mp4"
+                    muted loop playsinline preload="metadata"
+                    style="opacity:.3;filter:contrast(0.4)"></video>
+                  <div class="cctv-gap-label">
+                    <span class="cctv-gap-icon">⚠</span>
+                    <span class="cctv-gap-text">3-MIN GAP<br/>DETECTED</span>
+                  </div>
+                </div>
+                <div class="cctv-overlay">
+                  <span class="cctv-overlay-cam">CAM 3 — BAY 7 HARBOUR</span>
+                  <span class="cctv-overlay-ts">21:45:00 → 21:48:00</span>
+                </div>
+                <div class="cctv-play-hint">▶ View Footage</div>
+                <div class="cctv-scanlines"></div>
+              </div>
+              <div class="cctv-meta">
+                <span class="cctv-ref">COL-001-A · CCTV-004</span>
+                <span class="cctv-title">City Harbour — Bay 7 Patrol Zone</span>
+                <span class="cctv-detail">Mar 04 2026 · 18:00–22:00 · Harbour exterior</span>
+                <span class="cctv-flag flag-critical">⚑ Recording Gap — 3 mins deleted</span>
+              </div>
+            </div>
+
+          </div>
         </div>
         <div class="panel" id="panel-audio-files">
           <div class="panel-head"><div><span class="panel-title">Audio Files</span><span class="panel-sub">Recordings &amp; intercepts · Case COL-001-A</span></div><span class="wip-badge">Unlocked during investigation</span></div>
@@ -1597,6 +1917,45 @@
     </div><!-- /body -->
   </div><!-- /app -->
 
+  <!-- ── CCTV VIEWER MODAL ── -->
+  <div id="cctv-modal-overlay" onclick="handleCCTVOverlay(event)">
+    <div id="cctv-modal">
+      <div id="cctv-modal-bar">
+        <span class="cctv-modal-cam" id="cctv-modal-cam">—</span>
+        <span class="cctv-modal-rec"><span class="cctv-rec-dot"></span>REC</span>
+      </div>
+      <div id="cctv-modal-video-wrap">
+        <video id="cctv-modal-video" controls playsinline>
+          <source id="cctv-modal-src" src="" type="video/mp4" />
+        </video>
+        <div id="cctv-modal-scanlines"></div>
+      </div>
+      <div id="cctv-modal-info">
+        <div class="cctv-info-cell">
+          <span class="cctv-info-label">Reference</span>
+          <span class="cctv-info-val hi" id="cctv-modal-ref">—</span>
+        </div>
+        <div class="cctv-info-cell">
+          <span class="cctv-info-label">Location</span>
+          <span class="cctv-info-val" id="cctv-modal-loc">—</span>
+        </div>
+        <div class="cctv-info-cell">
+          <span class="cctv-info-label">Date / Time</span>
+          <span class="cctv-info-val" id="cctv-modal-date">—</span>
+        </div>
+        <div class="cctv-info-cell">
+          <span class="cctv-info-label">Status</span>
+          <span class="cctv-info-val" id="cctv-modal-status">—</span>
+        </div>
+        <div class="cctv-info-cell">
+          <span class="cctv-info-label">Analyst Note</span>
+          <span class="cctv-info-val" id="cctv-modal-note">—</span>
+        </div>
+      </div>
+      <button id="cctv-modal-close" onclick="closeCCTV()">✕ Close Footage</button>
+    </div>
+  </div>
+
   <audio id="bg-music" loop preload="auto">
     <source src="Assets/Audio/Background music/Echoes_in_the_Concrete_Maze.mp3" type="audio/mpeg" />
   </audio>
@@ -1620,6 +1979,11 @@
       }
 
       document.getElementById('main').scrollTop = 0;
+
+      // Autoplay CCTV previews when that panel opens
+      if (id === 'panel-cctv') {
+        setTimeout(startCCTVPreviews, 100);
+      }
 
       // Close sidebar on mobile after selecting
       if (window.innerWidth <= 640) closeSidebar();
@@ -2279,6 +2643,85 @@
     });
     // Also build immediately in case DOMContentLoaded already fired
     buildMetaTable();
+
+    /* ════════════════════════════════════════════════
+       CCTV VIEWER
+    ════════════════════════════════════════════════ */
+    const CCTV_DATA = [
+      {
+        src:    'Assets/Video/Urban_Alley_CCTV_Surveillance_Footage.mp4',
+        cam:    'CAM 3 — HARLOW ST ALLEY',
+        ref:    'COL-001-A · CCTV-001',
+        loc:    'Harlow Street Alley — rear of The Blue Meridian',
+        date:   'Mar 04 2026 · 21:45–21:54',
+        status: 'Evidence — Primary Scene',
+        note:   'Subject matching description observed at 21:48:22. Identity unconfirmed. Refer to DML-COL-001-A-002 for enhanced still.',
+      },
+      {
+        src:    'Assets/Video/Eerie_CCTV_Parking_Garage_Video.mp4',
+        cam:    'CAM 7 — KESSLER CARPARK LEVEL B1',
+        ref:    'COL-001-A · CCTV-002',
+        loc:    'Kessler Warehouse District — Underground Carpark',
+        date:   'Mar 04 2026 · 21:15–21:35',
+        status: 'Under Review',
+        note:   'No movement detected during window. Vehicle presence not confirmed. Submitted for comparison against fibre evidence E18.',
+      },
+      {
+        src:    'Assets/Video/CCTV_Hallway_Footage_Generation.mp4',
+        cam:    'CAM 2 — CRESTON APTS FLOOR 6',
+        ref:    'COL-001-A · CCTV-003',
+        loc:    '14B Creston Apartments — Floor 6 Hallway',
+        date:   'Mar 04 2026 · 20:55–21:10',
+        status: 'Logged — Entry corridor',
+        note:   'Covers approach to victim\'s apartment. Cross-reference with building RFID access log META-009 (unregistered fob, 20:58).',
+      },
+      {
+        src:    'Assets/Video/Urban_Alley_CCTV_Surveillance_Footage.mp4',
+        cam:    'CAM 3 — BAY 7 HARBOUR PATROL ZONE',
+        ref:    'COL-001-A · CCTV-004',
+        loc:    'City Harbour Authority — Bay 7 Exterior',
+        date:   'Mar 04 2026 · 18:00–22:00',
+        status: '⚑ RECORDING GAP — 21:45:00 to 21:48:00',
+        note:   'Three-minute segment deleted via remote admin login. Credentials: B. Ashford. See META-012 and DML-COL-001-A-001 for full analysis.',
+      },
+    ];
+
+    function openCCTV(index) {
+      const d = CCTV_DATA[index];
+      if (!d) return;
+
+      const vid = document.getElementById('cctv-modal-video');
+      document.getElementById('cctv-modal-src').src = d.src;
+      vid.load();
+      vid.play().catch(() => {});
+
+      document.getElementById('cctv-modal-cam').textContent    = d.cam;
+      document.getElementById('cctv-modal-ref').textContent    = d.ref;
+      document.getElementById('cctv-modal-loc').textContent    = d.loc;
+      document.getElementById('cctv-modal-date').textContent   = d.date;
+      document.getElementById('cctv-modal-status').textContent = d.status;
+      document.getElementById('cctv-modal-note').textContent   = d.note;
+
+      document.getElementById('cctv-modal-overlay').classList.add('open');
+    }
+
+    function closeCCTV() {
+      const vid = document.getElementById('cctv-modal-video');
+      vid.pause();
+      vid.currentTime = 0;
+      document.getElementById('cctv-modal-overlay').classList.remove('open');
+    }
+
+    function handleCCTVOverlay(e) {
+      if (e.target === document.getElementById('cctv-modal-overlay')) closeCCTV();
+    }
+
+    // Auto-play previews when panel becomes visible
+    function startCCTVPreviews() {
+      document.querySelectorAll('.cctv-preview').forEach(v => {
+        v.play().catch(() => {});
+      });
+    }
 
     async function updateCommitHash() {
       try {
