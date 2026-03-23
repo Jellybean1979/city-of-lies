@@ -472,6 +472,201 @@
     }
 
     /* ════════════════════════════
+       METADATA PANEL
+    ════════════════════════════ */
+    #meta-filter-bar {
+      display:flex; gap:6px; flex-wrap:wrap;
+      margin-bottom:clamp(8px,1.4vh,12px);
+    }
+    .meta-filter {
+      font-family:'Courier Prime',monospace;
+      font-size:clamp(7px,.85vw,9px); letter-spacing:.25em;
+      text-transform:uppercase; padding:4px 12px;
+      background:none; border:1px solid var(--border);
+      color:var(--paper-dim); cursor:pointer;
+      transition:color .2s, border-color .2s, background .2s;
+    }
+    .meta-filter:hover { color:var(--amber); border-color:var(--border-hi); }
+    .meta-filter.active {
+      color:var(--amber); border-color:var(--border-hi);
+      background:rgba(168,131,46,.07);
+    }
+
+    /* Summary strip */
+    #meta-summary-strip {
+      display:flex; align-items:center; gap:0;
+      margin-bottom:clamp(8px,1.4vh,12px);
+      background:rgba(168,131,46,.04);
+      border:1px solid var(--border);
+      flex-wrap:wrap;
+    }
+    .meta-summary-pill {
+      padding:clamp(5px,1vw,8px) clamp(10px,1.5vw,16px);
+      display:flex; flex-direction:column; gap:2px;
+    }
+    .meta-summary-sep {
+      width:1px; height:30px; background:var(--border); flex-shrink:0;
+    }
+    .msp-label {
+      font-size:clamp(6px,.75vw,8px); letter-spacing:.3em;
+      text-transform:uppercase; color:var(--paper-dim);
+    }
+    .msp-val {
+      font-size:clamp(10px,1.3vw,13px); color:var(--paper);
+      font-weight:700;
+    }
+    .msp-val.flagged { color:var(--blood); }
+
+    /* Table */
+    #meta-table-wrap {
+      flex:1; overflow-y:auto; overflow-x:hidden;
+      border:1px solid var(--border);
+      background:rgba(10,8,6,.5);
+      scrollbar-width:thin; scrollbar-color:rgba(168,131,46,.2) transparent;
+      min-height:0;
+    }
+    #meta-table-wrap::-webkit-scrollbar { width:4px; }
+    #meta-table-wrap::-webkit-scrollbar-thumb { background:rgba(168,131,46,.2); }
+
+    #meta-table-head {
+      display:grid;
+      grid-template-columns:60px 1fr 90px 110px 1fr 70px;
+      border-bottom:1px solid var(--border);
+      background:rgba(168,131,46,.05);
+      position:sticky; top:0; z-index:2;
+    }
+    .mth {
+      font-size:clamp(6px,.78vw,8px); letter-spacing:.3em;
+      text-transform:uppercase; color:var(--paper-dim);
+      padding:6px clamp(8px,1.2vw,12px);
+      border-right:1px solid rgba(168,131,46,.08);
+    }
+    .mth:last-child { border-right:none; }
+
+    .meta-row {
+      display:grid;
+      grid-template-columns:60px 1fr 90px 110px 1fr 70px;
+      border-bottom:1px solid rgba(168,131,46,.06);
+      cursor:pointer; transition:background .15s;
+      animation:metaIn .25s ease both;
+    }
+    @keyframes metaIn { from{opacity:0;transform:translateX(-4px)} to{opacity:1;transform:none} }
+    .meta-row:hover   { background:rgba(168,131,46,.06); }
+    .meta-row.active  { background:rgba(168,131,46,.1); border-left:2px solid var(--amber); }
+    .meta-row.hidden  { display:none; }
+
+    .mc {
+      font-size:clamp(8px,1vw,10px); color:var(--paper-dim);
+      padding:clamp(7px,1.2vw,10px) clamp(8px,1.2vw,12px);
+      border-right:1px solid rgba(168,131,46,.06);
+      display:flex; align-items:center; overflow:hidden;
+      white-space:nowrap; text-overflow:ellipsis;
+    }
+    .mc:last-child { border-right:none; }
+    .mc.mono { font-family:'Courier Prime',monospace; font-size:clamp(7px,.85vw,9px); }
+    .mc.val  { color:var(--paper); }
+
+    /* Flag badge */
+    .meta-flag {
+      font-size:clamp(6px,.72vw,7px); letter-spacing:.15em;
+      text-transform:uppercase; padding:2px 6px;
+      border:1px solid;
+    }
+    .flag-critical { color:var(--blood);    border-color:rgba(139,26,26,.5); }
+    .flag-notable  { color:var(--amber);    border-color:rgba(168,131,46,.4); }
+    .flag-clean    { color:var(--green-lit);border-color:rgba(58,154,90,.3); }
+    .flag-pending  { color:var(--paper-dim);border-color:rgba(168,131,46,.15); }
+
+    /* Type badge */
+    .meta-type {
+      font-size:clamp(6px,.72vw,7px); letter-spacing:.15em;
+      text-transform:uppercase; padding:2px 6px;
+      background:rgba(168,131,46,.07);
+      border:1px solid var(--border); color:var(--paper-dim);
+    }
+
+    /* Detail drawer */
+    .meta-detail {
+      border-top:1px solid var(--border);
+      background:rgba(14,11,8,.95);
+      display:none; flex-direction:column;
+      max-height:clamp(200px,32vh,320px);
+      overflow-y:auto;
+    }
+    .meta-detail.open { display:flex; }
+
+    .meta-detail-header {
+      display:flex; align-items:center; gap:10px;
+      padding:clamp(8px,1.4vw,12px) clamp(10px,1.8vw,16px);
+      border-bottom:1px solid var(--border);
+      flex-shrink:0; background:rgba(168,131,46,.05);
+    }
+    .meta-detail-id {
+      font-size:clamp(7px,.85vw,9px); letter-spacing:.3em;
+      text-transform:uppercase; color:var(--amber);
+    }
+    .meta-detail-source {
+      font-size:clamp(8px,1vw,10px); color:var(--paper-dim); flex:1;
+    }
+    .meta-detail-close {
+      font-family:'Courier Prime',monospace;
+      font-size:9px; letter-spacing:.25em; text-transform:uppercase;
+      color:var(--paper-dim); background:none; border:none;
+      cursor:pointer; transition:color .2s;
+    }
+    .meta-detail-close:hover { color:var(--amber); }
+
+    .meta-detail-body {
+      padding:clamp(10px,1.8vw,16px) clamp(10px,1.8vw,16px);
+      display:flex; flex-direction:column; gap:clamp(10px,1.5vh,14px);
+    }
+    .meta-detail-grid {
+      display:grid;
+      grid-template-columns:repeat(auto-fill,minmax(180px,1fr));
+      gap:clamp(8px,1.2vw,12px);
+    }
+    .mdg-field { }
+    .mdg-label {
+      font-size:clamp(6px,.75vw,8px); letter-spacing:.3em;
+      text-transform:uppercase; color:var(--paper-dim);
+      display:block; margin-bottom:2px;
+    }
+    .mdg-val {
+      font-size:clamp(9px,1.1vw,11px); color:var(--paper); line-height:1.4;
+      word-break:break-all;
+    }
+    .mdg-val.highlight { color:var(--amber); }
+    .mdg-val.critical  { color:var(--blood); }
+
+    /* Hex dump */
+    .meta-hex {
+      font-family:'Courier Prime',monospace;
+      font-size:clamp(7px,.82vw,9px); color:rgba(168,131,46,.35);
+      line-height:1.6; letter-spacing:.08em;
+      background:rgba(168,131,46,.03);
+      border:1px solid rgba(168,131,46,.08);
+      padding:8px 10px; overflow-x:auto;
+      white-space:pre; display:none;
+    }
+    .meta-hex.show { display:block; }
+
+    /* Analyst note */
+    .meta-detail-note {
+      font-size:clamp(9px,1.1vw,11px); color:var(--paper-dim);
+      line-height:1.7; border-left:2px solid rgba(168,131,46,.3);
+      padding-left:10px; font-style:italic;
+    }
+
+    @media(max-width:640px) {
+      #meta-table-head { display:none; }
+      .meta-row {
+        grid-template-columns:1fr 1fr;
+        gap:4px; padding:8px;
+      }
+      .mc.hide-m { display:none; }
+    }
+
+    /* ════════════════════════════
        THEORY BUILDER PANEL
     ════════════════════════════ */
     .theory-steps {
@@ -993,9 +1188,72 @@
           </div>
         </div>
         <div class="panel" id="panel-metadata">
-          <div class="panel-head"><div><span class="panel-title">Metadata Snippets</span><span class="panel-sub">Digital forensics · Case COL-001-A</span></div><span class="wip-badge">Extracted by Forensics Lab</span></div>
+          <div class="panel-head">
+            <div><span class="panel-title">Metadata Snippets</span><span class="panel-sub">Digital forensics · Case COL-001-A</span></div>
+            <span class="wip-badge">14 records extracted</span>
+          </div>
           <div class="panel-rule"></div>
-          <div class="evidence-empty"><span class="evidence-empty-icon">🔎</span><span class="evidence-empty-text">No metadata extracted yet</span></div>
+
+          <!-- Filter bar -->
+          <div id="meta-filter-bar">
+            <button class="meta-filter active" onclick="filterMeta('all',this)">All</button>
+            <button class="meta-filter" onclick="filterMeta('device',this)">Device</button>
+            <button class="meta-filter" onclick="filterMeta('network',this)">Network</button>
+            <button class="meta-filter" onclick="filterMeta('financial',this)">Financial</button>
+            <button class="meta-filter" onclick="filterMeta('access',this)">Access Logs</button>
+            <button class="meta-filter" onclick="filterMeta('exif',this)">EXIF / File</button>
+          </div>
+
+          <!-- Summary strip -->
+          <div id="meta-summary-strip">
+            <div class="meta-summary-pill">
+              <span class="msp-label">Records</span>
+              <span class="msp-val" id="meta-count-visible">— / 14</span>
+            </div>
+            <div class="meta-summary-sep"></div>
+            <div class="meta-summary-pill">
+              <span class="msp-label">Flagged</span>
+              <span class="msp-val flagged" id="meta-count-flagged">—</span>
+            </div>
+            <div class="meta-summary-sep"></div>
+            <div class="meta-summary-pill">
+              <span class="msp-label">Sources</span>
+              <span class="msp-val">5</span>
+            </div>
+            <div class="meta-summary-sep"></div>
+            <div class="meta-summary-pill">
+              <span class="msp-label">Timespan</span>
+              <span class="msp-val">Mar 04–07 2026</span>
+            </div>
+          </div>
+
+          <!-- Metadata table -->
+          <div id="meta-table-wrap">
+            <div id="meta-table-head">
+              <div class="mth">ID</div>
+              <div class="mth">Source</div>
+              <div class="mth">Type</div>
+              <div class="mth">Timestamp</div>
+              <div class="mth">Value / Signal</div>
+              <div class="mth">Flag</div>
+            </div>
+            <div id="meta-table-body"></div>
+          </div>
+
+          <!-- Detail drawer -->
+          <div id="meta-detail" class="meta-detail">
+            <div class="meta-detail-header">
+              <span class="meta-detail-id" id="md-id"></span>
+              <span class="meta-detail-source" id="md-source"></span>
+              <button class="meta-detail-close" onclick="closeMeta()">✕</button>
+            </div>
+            <div class="meta-detail-body">
+              <div class="meta-detail-grid" id="md-grid"></div>
+              <div class="meta-hex" id="md-hex"></div>
+              <div class="meta-detail-note" id="md-note"></div>
+            </div>
+          </div>
+
         </div>
         <div class="panel" id="panel-documents">
           <div class="panel-head"><div><span class="panel-title">Documents</span><span class="panel-sub">Paper evidence · Case COL-001-A</span></div><span class="wip-badge">Found during investigation</span></div>
@@ -1581,6 +1839,447 @@
     /* ════════════════════════════
        VERSION TAG
     ════════════════════════════ */
+    /* ════════════════════════════════════════════════
+       METADATA PANEL
+    ════════════════════════════════════════════════ */
+    const METADATA = [
+      {
+        id: 'META-001', category:'device', source:'E03 — Burner Phone',
+        unlockedBy: null,
+        type:'IMEI Record', timestamp:'2026-03-05 14:45:00',
+        value:'IMEI 354842106714390', flag:'notable',
+        fields:[
+          { label:'IMEI',             val:'354842106714390' },
+          { label:'Manufacturer',     val:'Alcatel', },
+          { label:'Model',            val:'Alcatel 2038X (basic)' },
+          { label:'Batch Origin',     val:'Canal Street Electronics — liquidated', cls:'highlight' },
+          { label:'Network Status',   val:'Never registered to carrier' },
+          { label:'SIM',              val:'Absent — removed prior to recovery' },
+          { label:'Last Power State', val:'Off — battery depleted at recovery' },
+          { label:'Internal Storage', val:'16GB eMMC — partial data recovered' },
+        ],
+        hex: '45 4D 45 49 3A 20 33 35 34 38 34 32 31 30 36 37  IMEI: 354842106 7\n31 34 33 39 30 00 00 00 4D 46 52 3A 20 41 4C 43  14390...MFR: ALC\n41 54 45 4C 00 00 42 54 43 48 3A 20 43 53 45 2D  ATEL..BTCH: CSE-',
+        note:'IMEI traced to a batch of 14 units sold at Canal Street Electronics prior to closure. All sales were cash with no purchaser records. Device was never activated on any network — purchased as a disposable.',
+      },
+      {
+        id: 'META-002', category:'network', source:'E03 — Burner Phone',
+        unlockedBy: 'COL-001-A-E03',
+        type:'Cell Tower Ping', timestamp:'2026-03-04 21:09:47',
+        value:'Tower COL-CELL-0447 · Harlow St / Canal junction', flag:'critical',
+        fields:[
+          { label:'Tower ID',         val:'COL-CELL-0447' },
+          { label:'Location',         val:'Harlow St / Canal junction — 200m radius' },
+          { label:'Ping Timestamp',   val:'Mar 04 2026 · 21:09:47', cls:'highlight' },
+          { label:'Signal Strength',  val:'-72 dBm (moderate — moving device)' },
+          { label:'Duration',         val:'18 minutes 44 seconds' },
+          { label:'Handoff Tower',    val:'COL-CELL-0451 (Bay 7 / Harbour area)' },
+          { label:'Handoff Time',     val:'21:28:31' },
+          { label:'IMEI',             val:'354842106714390' },
+        ],
+        hex: '43 45 4C 4C 3A 20 43 4F 4C 2D 30 34 34 37 00 00  CELL: COL-0447..\n54 53 3A 20 32 31 30 39 34 37 00 53 49 47 3A 20  TS: 210947.SIG: \n2D 37 32 64 42 6D 00 44 55 52 3A 20 31 31 32 34  -72dBm.DUR: 1124',
+        note:'Critical finding. The burner phone pinged a tower within 200 metres of Harlow Street at 21:09 — over 30 minutes before the estimated incident window. The device then handed off to the Bay 7 harbour tower at 21:28, which places it in Bowen Ashford\'s patrol zone.',
+      },
+      {
+        id: 'META-003', category:'network', source:'E03 — Burner Phone',
+        unlockedBy: 'COL-001-A-E03',
+        type:'Cell Tower Ping', timestamp:'2026-03-04 21:28:31',
+        value:'Tower COL-CELL-0451 · Bay 7 / Harbour approach', flag:'critical',
+        fields:[
+          { label:'Tower ID',         val:'COL-CELL-0451' },
+          { label:'Location',         val:'Bay 7 / Harbour approach — 150m radius' },
+          { label:'Ping Timestamp',   val:'Mar 04 2026 · 21:28:31', cls:'highlight' },
+          { label:'Signal Strength',  val:'-68 dBm (strong — stationary)' },
+          { label:'Duration',         val:'23 minutes 12 seconds' },
+          { label:'Handoff Tower',    val:'COL-CELL-0447 (return)' },
+          { label:'Handoff Time',     val:'21:51:43' },
+          { label:'IMEI',             val:'354842106714390' },
+        ],
+        hex: '43 45 4C 4C 3A 20 43 4F 4C 2D 30 34 35 31 00 00  CELL: COL-0451..\n54 53 3A 20 32 31 32 38 33 31 00 53 54 41 54 3A  TS: 212831.STAT:\n53 54 41 54 49 4F 4E 41 52 59 00 44 55 52 3A 20  STATIONARY.DUR: ',
+        note:'Device remained stationary in the Bay 7 area for over 23 minutes — consistent with a planned meeting at that location. The return handoff to the Harlow Street tower at 21:51 places the device back at the primary scene just before the estimated incident window.',
+      },
+      {
+        id: 'META-004', category:'exif', source:'E15 — Recovered Photo Fragment',
+        unlockedBy: 'COL-001-A-E15',
+        type:'EXIF / Image Metadata', timestamp:'2026-03-04 21:12:04',
+        value:'Timestamp 21:12:04 · GPS stripped · Camera: Alcatel 2038X', flag:'critical',
+        unlockedBy:'COL-001-A-E15',  // requires Digital lab result on burner phone
+        fields:[
+          { label:'File Type',        val:'JPEG (partial — 62% recovered)' },
+          { label:'Camera Make',      val:'Alcatel', cls:'highlight' },
+          { label:'Camera Model',     val:'Alcatel 2038X' },
+          { label:'Date / Time',      val:'2026:03:04 21:12:04', cls:'highlight' },
+          { label:'GPS Data',         val:'Absent — coordinates stripped or disabled', cls:'critical' },
+          { label:'Flash',            val:'Off' },
+          { label:'Focal Length',     val:'3.56mm (wide)' },
+          { label:'Image Size',       val:'3264×2448 px (original — partial recovered)' },
+          { label:'Software',         val:'Alcatel Camera v2.1.4' },
+        ],
+        hex: '45 58 49 46 00 00 4D 4D 00 2A 00 00 00 08 00 0A  EXIF..MM.*......\n01 0F 00 02 00 00 00 0B 00 00 00 86 41 6C 63 61  ............Alca\n74 65 6C 00 01 10 00 02 00 00 00 0A 00 00 00 91  tel.............',
+        note:'EXIF confirms the photo was taken on the burner phone — same make and model. Timestamp 21:12 places the photographer in the Harlow Street area 36 minutes before the estimated incident. GPS was either disabled or stripped, preventing location pinpointing from the file alone.',
+      },
+      {
+        id: 'META-005', category:'exif', source:'E06 — CCTV USB Drive',
+        unlockedBy: 'COL-001-A-E06',
+        type:'File System Metadata', timestamp:'2026-03-04 21:45:00',
+        value:'Recording gap detected · 21:45:00–21:48:00', flag:'critical',
+        unlockedBy:'COL-001-A-E21',  // requires Digital lab result on CCTV USB
+        fields:[
+          { label:'Camera System',    val:'Harbour Authority CCTV — Bay 7 Fixed' },
+          { label:'Recording Format', val:'H.264 MP4 · 1080p · 15fps' },
+          { label:'File Created',     val:'2026-03-04 18:00:01 (session start)' },
+          { label:'Gap Start',        val:'21:45:00', cls:'critical' },
+          { label:'Gap End',          val:'21:48:00', cls:'critical' },
+          { label:'Gap Duration',     val:'3 minutes 00 seconds', cls:'critical' },
+          { label:'Gap Cause',        val:'Unknown — no system log entry' },
+          { label:'Post-Gap Content', val:'Intact — subject visible at 21:48:22' },
+          { label:'Verified By',      val:'DML-COL-001-A-001 (Digital Lab report)' },
+        ],
+        hex: '4D 50 34 20 48 45 41 44 45 52 00 00 01 78 66 74  MP4 HEADER...xft\n79 70 6D 70 34 32 00 00 00 00 6D 70 34 32 69 73  yp mp42....mp42is\n6F 6D 00 00 00 00 47 41 50 3A 20 31 38 30 73 00  om....GAP: 180s.',
+        note:'A 3-minute gap in the Bay 7 recording is unexplained. No power failure, system error, or maintenance event is logged during this window. The gap immediately precedes the earliest confirmed footage of the unidentified subject. Manual interference with the recording system cannot be ruled out.',
+      },
+      {
+        id: 'META-006', category:'financial', source:'E05 — Ledger',
+        unlockedBy: null,
+        type:'Transaction Record', timestamp:'2026-03-01 09:14:22',
+        value:'Cash deposit $4,000 — Account ending 7741', flag:'critical',
+        fields:[
+          { label:'Transaction Type', val:'Cash Deposit' },
+          { label:'Amount',           val:'$4,000.00 USD', cls:'critical' },
+          { label:'Account',          val:'Ending 7741 — B. Ashford (confirmed)', cls:'highlight' },
+          { label:'Date',             val:'2026-03-01 09:14:22 — 3 days pre-incident' },
+          { label:'Branch',           val:'Canal District branch — no ATM record' },
+          { label:'Teller ID',        val:'Not recorded (cash window)' },
+          { label:'Ledger Reference', val:'COL-001-A-E05 — pg.14, line 7' },
+          { label:'Correlation',      val:'Matches coded entry "B.A./Pkg/03/01" in ledger' },
+        ],
+        hex: '54 58 4E 3A 20 43 41 53 48 2D 44 45 50 4F 53 49  TXN: CASH-DEPOSI\n54 00 41 4D 54 3A 20 34 30 30 30 2E 30 30 00 41  T.AMT: 4000.00.A\n43 43 3A 20 78 78 78 78 37 37 34 31 00 00 00 00  CC: xxxx7741.....',
+        note:'The $4,000 cash deposit into Bowen Ashford\'s account exactly 3 days before the incident directly correlates with the coded ledger entry "B.A./Pkg/03/01." This establishes a financial link between Ashford and the ledger\'s author — most likely Victor Marre.',
+      },
+      {
+        id: 'META-007', category:'financial', source:'E05 — Ledger',
+        unlockedBy: null,
+        type:'Transaction Record', timestamp:'2026-02-14 11:42:08',
+        value:'Wire transfer $22,000 — Recipient: unknown shell', flag:'notable',
+        fields:[
+          { label:'Transaction Type', val:'International Wire Transfer' },
+          { label:'Amount',           val:'$22,000.00 USD', cls:'highlight' },
+          { label:'Sending Account',  val:'Marre Import Co. operating account' },
+          { label:'Recipient',        val:'IBAN DE45 xxxx xxxx xxxx — unresolved shell' },
+          { label:'Date',             val:'2026-02-14 11:42:08' },
+          { label:'Reference',        val:'"Consulting services Q1 — Ref: ENVLP"' },
+          { label:'Ledger Reference', val:'COL-001-A-E05 — pg.11, line 2' },
+          { label:'Status',           val:'Pending formal banking records request' },
+        ],
+        hex: '57 49 52 45 3A 20 44 45 34 35 00 41 4D 54 3A 20  WIRE: DE45.AMT: \n32 32 30 30 30 2E 30 30 00 52 45 46 3A 20 45 4E  22000.00.REF: EN\n56 4C 50 00 00 00 53 54 41 54 55 53 3A 20 55 4E  VLP...STATUS: UN',
+        note:'The reference code "ENVLP" — possibly short for "envelope" — appears in the ledger multiple times alongside similar wire transfers. The recipient IBAN routes through a German shell company. A formal banking records request has been filed. Response pending.',
+      },
+      {
+        id: 'META-008', category:'access', source:'14B Creston Apartments — Entry Log',
+        unlockedBy: null,
+        type:'Building Access Record', timestamp:'2026-03-02 19:14:00',
+        value:'Entry: Elara Voss · Apt 6 (victim\'s floor)', flag:'notable',
+        fields:[
+          { label:'System',           val:'Creston Apts — RFID door log' },
+          { label:'Card Holder',      val:'Elara Voss (visitor fob — not resident)' },
+          { label:'Entry Timestamp',  val:'2026-03-02 19:14:00', cls:'highlight' },
+          { label:'Exit Timestamp',   val:'2026-03-02 19:44:31' },
+          { label:'Duration',         val:'30 minutes 31 seconds' },
+          { label:'Floor',            val:'Floor 6 — victim\'s apartment level' },
+          { label:'Entry Confirmed',  val:'Hector Suárez maintenance log (corroborated)' },
+          { label:'Visit Count',      val:'3rd recorded visit in 14 days' },
+        ],
+        hex: '41 43 43 45 53 53 3A 20 45 4C 41 52 41 20 56 4F  ACCESS: ELARA VO\n53 53 00 46 4C 52 3A 20 36 00 45 4E 54 52 59 3A  SS.FLR: 6.ENTRY:\n31 39 31 34 30 30 00 45 58 49 54 3A 20 31 39 34  191400.EXIT: 194',
+        note:'This is the third recorded visit by Elara Voss to the victim\'s floor in the two weeks preceding the incident. Each visit lasted approximately 30 minutes and occurred between 18:00 and 20:00. The visitor fob used was not issued to a registered resident — its origin is under investigation.',
+      },
+      {
+        id: 'META-009', category:'access', source:'14B Creston Apartments — Entry Log',
+        unlockedBy: null,
+        type:'Building Access Record', timestamp:'2026-03-04 20:58:00',
+        value:'Entry: Unknown fob · Floor 6 — night of incident', flag:'critical',
+        fields:[
+          { label:'System',           val:'Creston Apts — RFID door log' },
+          { label:'Card Holder',      val:'Unregistered fob — UID: 0xF4A3C119', cls:'critical' },
+          { label:'Entry Timestamp',  val:'2026-03-04 20:58:00', cls:'critical' },
+          { label:'Exit Timestamp',   val:'2026-03-04 22:03:44' },
+          { label:'Duration',         val:'1 hour 5 minutes 44 seconds' },
+          { label:'Floor',            val:'Floor 6 — victim\'s apartment level' },
+          { label:'Fob Status',       val:'Not in resident register — provenance unknown' },
+          { label:'Correlation',      val:'Overlaps incident window (21:30–22:00 est.)' },
+        ],
+        hex: '41 43 43 45 53 53 3A 20 55 4E 4B 4E 4F 57 4E 20  ACCESS: UNKNOWN \n46 4F 42 00 55 49 44 3A 20 46 34 41 33 43 31 31  FOB.UID: F4A3C11\n39 00 46 4C 52 3A 20 36 00 45 4E 54 52 59 3A 20  9.FLR: 6.ENTRY: ',
+        note:'An unregistered fob entered the building on the night of the incident and remained for over an hour — covering the estimated incident window. The fob UID does not match any registered resident or visitor. Physical recovery of this fob should be treated as an investigative priority.',
+      },
+      {
+        id: 'META-010', category:'device', source:'E07 — Medicine Bottle',
+        unlockedBy: 'COL-001-A-E07',
+        type:'Prescription Database Record', timestamp:'2026-02-20 11:30:00',
+        value:'Prescribee: Elara Voss · GP: Dr. K. Ashby · Dispensed: Feb 20', flag:'notable',
+        unlockedBy:'COL-001-A-E24',  // requires Toxicology lab result on medicine bottle
+        fields:[
+          { label:'Prescription ID',  val:'RX-2026-0441-EV' },
+          { label:'Prescribee',       val:'Elara Voss — DOB verified', cls:'highlight' },
+          { label:'Prescribing GP',   val:'Dr. K. Ashby — Canal District Medical Centre' },
+          { label:'Dispensed',        val:'2026-02-20 11:30 — Canal District Pharmacy' },
+          { label:'Compound',         val:'[redacted — medical privacy order]' },
+          { label:'Quantity',         val:'30-day supply' },
+          { label:'Anomaly',          val:'Second compound (zopiclone) found in residue — NOT prescribed', cls:'critical' },
+          { label:'Source Report',    val:'TOX-COL-001-A-001 (Toxicology Lab)' },
+        ],
+        hex: '52 58 3A 20 52 58 2D 32 30 32 36 2D 30 34 34 31  RX: RX-2026-0441\n2D 45 56 00 50 52 45 53 3A 20 45 4C 41 52 41 20  -EV.PRES: ELARA \n56 4F 53 53 00 41 4E 4F 4D 3A 20 5A 4F 50 49 43  VOSS.ANOM: ZOPIC',
+        note:'The prescription record confirms legitimate dispensing of the primary compound to Elara Voss. The presence of zopiclone — a separate sedative not on any prescription — in the bottle residue is unexplained. The compound was not prescribed to Voss or any known associate.',
+      },
+      {
+        id: 'META-011', category:'financial', source:'E05 — Ledger',
+        unlockedBy: null,
+        type:'Transaction Record', timestamp:'2026-01-08 14:55:00',
+        value:'Cash withdrawal $8,500 — Coded ref: "R.C./Fvr"', flag:'notable',
+        fields:[
+          { label:'Transaction Type', val:'Cash Withdrawal' },
+          { label:'Amount',           val:'$8,500.00 USD', cls:'highlight' },
+          { label:'Source Account',   val:'Marre Import Co. petty cash — discretionary' },
+          { label:'Date',             val:'2026-01-08 14:55:00' },
+          { label:'Reference',        val:'"R.C./Fvr" — possibly Alderman Raymond Cross' },
+          { label:'Ledger Reference', val:'COL-001-A-E05 — pg.4, line 12' },
+          { label:'Pattern',          val:'3 similar withdrawals in Q4 2025 — same reference' },
+          { label:'Status',           val:'Under investigation — not yet corroborated' },
+        ],
+        hex: '57 44 52 57 3A 20 43 41 53 48 00 41 4D 54 3A 20  WDRW: CASH.AMT: \n38 35 30 30 2E 30 30 00 52 45 46 3A 20 52 2E 43  8500.00.REF: R.C\n2E 2F 46 76 72 00 00 00 52 45 50 54 3A 20 51 34  ./Fvr...REPT: Q4',
+        note:'The coded reference "R.C./Fvr" appears four times in the ledger across Q4 2025 and Q1 2026, each time with a cash withdrawal of $7,500–$9,000. The initials R.C. and the abbreviation "Fvr" (favour?) are consistent with payments to Alderman Raymond Cross. This is unconfirmed and circumstantial.',
+      },
+      {
+        id: 'META-012', category:'network', source:'Harbour Authority — Network Log',
+        unlockedBy: ['COL-001-A-E06', 'COL-001-A-E21'],
+        type:'VPN / Remote Access', timestamp:'2026-03-04 20:44:00',
+        value:'Unauthorised remote login — CCTV admin panel · Bay 7', flag:'critical',
+        unlockedBy:'COL-001-A-E21',  // requires Digital lab result on CCTV USB
+        fields:[
+          { label:'System',           val:'Harbour Authority CCTV Admin — Bay 7' },
+          { label:'Event Type',       val:'Remote login — VPN tunnel', cls:'critical' },
+          { label:'Timestamp',        val:'2026-03-04 20:44:00', cls:'critical' },
+          { label:'Source IP',        val:'Anonymised via commercial VPN exit node' },
+          { label:'Credentials Used', val:'Security admin credentials — Bowen Ashford' },
+          { label:'Actions Logged',   val:'Recording buffer accessed · 3-min segment deleted' },
+          { label:'Logout',           val:'2026-03-04 20:47:22' },
+          { label:'Correlation',      val:'Matches 3-min gap in CCTV recording (META-005)' },
+        ],
+        hex: '4C 4F 47 49 4E 3A 20 52 45 4D 4F 54 45 20 56 50  LOGIN: REMOTE VP\n4E 00 55 53 52 3A 20 42 2E 41 53 48 46 4F 52 44  N.USR: B.ASHFORD\n00 41 43 54 3A 20 44 45 4C 45 54 45 20 42 55 46  .ACT: DELETE BUF',
+        note:'The Harbour Authority\'s admin log records a remote login using Bowen Ashford\'s credentials at 20:44 — one hour before the incident. The login accessed the Bay 7 recording buffer and deleted a 3-minute segment. This directly explains the gap identified in META-005 and strongly implicates Ashford in deliberate evidence suppression.',
+      },
+      {
+        id: 'META-013', category:'exif', source:'E02 — Threatening Letter',
+        unlockedBy: 'COL-001-A-E02',
+        type:'Paper Fibre Analysis', timestamp:'2026-03-05 09:30:00',
+        value:'Paper origin: Standard A4 bond · No watermark · Batch untraceable', flag:'clean',
+        fields:[
+          { label:'Paper Type',       val:'A4 bond — 80gsm white offset' },
+          { label:'Fibre Composition', val:'75% short-grain cellulose — standard commercial' },
+          { label:'Watermark',        val:'None detected' },
+          { label:'Batch Origin',     val:'Mass-market — untraceable to specific retailer' },
+          { label:'Age',              val:'Manufactured within last 18 months (approx.)' },
+          { label:'Printer/Typewriter', val:'Typewriter — confirmed (no inkjet/laser toner)' },
+          { label:'Source Report',    val:'DOC-COL-001-A-001 (Document Analysis Lab)' },
+          { label:'Investigative Value', val:'Low — paper stock provides no attribution' },
+        ],
+        hex: '50 41 50 45 52 3A 20 41 34 42 4F 4E 44 38 30 00  PAPER: A4BOND80.\n46 49 42 52 45 3A 20 43 45 4C 4C 55 4C 4F 53 45  FIBRE: CELLULOSE\n00 57 4D 4B 3A 20 4E 4F 4E 45 00 42 54 43 48 3A  .WMK: NONE.BTCH:',
+        note:'The paper stock provides no investigative value — standard mass-market A4 available from any stationery retailer. The typewriter impression remains the primary analytical lead from this exhibit.',
+      },
+      {
+        id: 'META-014', category:'access', source:'Marre Import Co. — Entry Log',
+        unlockedBy: null,
+        type:'Building Access Record', timestamp:'2026-03-05 07:22:00',
+        value:'Entry: Patrick Lorne · Last recorded visit before disappearance', flag:'notable',
+        fields:[
+          { label:'System',           val:'Marre Import Co. — keycard entry system' },
+          { label:'Card Holder',      val:'Patrick Lorne — Administrative Staff', cls:'highlight' },
+          { label:'Entry Timestamp',  val:'2026-03-05 07:22:00' },
+          { label:'Exit Timestamp',   val:'2026-03-05 07:41:18' },
+          { label:'Duration',         val:'19 minutes 18 seconds' },
+          { label:'Areas Accessed',   val:'Ground floor, filing room B, staff exit' },
+          { label:'Note',             val:'Called in sick same day — 09:15. Not seen since.', cls:'critical' },
+          { label:'Correlation',      val:'Victor Marre\'s office searched same morning' },
+        ],
+        hex: '41 43 43 45 53 53 3A 20 50 2E 4C 4F 52 4E 45 20  ACCESS: P.LORNE \n45 4E 54 52 59 3A 20 30 37 32 32 30 30 00 41 52  ENTRY: 072200.AR\n45 41 3A 20 46 49 4C 49 4E 47 2D 42 00 00 00 00  EA: FILING-B....',
+        note:'Patrick Lorne entered the Marre Import Co. offices at 07:22 on the morning after the incident — accessing the filing room. He called in sick two hours later and has not been seen at work since. The timing of his visit to the filing room on the day the ledger was reported to investigators is significant.',
+      },
+    ];
+
+    let activeMetaCategory = 'all';
+    let activeMetaRow = null;
+
+    /* Check whether a metadata record is unlocked based on evidence status */
+    function getUnlockedItems() {
+      try {
+        const savedStatus = JSON.parse(localStorage.getItem('col_evidence_status') || '{}');
+        const waveState   = JSON.parse(localStorage.getItem('col_evidence_waves')  || '{}');
+        const extraItems  = JSON.parse(localStorage.getItem('col_evidence_extra')  || '[]');
+        const unlocked    = new Set();
+
+        // Base items that are logged and have been released by the wave system
+        Object.entries(savedStatus).forEach(([id, status]) => {
+          const waveKey = 'released_' + id;
+          if (status === 'logged' && (waveState[waveKey] || savedStatus[id])) {
+            unlocked.add(id);
+          }
+        });
+        // Extra lab-result items that are logged
+        extraItems.forEach(item => {
+          const status = savedStatus[item.id] || item.status;
+          if (status === 'logged') unlocked.add(item.id);
+        });
+        return unlocked;
+      } catch(_) { return new Set(); }
+    }
+
+    function isMetaVisible(item, unlockedItems) {
+      if (item.unlockedBy === null || item.unlockedBy === undefined) return true;
+      if (Array.isArray(item.unlockedBy)) {
+        // Visible if ANY of the required IDs are logged
+        return item.unlockedBy.some(id => unlockedItems.has(id));
+      }
+      return unlockedItems.has(item.unlockedBy);
+    }
+
+    // Short label for an evidence ID e.g. COL-001-A-E03 → E03
+    function evShortId(id) {
+      return id.replace('COL-001-A-', '');
+    }
+
+    function buildMetaTable() {
+      const body = document.getElementById('meta-table-body');
+      if (!body) return;
+      body.innerHTML = '';
+
+      const unlockedItems = getUnlockedItems();
+
+      let visibleCount  = 0;
+      let flaggedCount  = 0;
+      let lockedCount   = 0;
+
+      METADATA.forEach((item, i) => {
+        const visible     = isMetaVisible(item, unlockedItems);
+        const filteredOut = activeMetaCategory !== 'all' && item.category !== activeMetaCategory;
+
+        if (!visible) {
+          lockedCount++;
+          // Build a specific locked message naming the required evidence
+          let requirement;
+          if (Array.isArray(item.unlockedBy)) {
+            requirement = item.unlockedBy.map(evShortId).join(' or ');
+          } else {
+            requirement = evShortId(item.unlockedBy);
+          }
+
+          const row = document.createElement('div');
+          row.className = 'meta-row meta-row-locked' + (filteredOut ? ' hidden' : '');
+          row.style.animationDelay = (i * 0.03) + 's';
+          row.style.cursor = 'default';
+          row.innerHTML = `
+            <div class="mc mono" style="opacity:.3">${item.id}</div>
+            <div class="mc" style="opacity:.35;font-style:italic;color:var(--paper-dim)">${item.source}</div>
+            <div class="mc hide-m" style="opacity:.3"><span class="meta-type">${item.type}</span></div>
+            <div class="mc mono hide-m" style="opacity:.3">— — —</div>
+            <div class="mc" style="opacity:.45;color:var(--paper-dim);font-size:clamp(7px,.85vw,9px)">
+              🔬 Send ${requirement} to the lab and await return
+            </div>
+            <div class="mc"><span class="meta-flag flag-pending">◌ Locked</span></div>
+          `;
+          body.appendChild(row);
+          return;
+        }
+
+        // Visible record
+        visibleCount++;
+        if (item.flag === 'critical' || item.flag === 'notable') flaggedCount++;
+
+        const row = document.createElement('div');
+        row.className = 'meta-row' + (filteredOut ? ' hidden' : '');
+        row.style.animationDelay = (i * 0.03) + 's';
+        row.dataset.id = item.id;
+        row.onclick = () => openMetaDetail(item, row);
+
+        const flagCls   = { critical:'flag-critical', notable:'flag-notable', clean:'flag-clean', pending:'flag-pending' }[item.flag] || 'flag-pending';
+        const flagLabel = { critical:'⚑ Critical', notable:'● Notable', clean:'✓ Clean', pending:'◌ Pending' }[item.flag] || item.flag;
+
+        row.innerHTML = `
+          <div class="mc mono">${item.id}</div>
+          <div class="mc val">${item.source}</div>
+          <div class="mc hide-m"><span class="meta-type">${item.type}</span></div>
+          <div class="mc mono hide-m">${item.timestamp}</div>
+          <div class="mc val">${item.value}</div>
+          <div class="mc"><span class="meta-flag ${flagCls}">${flagLabel}</span></div>
+        `;
+        body.appendChild(row);
+      });
+
+      // Update summary strip
+      const flaggedEl = document.getElementById('meta-count-flagged');
+      const recordsEl = document.getElementById('meta-count-visible');
+      if (flaggedEl) flaggedEl.textContent = flaggedCount;
+      if (recordsEl) recordsEl.textContent = `${visibleCount} / ${METADATA.length}`;
+    }
+
+    function filterMeta(cat, btn) {
+      activeMetaCategory = cat;
+      document.querySelectorAll('.meta-filter').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+
+      document.querySelectorAll('.meta-row').forEach(row => {
+        const item = METADATA.find(m => m.id === row.dataset.id);
+        row.classList.toggle('hidden', cat !== 'all' && item?.category !== cat);
+      });
+
+      closeMeta();
+    }
+
+    function openMetaDetail(item, row) {
+      document.querySelectorAll('.meta-row').forEach(r => r.classList.remove('active'));
+      row.classList.add('active');
+      activeMetaRow = row;
+
+      document.getElementById('md-id').textContent     = item.id;
+      document.getElementById('md-source').textContent = item.source + ' · ' + item.type;
+
+      // Build field grid
+      const grid = document.getElementById('md-grid');
+      grid.innerHTML = '';
+      item.fields.forEach(f => {
+        grid.innerHTML += `
+          <div class="mdg-field">
+            <span class="mdg-label">${f.label}</span>
+            <span class="mdg-val ${f.cls || ''}">${f.val}</span>
+          </div>
+        `;
+      });
+
+      // Hex dump
+      const hexEl = document.getElementById('md-hex');
+      if (item.hex) {
+        hexEl.textContent = item.hex;
+        hexEl.classList.add('show');
+      } else {
+        hexEl.classList.remove('show');
+      }
+
+      // Note
+      document.getElementById('md-note').textContent = item.note;
+
+      document.getElementById('meta-detail').classList.add('open');
+    }
+
+    function closeMeta() {
+      document.getElementById('meta-detail').classList.remove('open');
+      document.querySelectorAll('.meta-row').forEach(r => r.classList.remove('active'));
+      activeMetaRow = null;
+    }
+
+    // Build on panel open
+    const origShowPanel = typeof showPanel === 'function' ? showPanel : null;
+    document.addEventListener('DOMContentLoaded', () => {
+      buildMetaTable();
+    });
+    // Also build immediately in case DOMContentLoaded already fired
+    buildMetaTable();
+
     async function updateCommitHash() {
       try {
         const res  = await fetch('https://api.github.com/repos/jellybean1979/CityOfLies/commits?per_page=1');
