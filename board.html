@@ -702,6 +702,196 @@
     #cctv-modal-close:hover { color: var(--amber); border-color: rgba(168,131,46,.5); }
 
     /* ════════════════════════════
+       DOCUMENTS PANEL
+    ════════════════════════════ */
+    .doc-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(clamp(200px,26vw,260px),1fr));
+      gap: clamp(10px,1.5vw,16px);
+    }
+
+    .doc-card {
+      background: rgba(232,220,190,.07);
+      border: 1px solid rgba(168,131,46,.2);
+      cursor: pointer;
+      transition: border-color .2s, transform .2s, background .2s;
+      position: relative; overflow: hidden;
+    }
+    .doc-card::before {
+      content: '';
+      position: absolute; top: 0; left: 0; right: 0;
+      height: 2px; opacity: 0; transition: opacity .2s;
+    }
+    .doc-card:hover {
+      border-color: rgba(168,131,46,.5);
+      background: rgba(232,220,190,.1);
+      transform: translateY(-2px);
+    }
+    .doc-card:hover::before { opacity: 1; }
+    .doc-card.type-latent::before    { background: var(--amber); }
+    .doc-card.type-dna::before       { background: var(--red-lit); }
+    .doc-card.type-trace::before     { background: #e07030; }
+    .doc-card.type-digital::before   { background: var(--blue-lit); }
+    .doc-card.type-document::before  { background: #a09070; }
+    .doc-card.type-tox::before       { background: #9060c0; }
+    .doc-card.type-anthro::before    { background: var(--green-lit); }
+    .doc-card.type-metal::before     { background: #8090a0; }
+
+    .doc-card-inner {
+      padding: clamp(12px,2vw,18px);
+    }
+    .doc-card-icon   { font-size: clamp(22px,3vw,30px); display: block; margin-bottom: 8px; }
+    .doc-card-ref {
+      font-size: clamp(6px,.75vw,8px); letter-spacing: .3em;
+      text-transform: uppercase; color: var(--amber); opacity: .7;
+      display: block; margin-bottom: 3px;
+    }
+    .doc-card-title {
+      font-size: clamp(10px,1.3vw,13px); color: var(--paper);
+      display: block; line-height: 1.3; margin-bottom: 4px;
+    }
+    .doc-card-lab {
+      font-size: clamp(7px,.85vw,9px); letter-spacing: .1em;
+      color: var(--paper-dim); display: block; margin-bottom: 6px;
+    }
+    .doc-card-exhibit {
+      font-size: clamp(7px,.82vw,9px); letter-spacing: .1em;
+      color: rgba(168,131,46,.55);
+      border-top: 1px solid rgba(168,131,46,.12);
+      padding-top: 6px; display: block; margin-top: 4px;
+    }
+    .doc-card-open {
+      display: block; margin-top: 8px;
+      font-size: clamp(7px,.85vw,9px); letter-spacing: .2em;
+      text-transform: uppercase; color: var(--paper-dim);
+      text-align: right;
+    }
+    .doc-card:hover .doc-card-open { color: var(--amber); }
+
+    /* ── LAB REPORT VIEWER (board.html version) ── */
+    #board-lr-overlay {
+      position: fixed; inset: 0; z-index: 60;
+      background: rgba(4,2,0,.88);
+      display: flex; align-items: flex-start; justify-content: center;
+      padding: clamp(12px,3vw,40px);
+      opacity: 0; pointer-events: none;
+      transition: opacity .25s;
+      overflow-y: auto;
+      backdrop-filter: blur(6px);
+    }
+    #board-lr-overlay.open { opacity: 1; pointer-events: all; }
+
+    #board-lr-doc {
+      width: 100%; max-width: 640px;
+      background: #ede0c0;
+      position: relative;
+      box-shadow: 4px 8px 40px rgba(0,0,0,.85);
+      transform: translateY(16px) scale(.97);
+      transition: transform .3s cubic-bezier(.34,1.1,.64,1);
+      background-image: repeating-linear-gradient(
+        to bottom, transparent 0px, transparent 27px,
+        rgba(58,40,8,.07) 27px, rgba(58,40,8,.07) 28px
+      );
+      margin: auto;
+    }
+    #board-lr-doc::before {
+      content:''; position:absolute;
+      top:0; bottom:0; left:clamp(44px,7vw,60px);
+      width:1px; background:rgba(196,48,48,.2); pointer-events:none;
+    }
+    #board-lr-overlay.open #board-lr-doc { transform: translateY(0) scale(1); }
+
+    .blr-inner { padding: clamp(24px,4vw,44px) clamp(24px,4vw,44px) clamp(24px,4vw,44px) clamp(56px,9vw,76px); }
+
+    #board-lr-close {
+      position: absolute; top: 14px; right: 16px;
+      font-family: 'Courier Prime', monospace;
+      font-size: 9px; letter-spacing: .3em; text-transform: uppercase;
+      color: rgba(58,40,8,.45); background: none; border: none;
+      cursor: pointer; transition: color .2s;
+    }
+    #board-lr-close:hover { color: #3a2808; }
+
+    .blr-letterhead {
+      display: flex; align-items: flex-start; justify-content: space-between;
+      gap: 16px; padding-bottom: clamp(12px,2vh,18px);
+      margin-bottom: clamp(12px,2vh,18px);
+      border-bottom: 2px solid rgba(58,40,8,.5);
+    }
+    .blr-logo { font-size: clamp(28px,5vw,44px); line-height:1; flex-shrink:0; }
+    .blr-org-name {
+      font-size: clamp(9px,1.2vw,12px); font-weight:700;
+      letter-spacing:.08em; color:#1a0c00; display:block;
+      text-transform:uppercase; margin-bottom:1px;
+    }
+    .blr-org-div {
+      font-size: clamp(7px,.85vw,9px); letter-spacing:.25em;
+      color:rgba(58,40,8,.55); display:block; text-transform:uppercase;
+    }
+    .blr-report-id {
+      font-size: clamp(8px,1vw,10px); font-weight:700;
+      letter-spacing:.15em; color:#1a0c00; display:block; text-transform:uppercase;
+      text-align:right;
+    }
+    .blr-class {
+      font-size: clamp(6px,.75vw,8px); letter-spacing:.25em;
+      text-transform:uppercase; padding:2px 8px;
+      border:1px solid rgba(196,48,48,.45); color:rgba(122,26,26,.7);
+      display:inline-block; margin-top:4px;
+    }
+    .blr-meta {
+      display:grid; grid-template-columns:repeat(auto-fill,minmax(130px,1fr));
+      gap:clamp(6px,1vw,10px); margin-bottom:clamp(16px,2.8vh,24px);
+      padding:clamp(8px,1.5vw,12px);
+      background:rgba(58,40,8,.06); border:1px solid rgba(58,40,8,.15);
+    }
+    .blr-meta-label {
+      font-size:clamp(6px,.75vw,8px); letter-spacing:.3em;
+      text-transform:uppercase; color:rgba(58,40,8,.4);
+      display:block; margin-bottom:2px;
+    }
+    .blr-meta-val { font-size:clamp(9px,1.1vw,11px); color:#2a1400; line-height:1.3; }
+    .blr-section-title {
+      font-size:clamp(7px,.85vw,9px); letter-spacing:.4em;
+      text-transform:uppercase; color:rgba(168,100,10,.8);
+      display:block; margin-bottom:clamp(6px,1.2vh,10px);
+      padding-bottom:3px; border-bottom:1px solid rgba(168,100,10,.2);
+    }
+    .blr-section { margin-bottom:clamp(14px,2.5vh,22px); }
+    .blr-text { font-size:clamp(10px,1.3vw,13px); color:#2a1400; line-height:1.8; }
+    .blr-finding {
+      display:flex; gap:10px; align-items:baseline;
+      font-size:clamp(10px,1.3vw,13px); color:#2a1400; line-height:1.7;
+      margin-bottom:4px;
+    }
+    .blr-finding::before { content:'›'; color:rgba(168,100,10,.7); flex-shrink:0; font-size:14px; }
+    .blr-conclusion {
+      background:rgba(58,40,8,.07); border:1px solid rgba(58,40,8,.2);
+      border-left:3px solid rgba(168,100,10,.6);
+      padding:clamp(10px,1.8vw,16px); margin-top:clamp(14px,2.5vh,22px);
+    }
+    .blr-conclusion-label {
+      font-size:clamp(6px,.75vw,8px); letter-spacing:.35em;
+      text-transform:uppercase; color:rgba(168,100,10,.7); display:block; margin-bottom:5px;
+    }
+    .blr-conclusion-text { font-size:clamp(10px,1.3vw,13px); color:#2a1400; line-height:1.75; }
+    .blr-sig-block {
+      margin-top:clamp(16px,3vh,28px); padding-top:clamp(12px,2vh,18px);
+      border-top:1px solid rgba(58,40,8,.2);
+      display:grid; grid-template-columns:1fr 1fr; gap:clamp(10px,2vw,20px);
+    }
+    .blr-sig-label {
+      font-size:clamp(6px,.75vw,8px); letter-spacing:.3em;
+      text-transform:uppercase; color:rgba(58,40,8,.4); display:block; margin-bottom:20px;
+    }
+    .blr-sig-line { border-bottom:1px solid rgba(58,40,8,.35); margin-bottom:4px; }
+    .blr-sig-name { font-size:clamp(9px,1.1vw,11px); color:rgba(58,40,8,.6); display:block; }
+    .blr-sig-title {
+      font-size:clamp(7px,.85vw,9px); letter-spacing:.15em;
+      color:rgba(58,40,8,.35); display:block; font-style:italic;
+    }
+
+    /* ════════════════════════════
        METADATA PANEL
     ════════════════════════════ */
     #meta-filter-bar {
@@ -1576,9 +1766,21 @@
 
         </div>
         <div class="panel" id="panel-documents">
-          <div class="panel-head"><div><span class="panel-title">Documents</span><span class="panel-sub">Paper evidence · Case COL-001-A</span></div><span class="wip-badge">Found during investigation</span></div>
+          <div class="panel-head">
+            <div><span class="panel-title">Documents</span><span class="panel-sub">Lab reports &amp; forensic returns · Case COL-001-A</span></div>
+            <span class="wip-badge" id="doc-count-badge">0 reports filed</span>
+          </div>
           <div class="panel-rule"></div>
-          <div class="evidence-empty"><span class="evidence-empty-icon">📋</span><span class="evidence-empty-text">No documents logged yet</span></div>
+
+          <!-- Empty state shown until first lab result returns -->
+          <div class="evidence-empty" id="doc-empty">
+            <span class="evidence-empty-icon">📋</span>
+            <span class="evidence-empty-text">No lab reports filed yet — submit evidence to the Forensics Lab to generate reports</span>
+          </div>
+
+          <!-- Document cards grid — populated by JS -->
+          <div class="doc-grid" id="doc-grid"></div>
+
         </div>
 
         <!-- ══ TIMELINE RECONSTRUCTION ══ -->
@@ -1917,6 +2119,14 @@
     </div><!-- /body -->
   </div><!-- /app -->
 
+  <!-- ── BOARD LAB REPORT VIEWER ── -->
+  <div id="board-lr-overlay" onclick="handleBoardLROverlay(event)">
+    <div id="board-lr-doc">
+      <button id="board-lr-close" onclick="closeBoardLR()">✕ Close</button>
+      <div class="blr-inner" id="blr-inner"></div>
+    </div>
+  </div>
+
   <!-- ── CCTV VIEWER MODAL ── -->
   <div id="cctv-modal-overlay" onclick="handleCCTVOverlay(event)">
     <div id="cctv-modal">
@@ -1983,6 +2193,11 @@
       // Autoplay CCTV previews when that panel opens
       if (id === 'panel-cctv') {
         setTimeout(startCCTVPreviews, 100);
+      }
+
+      // Refresh documents panel when opened so new lab returns appear
+      if (id === 'panel-documents') {
+        buildDocumentsPanel();
       }
 
       // Close sidebar on mobile after selecting
@@ -2643,6 +2858,274 @@
     });
     // Also build immediately in case DOMContentLoaded already fired
     buildMetaTable();
+
+    /* ════════════════════════════════════════════════
+       DOCUMENTS PANEL — Lab Reports
+       Reads col_evidence_extra from localStorage to
+       find which lab result items have been returned
+       (status === 'logged'), then displays their
+       full forensic lab reports as document cards.
+    ════════════════════════════════════════════════ */
+
+    // Lab type → card CSS class and icon
+    const LAB_TYPE_MAP = {
+      'Latent Print Laboratory':          { cls:'type-latent',   icon:'👆' },
+      'Forensic DNA Laboratory':          { cls:'type-dna',      icon:'🧬' },
+      'Trace Evidence Laboratory':        { cls:'type-trace',    icon:'🔍' },
+      'Digital & Multimedia Laboratory':  { cls:'type-digital',  icon:'💻' },
+      'Document Analysis Laboratory':     { cls:'type-document', icon:'📝' },
+      'Forensic Toxicology Laboratory':   { cls:'type-tox',      icon:'🧪' },
+      'Forensic Anthropology Laboratory': { cls:'type-anthro',   icon:'🦴' },
+      'Metallurgy Laboratory':            { cls:'type-metal',    icon:'⚙️' },
+    };
+
+    // Full lab report data — mirrors evidence.html LAB_REPORTS
+    // Only the fields needed to render in board.html
+    const BOARD_LAB_REPORTS = {
+      'COL-001-A-E09': { lab:'Latent Print Laboratory', division:'Friction Ridge Analysis Unit', analyst:'Sr. Examiner D. Holt', exhibit:'COL-001-A-E01 — Monogrammed Cigarette Case', reportId:'LPL-COL-001-A-001', name:'Partial Fingerprint — Cigarette Case Lid',
+        methodology:'The submitted exhibit was processed using a sequential fluorescent powder technique (aluminium flake suspension) applied to the inner lid surface. Developed impressions were digitally captured at 1200 dpi under oblique and ultraviolet lighting conditions. Ridge detail was evaluated against SWGFAST quality thresholds prior to AFIS submission.',
+        findings:['One partial latent print of value recovered from inner lid, lower right quadrant.','Print exhibits a right-hand loop pattern with sufficient ridge detail for comparison purposes (minimum 12 ridge characteristics identified).','AFIS candidate list generated — no immediate confirmed match returned.','Print is now designated LP/COL-001-A/01 and is active in the database for future comparison.','No additional latent prints of value were recovered from other surfaces of the exhibit.'],
+        conclusion:'The recovered partial print is suitable for comparison against known suspect exemplars. The absence of an AFIS hit does not preclude identification — submission of elimination prints from persons of interest is recommended as a priority action.',
+        analystTitle:'Senior Latent Print Examiner', reviewedBy:'Lt. Forensic Services M. Osei' },
+
+      'COL-001-A-E10': { lab:'Forensic DNA Laboratory', division:'Biological Evidence Unit — Trace DNA Section', analyst:'Dr. A. Reyes', exhibit:'COL-001-A-E01 — Monogrammed Cigarette Case', reportId:'DNA-COL-001-A-001', name:'Saliva Trace — Cigarette Case Inner Rim',
+        methodology:'Inner rim swabbing was conducted using sterile cotton-tipped applicators pre-moistened with phosphate-buffered saline. Swabs were subjected to differential extraction followed by quantitative PCR (qPCR). STR profiling was conducted using GlobalFiler™ amplification kit across 20 autosomal loci. Profile submitted to CODIS.',
+        findings:['Saliva trace confirmed at inner hinge rim — amylase indicator positive.','Sufficient cellular material recovered for partial STR profiling (16 of 20 loci yielded interpretable data).','Partial profile designated DNA/COL-001-A/01 — submitted to CODIS.','CODIS returned no confirmed hit at time of report. Profile remains active in the database.','Profile is sufficient for comparison against a known reference sample from any identified suspect.'],
+        conclusion:'A partial DNA profile has been established from saliva deposited on the exhibit. The profile is attributable to a single contributor. Collection of buccal reference swabs from named suspects is strongly recommended.',
+        analystTitle:'Forensic DNA Analyst', reviewedBy:'Dr. F. Nakamura, Laboratory Director' },
+
+      'COL-001-A-E11': { lab:'Trace Evidence Laboratory', division:'Chemistry & Materials Analysis Unit', analyst:'Examiner S. Vandermeer', exhibit:'COL-001-A-E01 — Monogrammed Cigarette Case', reportId:'TRC-COL-001-A-001', name:'Tobacco Blend Identification — Cigarette Case',
+        methodology:'Residual tobacco dust was collected from the interior using micro-vacuum sampling onto 0.45μm membrane filters. Analysis was conducted by GC-MS for volatile compound characterisation, supplemented by stable isotope ratio analysis (SIRA). Results compared against the Interpol Tobacco Reference Database (ITRD).',
+        findings:['Tobacco residue confirmed — sufficient quantity for full compositional analysis.','Volatile compound profile consistent with Oriental/Latakia blend — Balkan-style composition.','Isotope ratios indicate leaf origin in the Eastern Aegean region.','Blend is not commercially available through domestic retail channels — importation required.','Cross-reference with ITRD returned one licensed distributor in this jurisdiction: Marre Import Co., licence IM/2019/0441.'],
+        conclusion:'The tobacco residue profile establishes a specific and traceable supply chain link between the exhibit and Marre Import Co. This connection is independent of the monogram and constitutes corroborating evidence of provenance.',
+        analystTitle:'Trace Evidence Examiner', reviewedBy:'Sr. Scientist P. Okafor' },
+
+      'COL-001-A-E12': { lab:'Document Analysis Laboratory', division:'Questioned Documents Unit', analyst:'Examiner C. Brewster', exhibit:'COL-001-A-E02 — Unsigned Threatening Letter', reportId:'DOC-COL-001-A-001', name:'Typewriter Font Analysis — Threatening Letter',
+        methodology:'The submitted document was examined under transmitted light, oblique illumination, and infrared reflectography using a Video Spectral Comparator (VSC6000). Typeface characteristics were catalogued and compared against the Forensic Document Laboratory Typewriter Reference Collection (FDLTRC). Impression evidence was examined using ESDA.',
+        findings:['Document was typed on a mechanical typewriter — ribbon impression characteristics confirm non-electric mechanism.','Typeface identified as Pica Elite, consistent with Hermes 3000 portable typewriter series (manufactured 1958–1967).','Distinctive character deformity: lowercase "e" exhibits a fractured upper serif — machine-specific identifier.','No significant ESDA impression evidence recovered.','Paper stock is standard A4 bond (80gsm) — no watermark identified.'],
+        conclusion:'The typeface identification and character deformity together constitute a machine-specific signature. Recovery and examination of the typewriter believed responsible could provide a conclusive link.',
+        analystTitle:'Questioned Documents Examiner', reviewedBy:'Lt. Forensic Services M. Osei' },
+
+      'COL-001-A-E13': { lab:'Forensic DNA Laboratory', division:'Biological Evidence Unit', analyst:'Dr. A. Reyes', exhibit:'COL-001-A-E02 — Unsigned Threatening Letter (Envelope)', reportId:'DNA-COL-001-A-002', name:'Saliva Trace — Threatening Letter Envelope',
+        methodology:'The envelope flap gummed strip was excised using sterile scalpel and subjected to salivary amylase immunochromatographic testing (SALIgAE™). Positive material was subjected to differential extraction and STR profiling. Profile compared against the victim profile and submitted to CODIS.',
+        findings:['Salivary amylase confirmed on envelope gummed strip — licked seal confirmed.','Full STR profile obtained across 20 autosomal loci — designated DNA/COL-001-A/02.','Profile does not match victim DNA reference sample.','Profile does not match any existing person of interest reference sample on file.','CODIS search returned no confirmed hit — profile active in database.'],
+        conclusion:'The envelope was sealed by a person other than the victim. A full DNA profile is available for comparison. Buccal reference samples from named suspects would enable direct elimination or inclusion.',
+        analystTitle:'Forensic DNA Analyst', reviewedBy:'Dr. F. Nakamura, Laboratory Director' },
+
+      'COL-001-A-E14': { lab:'Latent Print Laboratory', division:'Friction Ridge Analysis Unit', analyst:'Sr. Examiner D. Holt', exhibit:'COL-001-A-E02 — Unsigned Threatening Letter', reportId:'LPL-COL-001-A-002', name:'Smudged Partial Print — Letter Corner',
+        methodology:'Document surfaces were processed using ninhydrin reagent (1% solution in HFE-7100) with post-treatment steam development. Developed impressions were digitally captured and enhanced using Fourier Transform analysis. Ridge characteristics were catalogued and evaluated for AFIS submission threshold compliance.',
+        findings:['One smudged partial print recovered from lower right corner of document.','Print exhibits a loop pattern — ridge detail partially obscured by smearing, estimated 8–10 usable characteristics.','Print falls below AFIS automatic submission threshold but is retained as LP/COL-001-A/02 for manual comparison.','Smearing pattern consistent with a right-hand impression made under lateral movement.','No additional prints of value recovered.'],
+        conclusion:'The recovered partial print is below the AFIS threshold for automated searching. However, it is suitable for manual comparison against exemplar prints from identified suspects.',
+        analystTitle:'Senior Latent Print Examiner', reviewedBy:'Lt. Forensic Services M. Osei' },
+
+      'COL-001-A-E15': { lab:'Digital & Multimedia Laboratory', division:'Mobile Device Forensics Unit', analyst:'Analyst T. Vasquez', exhibit:'COL-001-A-E03 — Burner Mobile Phone', reportId:'DML-COL-001-A-001', name:'Recovered Photo Fragment — Burner Phone',
+        methodology:'The device was imaged using Cellebrite UFED Physical Analyzer following a JTAG extraction method. Internal memory (16GB eMMC) was subjected to file carving using Autopsy 4.19 with PhotoRec plugin. Recovered JPEG fragments were processed using Adobe Photoshop Neural Filters. EXIF metadata extracted using ExifTool 12.4.',
+        findings:['One partial JPEG image file recovered from unallocated storage space — approximately 62% of original file intact.','Recovered image depicts a multi-storey building exterior, consistent with architecture in the Harlow Street / Canal District area.','EXIF metadata partially intact — timestamp reads 21:12:04, March 04 2026.','GPS data absent from metadata — coordinates were disabled or stripped.','Visual analysis suggests the photo was taken from street level, approximately 15–20 metres from the subject building.'],
+        conclusion:'The recovered image places the device — and by inference its user — in the vicinity of the Harlow Street area at 21:12 on the night of the incident, approximately 36 minutes before the estimated time of the primary event.',
+        analystTitle:'Digital Forensics Analyst', reviewedBy:'Dr. K. Ellison, Unit Supervisor' },
+
+      'COL-001-A-E16': { lab:'Metallurgy Laboratory', division:'Material Provenance & Manufacturing Analysis Unit', analyst:'Examiner R. Tran', exhibit:'COL-001-A-E03 — Burner Mobile Phone', reportId:'MET-COL-001-A-001', name:'IMEI Batch Trace — Burner Phone',
+        methodology:'Device IMEI was extracted via direct board-level access following chip-off. IMEI cross-referenced against GSMA Device Registry and OFCOM import declarations. Retail distribution records obtained through liquidator\'s inventory files (Canal Street Electronics, liquidated 18 months prior).',
+        findings:['IMEI confirmed: batch manufactured Q3 2023, distributed exclusively to Canal Street Electronics, Canal District.','Canal Street Electronics ceased trading 18 months ago — stock liquidated through public auction and private sale.','14 units from this batch sold — no purchaser identification recorded (cash sales).','IMEI not registered to any network operator — device never activated on a carrier plan.','No prior IMEI flagging or law enforcement holds recorded.'],
+        conclusion:'The device\'s retail origin has been traced to a now-closed cash-only retailer. Purchaser identification is not recoverable through official records.',
+        analystTitle:'Materials Provenance Examiner', reviewedBy:'Sr. Scientist P. Okafor' },
+
+      'COL-001-A-E17': { lab:'Forensic DNA Laboratory', division:'Biological Evidence Unit — Serology Section', analyst:'Dr. A. Reyes', exhibit:'COL-001-A-E04 — Bloodstained Cloth Fragment', reportId:'DNA-COL-001-A-003', name:'Secondary Blood Profile — Cloth Fragment',
+        methodology:'The exhibit was subjected to presumptive testing using TMB followed by confirmatory Ouchterlony immunodiffusion. DNA extraction was performed using differential lysis. Dual STR profiling was conducted. Profiles were compared against the victim reference sample and submitted to CODIS.',
+        findings:['Human blood confirmed — both presumptive and confirmatory tests positive.','Victim\'s DNA profile identified as primary contributor — confirmed against reference sample.','Secondary contributor profile identified — designated DNA/COL-001-A/03.','Secondary profile does not match victim or any current person of interest on file.','Secondary profile submitted to CODIS — no immediate match returned. Profile active.'],
+        conclusion:'The presence of a secondary DNA profile establishes physical contact between the exhibit and a second individual distinct from the victim. This is consistent with a struggle or direct contact at the scene.',
+        analystTitle:'Forensic DNA Analyst — Serology', reviewedBy:'Dr. F. Nakamura, Laboratory Director' },
+
+      'COL-001-A-E18': { lab:'Trace Evidence Laboratory', division:'Fibre & Textile Analysis Unit', analyst:'Examiner S. Vandermeer', exhibit:'COL-001-A-E04 — Bloodstained Cloth Fragment', reportId:'TRC-COL-001-A-002', name:'Vehicle Fibre Sample — Bloodstained Cloth',
+        methodology:'Trace fibre recovery was conducted using a systematic tape-lift protocol across the exhibit surface. Recovered fibres were mounted on glass slides and examined by polarised light microscopy (PLM) and scanning electron microscopy with energy-dispersive X-ray analysis (SEM-EDX). Fibre characteristics were compared against reference collections and automotive interior databases.',
+        findings:['Multiple extraneous fibres recovered — 3 distinct types identified.','Primary foreign fibre: ultra-fine wool/cashmere blend (60/40), dyed charcoal-black, consistent with high-end automotive interior trim.','Fibre morphology and dye lot consistent with interior specifications used by two European manufacturers (BMW 5-series, Mercedes E-class).','Secondary fibres: standard polyester — no significant attribution value.','Fibre transfer pattern suggests sustained contact rather than incidental exposure.'],
+        conclusion:'The primary foreign fibres indicate the exhibit came into prolonged contact with the interior of a high-end European saloon vehicle with a dark grey or charcoal interior trim.',
+        analystTitle:'Trace Evidence Examiner — Fibres', reviewedBy:'Sr. Scientist P. Okafor' },
+
+      'COL-001-A-E19': { lab:'Document Analysis Laboratory', division:'Ink Chronology & Paper Analysis Unit', analyst:'Examiner C. Brewster', exhibit:'COL-001-A-E05 — Ledger (Handwritten Accounts)', reportId:'DOC-COL-001-A-002', name:'Ink Dating Report — Ledger',
+        methodology:'Ink samples were extracted from representative entries using solvent extraction on micro-punches. Samples were analysed by HPLC and compared against the InkLinks database. Ink aging analysis was conducted using accelerated aging comparison and solvent loss ratio methodology.',
+        findings:['Ink composition is consistent across all entries — single ink formulation used throughout.','Ink identified as a ballpoint formulation consistent with common commercial pens.','Aging analysis confirms entries were made progressively across an estimated 5.5–7 month period.','No evidence of backdating detected — ink aging profile is consistent with contemporaneous entry.','No evidence of erasure, alteration, or page substitution detected.'],
+        conclusion:'The ledger entries were made progressively over approximately six months and have not been backdated or altered. This finding substantially increases the document\'s evidentiary credibility.',
+        analystTitle:'Questioned Documents Examiner — Ink Chronology', reviewedBy:'Lt. Forensic Services M. Osei' },
+
+      'COL-001-A-E20': { lab:'Latent Print Laboratory', division:'Friction Ridge Analysis Unit', analyst:'Sr. Examiner D. Holt', exhibit:'COL-001-A-E05 — Ledger (Handwritten Accounts)', reportId:'LPL-COL-001-A-003', name:'Multi-Author Fingerprint Set — Ledger',
+        methodology:'All pages of the exhibit were processed using ninhydrin reagent with steam development, followed by physical developer (PD) for aged impressions on paper. Developed prints were photographed and evaluated for AFIS submission. All identified prints were compared against Victor Marre\'s exemplar prints held on file.',
+        findings:['Three distinct fingerprint contributors identified across the ledger pages.','Contributor 1: confirmed match to Victor Marre (exemplar on file) — present on multiple pages.','Contributor 2: partial loop pattern — no current match on file. Designated LP/COL-001-A/03.','Contributor 3: arch pattern — no current match on file. Designated LP/COL-001-A/04.','Distribution of prints from Contributors 2 and 3 is consistent with regular handling.'],
+        conclusion:'The ledger was regularly handled by at least two individuals other than Victor Marre. This is inconsistent with the ledger being a personal private record — it was accessed and used by others.',
+        analystTitle:'Senior Latent Print Examiner', reviewedBy:'Lt. Forensic Services M. Osei' },
+
+      'COL-001-A-E21': { lab:'Digital & Multimedia Laboratory', division:'Video Analysis & Enhancement Unit', analyst:'Analyst T. Vasquez', exhibit:'COL-001-A-E06 — Security Footage USB Drive (Bay 7)', reportId:'DML-COL-001-A-002', name:'Enhanced CCTV Still — Bay 7 Figure',
+        methodology:'Raw footage was extracted from the USB drive and ingested into Amped FIVE. The target sequence (21:45–21:52) was subjected to frame-by-frame enhancement using spatial noise reduction, deblurring (Wiener filter), and super-resolution upscaling (4x factor). The optimal frame was processed using AI-assisted facial region enhancement.',
+        findings:['Target sequence successfully enhanced — significant improvement in subject visibility achieved.','Subject identified in frame at timestamp 21:48:22 — position consistent with Bay 7 patrol zone.','Enhanced still produced at sufficient resolution for facial comparison.','Subject is wearing a dark jacket and appearing to hold a small object — consistent with an envelope or document.','A second partial figure is visible at the extreme right edge of frame 21:48:37 — further enhancement requested.'],
+        conclusion:'The enhanced still provides a usable facial image of the subject present at Bay 7 at 21:48 on the night of the incident. The image has been forwarded to the Portrait Identification Queue for facial comparison.',
+        analystTitle:'Digital Forensics Analyst — Video Enhancement', reviewedBy:'Dr. K. Ellison, Unit Supervisor' },
+
+      'COL-001-A-E22': { lab:'Metallurgy Laboratory', division:'Material Provenance & Manufacturing Analysis Unit', analyst:'Examiner R. Tran', exhibit:'COL-001-A-E06 — Security Footage USB Drive (Bay 7)', reportId:'MET-COL-001-A-002', name:'USB Manufacture Trace — Bay 7 Drive',
+        methodology:'USB casing subjected to X-ray fluorescence (XRF) analysis for elemental composition mapping. Findings cross-referenced against the City Harbour Authority\'s procurement asset register and the supplier\'s batch shipping records.',
+        findings:['USB drive casing composition: ABS plastic, consistent with standard consumer-grade manufacture.','Batch marking identified: CHA/BATCH/2024/009 — City Harbour Authority procurement batch.','Asset register confirms batch of 50 units procured by City Harbour Authority, delivered March 2024.','Serial number of exhibit falls within the registered batch — chain of custody to CHA confirmed.','No evidence of tampering with casing, serial number, or storage medium.'],
+        conclusion:'The exhibit has been confirmed as a legitimate City Harbour Authority asset from a traceable procurement batch. Chain of custody integrity from original procurement is established.',
+        analystTitle:'Materials Provenance Examiner', reviewedBy:'Sr. Scientist P. Okafor' },
+
+      'COL-001-A-E23': { lab:'Forensic DNA Laboratory', division:'Biological Evidence Unit', analyst:'Dr. A. Reyes', exhibit:'COL-001-A-E07 — Prescription Medicine Bottle', reportId:'DNA-COL-001-A-004', name:'DNA Profile — Medicine Bottle Rim',
+        methodology:'The bottle rim and cap inner surface were swabbed using sterile nylon flocked swabs. STR profiling was conducted using GlobalFiler™ kit. The resulting profile was compared against the prescription registrant\'s reference profile (Elara Voss) and against the victim\'s reference profile.',
+        findings:['Epithelial cells recovered from bottle rim — sufficient for full STR profiling.','Full STR profile obtained across all 20 autosomal loci — designated DNA/COL-001-A/04.','Profile compared to Elara Voss reference profile: confirmed match across all 20 loci.','Profile compared to victim reference profile: no match.','No additional contributors detected — single-source profile.'],
+        conclusion:'DNA analysis confirms that Elara Voss is the most recent person to have handled the bottle in a manner involving direct skin contact with the rim. This biologically corroborates her access to the victim\'s apartment.',
+        analystTitle:'Forensic DNA Analyst', reviewedBy:'Dr. F. Nakamura, Laboratory Director' },
+
+      'COL-001-A-E24': { lab:'Forensic Toxicology Laboratory', division:'Pharmaceutical & Controlled Substance Analysis Unit', analyst:'Dr. M. Charoenwong', exhibit:'COL-001-A-E07 — Prescription Medicine Bottle', reportId:'TOX-COL-001-A-001', name:'Residue Analysis — Medicine Bottle Contents',
+        methodology:'Residual pharmaceutical material was recovered from bottle interior via solvent wash (methanol extraction). Extracts were analysed by LC-MS/MS for quantitative compound identification. Results were compared against the prescription label compound and the SWGTOX reference library.',
+        findings:['Primary compound identified: consistent with labelled prescription — therapeutic class confirmed.','Secondary compound identified: zopiclone — a non-benzodiazepine sedative hypnotic.','Zopiclone is not listed on the prescription label and is a separate controlled substance.','Zopiclone concentration in residue is sub-therapeutic as a standalone dose but significant as an additive.','Zopiclone has a half-life of 5–6 hours and would not be detectable in standard post-mortem screens without targeted testing.'],
+        conclusion:'An unexpected controlled substance — zopiclone — has been identified in residue from the bottle interior. Its presence is unexplained by the prescription. A targeted toxicological re-examination of any biological samples from the victim is strongly recommended.',
+        analystTitle:'Forensic Toxicologist', reviewedBy:'Prof. J. Osei-Bonsu, Head of Toxicology' },
+
+      'COL-001-A-E25': { lab:'Trace Evidence Laboratory', division:'Geoscience & Soil Analysis Unit', analyst:'Examiner S. Vandermeer', exhibit:'COL-001-A-E08 — Partial Boot Print Cast', reportId:'TRC-COL-001-A-003', name:'Soil Composition Match — Boot Print Cast',
+        methodology:'Soil material was recovered from the tread impression using sterile micro-spatula excavation. Samples were subjected to particle size analysis, X-ray diffraction (XRD) for mineral identification, and heavy metal profiling by ICP-MS. Results compared against the City Geological Survey reference soil map.',
+        findings:['Two distinct soil populations identified within the tread material.','Population 1: silty clay with high organic content — consistent with the muddy lot recovery site.','Population 2: calcitic sandy loam with elevated manganese — distinct from recovery site.','Population 2 composition matches geological reference profiles for reclaimed industrial land — specifically the Kessler Warehouse District foreshore.','Spatial distribution within tread suggests Population 2 was deposited first.'],
+        conclusion:'Pedological analysis establishes that the boot print\'s owner passed through the Kessler Warehouse District prior to arriving at the alley. This provides a partial movement timeline and links two sites relevant to the investigation.',
+        analystTitle:'Trace Evidence Examiner — Geoscience', reviewedBy:'Sr. Scientist P. Okafor' },
+
+      'COL-001-A-E26': { lab:'Forensic Anthropology Laboratory', division:'Human Gait & Biomechanics Analysis Unit', analyst:'Dr. B. Marchetti', exhibit:'COL-001-A-E08 — Partial Boot Print Cast', reportId:'ANT-COL-001-A-001', name:'Gait Analysis Report — Boot Print',
+        methodology:'The cast was digitally scanned using structured light 3D scanning (Artec Eva) at 0.1mm resolution. Stride geometry was inferred from impression depth distribution using pressure mapping algorithms. Foot length and width measurements were correlated against published anthropometric regression equations.',
+        findings:['Boot size: UK 11 (EU 46) — foot length approximately 295mm.','Estimated stature: 187–192cm (6\'2"–6\'3") based on foot length/stature regression.','Estimated body mass: 88–98kg (195–216 lbs) based on impression depth distribution.','Left-side pronation detected: medial aspect of left impression shows disproportionate depth — consistent with a chronic ankle or lower-leg condition.','Gait pattern is consistent with a physically active individual in good general physical condition.'],
+        conclusion:'A physical profile has been established: male, tall (187–192cm), 88–98kg, with a left-side gait asymmetry consistent with a prior lower-leg injury. This profile can be used to exclude suspects who do not conform to these parameters.',
+        analystTitle:'Forensic Anthropologist', reviewedBy:'Prof. L. Ashworth, Human Identification Unit' },
+    };
+
+    /* Build the documents panel from localStorage */
+    function buildDocumentsPanel() {
+      try {
+        const savedStatus = JSON.parse(localStorage.getItem('col_evidence_status') || '{}');
+        const extraItems  = JSON.parse(localStorage.getItem('col_evidence_extra')  || '[]');
+
+        // Find all lab result items that are currently logged
+        const loggedReports = [];
+        const resultIds = Object.keys(BOARD_LAB_REPORTS);
+
+        resultIds.forEach(id => {
+          const status = savedStatus[id];
+          // Also check if it exists in extraItems
+          const inExtra = extraItems.find(e => e.id === id);
+          if (status === 'logged' || (inExtra && (savedStatus[inExtra.id] === 'logged' || inExtra.status === 'logged'))) {
+            loggedReports.push(id);
+          }
+        });
+
+        const grid    = document.getElementById('doc-grid');
+        const empty   = document.getElementById('doc-empty');
+        const badge   = document.getElementById('doc-count-badge');
+
+        if (!grid) return;
+        grid.innerHTML = '';
+
+        if (loggedReports.length === 0) {
+          empty.style.display = '';
+          badge.textContent = '0 reports filed';
+          return;
+        }
+
+        empty.style.display = 'none';
+        badge.textContent = `${loggedReports.length} report${loggedReports.length > 1 ? 's' : ''} filed`;
+
+        loggedReports.forEach(id => {
+          const r = BOARD_LAB_REPORTS[id];
+          if (!r) return;
+          const typeInfo = LAB_TYPE_MAP[r.lab] || { cls:'type-document', icon:'📋' };
+
+          const card = document.createElement('div');
+          card.className = `doc-card ${typeInfo.cls}`;
+          card.onclick = () => openBoardLR(id);
+          card.innerHTML = `
+            <div class="doc-card-inner">
+              <span class="doc-card-icon">${typeInfo.icon}</span>
+              <span class="doc-card-ref">${r.reportId}</span>
+              <span class="doc-card-title">${r.name}</span>
+              <span class="doc-card-lab">${r.lab}</span>
+              <span class="doc-card-exhibit">Exhibit: ${r.exhibit}</span>
+              <span class="doc-card-open">Open Report →</span>
+            </div>
+          `;
+          grid.appendChild(card);
+        });
+
+        // Also update the overview card count
+        const overviewCard = document.querySelector('.card[onclick*="panel-documents"] .card-count');
+        if (overviewCard) overviewCard.textContent = `${loggedReports.length} reports`;
+
+      } catch(e) { console.error('buildDocumentsPanel:', e); }
+    }
+
+    /* Open lab report modal in board.html */
+    function openBoardLR(id) {
+      const r = BOARD_LAB_REPORTS[id];
+      if (!r) return;
+
+      const now   = new Date();
+      const dated = now.toLocaleDateString('en-GB',{day:'2-digit',month:'long',year:'numeric'});
+
+      document.getElementById('blr-inner').innerHTML = `
+        <div class="blr-letterhead">
+          <div class="blr-logo">🔬</div>
+          <div>
+            <span class="blr-org-name">City of Lies Police Department</span>
+            <span class="blr-org-div">${r.lab}</span>
+            <span class="blr-org-div">${r.division}</span>
+          </div>
+          <div style="text-align:right;flex-shrink:0">
+            <span class="blr-report-id">${r.reportId}</span>
+            <span class="blr-class">Restricted — Case Use Only</span>
+          </div>
+        </div>
+        <div class="blr-meta">
+          <div><span class="blr-meta-label">Case No.</span><span class="blr-meta-val">COL-001-A</span></div>
+          <div><span class="blr-meta-label">Exhibit</span><span class="blr-meta-val">${r.exhibit}</span></div>
+          <div><span class="blr-meta-label">Laboratory</span><span class="blr-meta-val">${r.lab}</span></div>
+          <div><span class="blr-meta-label">Analyst</span><span class="blr-meta-val">${r.analyst}</span></div>
+          <div><span class="blr-meta-label">Report Date</span><span class="blr-meta-val">${dated}</span></div>
+          <div><span class="blr-meta-label">Reviewed By</span><span class="blr-meta-val">${r.reviewedBy}</span></div>
+        </div>
+        <div class="blr-section">
+          <span class="blr-section-title">Methodology</span>
+          <p class="blr-text">${r.methodology}</p>
+        </div>
+        <div class="blr-section">
+          <span class="blr-section-title">Findings</span>
+          ${r.findings.map(f => `<div class="blr-finding">${f}</div>`).join('')}
+        </div>
+        <div class="blr-conclusion">
+          <span class="blr-conclusion-label">Forensic Conclusions &amp; Investigative Recommendations</span>
+          <p class="blr-conclusion-text">${r.conclusion}</p>
+        </div>
+        <div class="blr-sig-block">
+          <div>
+            <span class="blr-sig-label">Analyst Signature</span>
+            <div class="blr-sig-line"></div>
+            <span class="blr-sig-name">${r.analyst}</span>
+            <span class="blr-sig-title">${r.analystTitle}</span>
+          </div>
+          <div>
+            <span class="blr-sig-label">Review &amp; Authorisation</span>
+            <div class="blr-sig-line"></div>
+            <span class="blr-sig-name">${r.reviewedBy}</span>
+            <span class="blr-sig-title">Supervising Officer</span>
+          </div>
+        </div>
+      `;
+      document.getElementById('board-lr-overlay').classList.add('open');
+    }
+
+    function closeBoardLR() {
+      document.getElementById('board-lr-overlay').classList.remove('open');
+    }
+
+    function handleBoardLROverlay(e) {
+      if (e.target === document.getElementById('board-lr-overlay')) closeBoardLR();
+    }
+
+    // Build documents panel when that panel becomes active
+    const _origShowPanel = showPanel;
+    // Hook into showPanel for documents
+    document.addEventListener('DOMContentLoaded', buildDocumentsPanel);
+    buildDocumentsPanel();
 
     /* ════════════════════════════════════════════════
        CCTV VIEWER
