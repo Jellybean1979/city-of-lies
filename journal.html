@@ -741,6 +741,30 @@
 
     loadLog();
 
+    /* ── Restore cooldown on page load if still active ── */
+    (function checkCooldownOnLoad() {
+      const lastSubmit = parseInt(localStorage.getItem('col_journal_last_submit') || '0');
+      const remaining  = COOLDOWN_MS - (Date.now() - lastSubmit);
+      if (remaining > 0 && lastSubmit > 0) {
+        const btn = document.getElementById('analyze-btn');
+        btn.disabled = true;
+        const interval = setInterval(() => {
+          const rem = Math.ceil((COOLDOWN_MS - (Date.now() - lastSubmit)) / 1000);
+          if (rem <= 0) {
+            clearInterval(interval);
+            btn.textContent = 'Analyze Theory';
+            btn.disabled = !document.getElementById('t-suspect').value;
+          } else {
+            const m = Math.floor(rem / 60), s = rem % 60;
+            btn.textContent = `Cooldown — ${m}:${s.toString().padStart(2,'0')}`;
+          }
+        }, 1000);
+        const m0 = Math.floor(remaining / 1000 / 60);
+        const s0 = Math.floor((remaining / 1000) % 60);
+        btn.textContent = `Cooldown — ${m0}:${s0.toString().padStart(2,'0')}`;
+      }
+    })();
+
     /* ════════════════════════════════════════════════
        THEORY ANALYSIS ENGINE
     ════════════════════════════════════════════════ */
@@ -751,13 +775,131 @@
       'patrick-lorne':'Patrick Lorne','unknown':'Unknown / Still investigating',
     };
 
+    /* ════════════════════════════════════════════════
+       ANTI-EXPLOIT SYSTEM
+       ─────────────────────────────────────────────
+       1. Hard cap at 85% per category — case is never
+          certain until the Final Report is filed
+       2. Diminishing returns — repeated correct answers
+          score slightly less each time (−4% per repeat,
+          floor at 60%)
+       3. Wrong guess penalty — incorrect named answers
+          accumulate a debt that suppresses future scores
+          for that category (recovers after 2 correct entries)
+       4. 3-minute cooldown between submissions
+       5. Evidence gate — correct answers cap at 50% if no
+          relevant evidence is attached
+       6. ±5% noise on every category score
+    ════════════════════════════════════════════════ */
+
+    const SCORE_CAP       = 85;   // max any category can score
+    const COOLDOWN_MS     = 3 * 60 * 1000; // 3 minutes
+    const DIMINISH_RATE   = 4;    // % per repeat submission of same correct answer
+    const DIMINISH_FLOOR  = 60;   // minimum after diminishing returns
+    const NOISE_RANGE     = 5;    // ±5% random variance
+    const EVIDENCE_GATE   = 50;   // cap if no evidence attached
+
+    // Evidence items relevant to each category
+    const CATEGORY_EVIDENCE = {
+      suspect:  ['COL-001-A-E01','COL-001-A-E05','COL-001-A-E09','COL-001-A-E10','COL-001-A-E19','COL-001-A-E20'],
+      motive:   ['COL-001-A-E05','COL-001-A-E02','COL-001-A-E12','COL-001-A-E13','COL-001-A-E19'],
+      method:   ['COL-001-A-E03','COL-001-A-E15','COL-001-A-E16'],
+      timeline: ['COL-001-A-E06','COL-001-A-E21','COL-001-A-E15'],
+      location: ['COL-001-A-E01','COL-001-A-E04','COL-001-A-E06','COL-001-A-E18','COL-001-A-E21'],
+    };
+
+    // Tracks per-category repeat counts and wrong guess debts
+    // Loaded from localStorage so it persists across sessions
+    let scoreState = {};
+    try { scoreState = JSON.parse(localStorage.getItem('col_journal_score_state') || '{}'); }
+    catch(_) { scoreState = {}; }
+
+    function saveScoreState() {
+      localStorage.setItem('col_journal_score_state', JSON.stringify(scoreState));
+    }
+
+    // Add noise to a score within ±NOISE_RANGE, keeping it within 0–SCORE_CAP
+    function addNoise(score) {
+      const noise = Math.floor(Math.random() * (NOISE_RANGE * 2 + 1)) - NOISE_RANGE;
+      return Math.max(0, Math.min(SCORE_CAP, score + noise));
+    }
+
+    // Cap at SCORE_CAP, apply evidence gate, apply noise
+    function finalise(rawScore, categoryKey, attachedEvidence) {
+      let score = Math.min(rawScore, SCORE_CAP);
+
+      // Evidence gate — if no relevant evidence attached, cap at EVIDENCE_GATE
+      if (categoryKey && CATEGORY_EVIDENCE[categoryKey]) {
+        const relevant = CATEGORY_EVIDENCE[categoryKey];
+        const hasRelevant = attachedEvidence.some(id => relevant.includes(id));
+        if (!hasRelevant) score = Math.min(score, EVIDENCE_GATE);
+      }
+
+      return addNoise(score);
+    }
+
+    // Get diminishing returns multiplier for a category+value combo
+    function getDiminishMultiplier(categoryKey, value) {
+      const key = `${categoryKey}_${value}`;
+      const repeats = scoreState[key] || 0;
+      const reduction = repeats * DIMINISH_RATE;
+      return Math.max(DIMINISH_FLOOR, SCORE_CAP - reduction) / SCORE_CAP;
+    }
+
+    // Record a correct answer (for diminishing returns tracking)
+    function recordAnswer(categoryKey, value, isCorrect, isWrong) {
+      const key = `${categoryKey}_${value}`;
+      if (isCorrect) {
+        scoreState[key] = (scoreState[key] || 0) + 1;
+      }
+      // Track wrong guess penalty per category
+      const penaltyKey = `${categoryKey}_wrongDebt`;
+      if (isWrong) {
+        scoreState[penaltyKey] = Math.min(30, (scoreState[penaltyKey] || 0) + 10);
+      } else if (isCorrect) {
+        // Correct answer reduces debt
+        scoreState[penaltyKey] = Math.max(0, (scoreState[penaltyKey] || 0) - 15);
+      }
+    }
+
+    // Get wrong guess debt reduction for a category
+    function getWrongDebt(categoryKey) {
+      return scoreState[`${categoryKey}_wrongDebt`] || 0;
+    }
+
     function analyzeTheory() {
       const btn = document.getElementById('analyze-btn');
+
+      // ── Cooldown check ──
+      const lastSubmit = parseInt(localStorage.getItem('col_journal_last_submit') || '0');
+      const now        = Date.now();
+      const elapsed    = now - lastSubmit;
+
+      if (elapsed < COOLDOWN_MS && lastSubmit > 0) {
+        const remaining = Math.ceil((COOLDOWN_MS - elapsed) / 1000);
+        const mins = Math.floor(remaining / 60);
+        const secs = remaining % 60;
+        btn.textContent = `Cooldown — ${mins}:${secs.toString().padStart(2,'0')}`;
+        btn.disabled = true;
+        // Update countdown every second
+        const interval = setInterval(() => {
+          const r = Math.ceil((COOLDOWN_MS - (Date.now() - lastSubmit)) / 1000);
+          if (r <= 0) {
+            clearInterval(interval);
+            btn.textContent = 'Analyze Theory';
+            btn.disabled = !document.getElementById('t-suspect').value;
+          } else {
+            const m = Math.floor(r / 60), s = r % 60;
+            btn.textContent = `Cooldown — ${m}:${s.toString().padStart(2,'0')}`;
+          }
+        }, 1000);
+        return;
+      }
+
       btn.classList.add('loading');
       btn.textContent = 'Analyzing...';
       btn.disabled = true;
 
-      // Simulate brief processing delay for effect
       setTimeout(() => {
         const answers = {
           suspect:  document.getElementById('t-suspect').value,
@@ -768,12 +910,23 @@
           evidence: [...selectedEvidence],
         };
 
-        const scores = computeScores(answers);
+        // Record answers for anti-exploit tracking
+        const fields = ['suspect','motive','method','timeline','location'];
+        fields.forEach(f => {
+          const isCorrect = answers[f] === SOLUTION[f === 'suspect' ? 'suspect' : f];
+          const isWrong   = answers[f] && answers[f] !== 'unknown' && !isCorrect;
+          recordAnswer(f, answers[f], isCorrect, isWrong);
+        });
+        saveScoreState();
+
+        // Record cooldown timestamp
+        localStorage.setItem('col_journal_last_submit', Date.now().toString());
+
+        const scores  = computeScores(answers);
         const overall = computeOverall(scores);
 
         displayResult(scores, overall);
 
-        // Save to log
         const entry = {
           num:          journalLog.length + 1,
           timestamp:    new Date().toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}) + ' · ' + new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'}),
@@ -794,76 +947,105 @@
         document.getElementById('entry-num').textContent = '#' + (journalLog.length + 1);
 
         btn.classList.remove('loading');
-        btn.textContent = 'Analyze Theory';
-        btn.disabled = false;
+        // Start cooldown display
+        const startCooldown = () => {
+          const r = Math.ceil((COOLDOWN_MS - (Date.now() - Date.now())) / 1000);
+          btn.textContent = `Cooldown — 3:00`;
+          btn.disabled = true;
+          const interval = setInterval(() => {
+            const rem = Math.ceil((COOLDOWN_MS - (Date.now() - parseInt(localStorage.getItem('col_journal_last_submit')))) / 1000);
+            if (rem <= 0) {
+              clearInterval(interval);
+              btn.textContent = 'Analyze Theory';
+              btn.disabled = !document.getElementById('t-suspect').value;
+            } else {
+              const m = Math.floor(rem / 60), s = rem % 60;
+              btn.textContent = `Cooldown — ${m}:${s.toString().padStart(2,'0')}`;
+            }
+          }, 1000);
+        };
+        startCooldown();
+
       }, 900);
     }
 
-    /* ── Score each category 0–100 ── */
+    /* ── Score each category with all anti-exploit measures applied ── */
     function computeScores(a) {
-      // Suspect: correct = 100, wrong named guess = 10, unknown/empty = 0
-      let suspectScore = 0;
-      if (a.suspect === SOLUTION.suspect) suspectScore = 100;
-      else if (a.suspect && a.suspect !== 'unknown') suspectScore = 10;
+      const ev = a.evidence;
 
-      // Motive: correct = 100, wrong = 15, unknown/empty = 0
-      let motiveScore = 0;
-      if (a.motive === SOLUTION.motive) motiveScore = 100;
-      else if (a.motive && a.motive !== 'unknown') motiveScore = 15;
+      // ── Suspect ──
+      let suspectRaw = 0;
+      if (a.suspect === SOLUTION.suspect) {
+        const mult = getDiminishMultiplier('suspect', a.suspect);
+        suspectRaw = Math.round(85 * mult);
+      } else if (a.suspect && a.suspect !== 'unknown') {
+        suspectRaw = Math.max(0, 12 - getWrongDebt('suspect'));
+      }
+      const suspectScore = finalise(suspectRaw, 'suspect', ev);
 
-      // Method: correct = 100, wrong = 15, unknown/empty = 0
-      let methodScore = 0;
-      if (a.method === SOLUTION.method) methodScore = 100;
-      else if (a.method && a.method !== 'unknown') methodScore = 15;
+      // ── Motive ──
+      let motiveRaw = 0;
+      if (a.motive === SOLUTION.motive) {
+        const mult = getDiminishMultiplier('motive', a.motive);
+        motiveRaw = Math.round(85 * mult);
+      } else if (a.motive && a.motive !== 'unknown') {
+        motiveRaw = Math.max(0, 14 - getWrongDebt('motive'));
+      }
+      const motiveScore = finalise(motiveRaw, 'motive', ev);
 
-      // Timeline: correct = 100, wrong = 10, unknown/empty = 0
-      let timelineScore = 0;
-      if (a.timeline === SOLUTION.timeline) timelineScore = 100;
-      else if (a.timeline && a.timeline !== 'unknown') timelineScore = 10;
+      // ── Method ──
+      let methodRaw = 0;
+      if (a.method === SOLUTION.method) {
+        const mult = getDiminishMultiplier('method', a.method);
+        methodRaw = Math.round(85 * mult);
+      } else if (a.method && a.method !== 'unknown') {
+        methodRaw = Math.max(0, 14 - getWrongDebt('method'));
+      }
+      const methodScore = finalise(methodRaw, 'method', ev);
 
-      // Location: correct = 100, wrong = 15, unknown/empty = 0
-      let locationScore = 0;
-      if (a.location === SOLUTION.location) locationScore = 100;
-      else if (a.location && a.location !== 'unknown') locationScore = 15;
+      // ── Timeline ──
+      let timelineRaw = 0;
+      if (a.timeline === SOLUTION.timeline) {
+        const mult = getDiminishMultiplier('timeline', a.timeline);
+        timelineRaw = Math.round(85 * mult);
+      } else if (a.timeline && a.timeline !== 'unknown') {
+        timelineRaw = Math.max(0, 10 - getWrongDebt('timeline'));
+      }
+      const timelineScore = finalise(timelineRaw, 'timeline', ev);
 
-      // Evidence strength: % of key items attached
-      const keyHits = a.evidence.filter(id => SOLUTION.keyEvidence.includes(id)).length;
-      const evScore = SOLUTION.keyEvidence.length > 0
-        ? Math.round((keyHits / SOLUTION.keyEvidence.length) * 100) : 0;
+      // ── Location ──
+      let locationRaw = 0;
+      if (a.location === SOLUTION.location) {
+        const mult = getDiminishMultiplier('location', a.location);
+        locationRaw = Math.round(85 * mult);
+      } else if (a.location && a.location !== 'unknown') {
+        locationRaw = Math.max(0, 14 - getWrongDebt('location'));
+      }
+      const locationScore = finalise(locationRaw, 'location', ev);
 
-      // Overall case readiness: combination of
-      //   — how many fields are filled (not unknown/empty)
-      //   — how many evidence items have been logged (from locker)
-      //   — how many evidence items are attached to this theory
-      const filledFields = [a.suspect, a.motive, a.method, a.timeline, a.location]
+      // ── Evidence strength ──
+      const keyHits = ev.filter(id => SOLUTION.keyEvidence.includes(id)).length;
+      const evRaw   = SOLUTION.keyEvidence.length > 0
+        ? Math.round((keyHits / SOLUTION.keyEvidence.length) * 85) : 0;
+      const evScore = addNoise(Math.min(evRaw, SCORE_CAP));
+
+      // ── Case readiness ──
+      const filledFields    = [a.suspect, a.motive, a.method, a.timeline, a.location]
         .filter(v => v && v !== 'unknown').length;
-      const fieldReadiness = Math.round((filledFields / 5) * 100);
-
-      const totalReleased = releasedEvidence.length;
-      const totalLogged   = releasedEvidence.filter(e => e.status === 'logged').length;
-      const lockerReadiness = totalReleased > 0
-        ? Math.round((totalLogged / totalReleased) * 100) : 0;
-
-      const attachedAny    = a.evidence.length > 0 ? 100 : 0;
-      const readinessScore = Math.round(
-        fieldReadiness   * 0.40 +
-        lockerReadiness  * 0.40 +
-        attachedAny      * 0.20
-      );
+      const fieldReadiness  = Math.round((filledFields / 5) * 85);
+      const totalReleased   = releasedEvidence.length;
+      const totalLogged     = releasedEvidence.filter(e => e.status === 'logged').length;
+      const lockerReadiness = totalReleased > 0 ? Math.round((totalLogged / totalReleased) * 85) : 0;
+      const attachedAny     = ev.length > 0 ? 85 : 0;
+      const readinessRaw    = Math.round(fieldReadiness * 0.40 + lockerReadiness * 0.40 + attachedAny * 0.20);
+      const readinessScore  = addNoise(Math.min(readinessRaw, SCORE_CAP));
 
       return { suspectScore, motiveScore, methodScore, timelineScore, locationScore, evScore, readinessScore };
     }
 
     function computeOverall(s) {
-      // Equal weighting across all 7 categories
-      const total =
-        s.suspectScore   +
-        s.motiveScore    +
-        s.methodScore    +
-        s.timelineScore  +
-        s.locationScore  +
-        s.evScore        +
-        s.readinessScore;
+      const total = s.suspectScore + s.motiveScore + s.methodScore +
+                    s.timelineScore + s.locationScore + s.evScore + s.readinessScore;
       return Math.round(total / 7);
     }
 
@@ -881,10 +1063,10 @@
       pctEl.className   = 'result-overall ' + cls;
 
       verdictEl.textContent =
-        overall >= 80 ? 'Strong theory. Your conclusions align closely with the evidence trail. This is ready to test in the Final Report.' :
-        overall >= 60 ? 'Developing theory. Several key elements are correct but gaps remain. Gather more evidence before filing.' :
-        overall >= 40 ? 'Partial theory. You have some pieces but important elements are missing or incorrect. Keep investigating.' :
-        overall >= 20 ? 'Weak theory. Most conclusions are unsupported. Review the evidence locker and revisit your assumptions.' :
+        overall >= 72 ? 'Strong theory. Your conclusions align closely with the evidence trail. File the Final Report when ready — no theory achieves certainty until the case is closed.' :
+        overall >= 55 ? 'Developing theory. Several key elements are correct but gaps remain. Gather more evidence and revisit before filing.' :
+        overall >= 35 ? 'Partial theory. You have some pieces but important elements are missing or incorrect. Keep investigating.' :
+        overall >= 18 ? 'Weak theory. Most conclusions are unsupported. Review the evidence locker and revisit your assumptions.' :
                         'Insufficient basis. Your current theory has little alignment with the available evidence. Start from the beginning.';
 
       catsEl.innerHTML = '';
@@ -980,4 +1162,3 @@
   </script>
 </body>
 </html>
-
