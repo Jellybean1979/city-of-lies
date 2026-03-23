@@ -973,96 +973,297 @@
     }
 
     /* ════════════════════════════════════════════════
-       SCORING ENGINE
+       ENDING RESOLVER
+       Reads meters + answers + evidence to determine
+       which of 8 endings the player reaches.
+
+       Checked in priority order — first match wins.
+       Meters read from localStorage col_save.
     ════════════════════════════════════════════════ */
+
+    function getMeters() {
+      try {
+        const save = JSON.parse(localStorage.getItem('col_save') || '{}');
+        return {
+          influence:   save.influence    ?? 0,
+          cityCorrupt: save.cityCorrupt  ?? 0,
+          streetCred:  100 - (save.cityCorrupt ?? 0), // always inverse
+        };
+      } catch(_) { return { influence:0, cityCorrupt:0, streetCred:0 }; }
+    }
+
+    function getEvidenceCount() {
+      try {
+        const status = JSON.parse(localStorage.getItem('col_evidence_status') || '{}');
+        return Object.values(status).filter(s => s === 'logged').length;
+      } catch(_) { return 0; }
+    }
+
+    function resolveEnding(answers, scorePct) {
+      const m      = getMeters();
+      const evCount = getEvidenceCount();
+      const correct = answers.perpetrator === SOLUTION.perpetrator;
+      const keyEvOk = SOLUTION.keyEvidence.every(e => answers.evidence.includes(e));
+
+      // ── Ending 1: THE TURN
+      // Player sided fully with the underworld
+      if (m.streetCred >= 90 && m.influence >= 60) {
+        return 'the-turn';
+      }
+
+      // ── Ending 2: CORRUPT VICTORY
+      // Wrong perpetrator, high influence — powerful people got what they wanted
+      if (!correct && m.influence >= 70) {
+        return 'corrupt-victory';
+      }
+
+      // ── Ending 3: THE FRAME
+      // Wrong perpetrator, high street cred — syndicates helped pin it on someone else
+      if (!correct && m.streetCred >= 60 && answers.perpetrator !== 'unknown') {
+        return 'the-frame';
+      }
+
+      // ── Ending 4: BURIED
+      // Correct perpetrator but city corruption is maxed — report disappears
+      if (correct && m.cityCorrupt >= 75) {
+        return 'buried';
+      }
+
+      // ── Ending 5: WHISTLEBLOWER
+      // Correct perpetrator + low influence + strong evidence + media used
+      // (Media faction contact proxied by low corruption + strong evidence)
+      if (correct && m.influence <= 25 && keyEvOk && m.cityCorrupt <= 40) {
+        return 'whistleblower';
+      }
+
+      // ── Ending 6: PYRRHIC JUSTICE
+      // Correct perpetrator but high influence — conviction challenged
+      if (correct && m.influence >= 55 && scorePct >= 60) {
+        return 'pyrrhic';
+      }
+
+      // ── Ending 7: CLEAN VERDICT
+      // Correct perpetrator, low corruption, strong evidence, clean detective
+      if (correct && scorePct >= 70 && m.influence <= 40 && keyEvOk) {
+        return 'clean';
+      }
+
+      // ── Ending 8: COLD CASE
+      // Default — insufficient evidence or wrong perpetrator, nothing else triggered
+      return 'cold-case';
+    }
+
+    const ENDINGS = {
+      'clean': {
+        title:     'Case Closed — Clean Verdict',
+        scoreStyle:'score-high',
+        stamp:     'Conviction Secured',
+        narrative: `
+          <p>Your report landed on the Deputy Commissioner's desk at 09:00 the following morning. By noon, an arrest warrant had been issued. By the time Marre's lawyers arrived at the precinct, officers had already secured the ledger, the CCTV evidence, and a signed statement from Bowen Ashford.</p>
+          <p>The trial is pending. The city watches — cautiously, as it always does. But for the first time in years, it feels like someone in this department actually followed the evidence where it led, without bending it to fit someone else's agenda.</p>
+          <p>Your record is clean. The case is closed. That matters more than you might think in a city like this one.</p>
+          <p><em>Case COL-001-A — formally closed.</em></p>
+        `
+      },
+      'whistleblower': {
+        title:     'Justice by Headline',
+        scoreStyle:'score-high',
+        stamp:     'Public Record',
+        narrative: `
+          <p>You didn't wait for the department to act. Before the report was even formally processed, the evidence had found its way to a journalist — and by morning, the story was everywhere. Marre's name. The ledger. The hired delivery. The silenced witness.</p>
+          <p>The city erupted. The department scrambled. Charges were filed not because the institution wanted them filed, but because it had no choice. The public had already rendered its verdict.</p>
+          <p>You won't be thanked for it internally. You may not survive the next performance review. But the truth is out, and in this city, that's rarer than a clean conscience.</p>
+          <p><em>Case COL-001-A — closed under public scrutiny.</em></p>
+        `
+      },
+      'pyrrhic': {
+        title:     'A Compromised Conviction',
+        scoreStyle:'score-mid',
+        stamp:     'Under Challenge',
+        narrative: `
+          <p>The arrest was made. The charges were filed. And then the defence did what expensive defence teams do — they looked at the detective who filed the report, and they started asking questions.</p>
+          <p>Your influence record wasn't clean. Favours given. Lines crossed. The court didn't throw out the case, but they threw out two pieces of evidence on chain-of-custody grounds. The conviction came, but it came reduced — a lesser charge, a lighter sentence, a man who will walk out of prison while the city has already forgotten his name.</p>
+          <p>You got him. Just not all of him.</p>
+          <p><em>Case COL-001-A — partially resolved. Conviction secured on reduced charges.</em></p>
+        `
+      },
+      'buried': {
+        title:     'Filed and Forgotten',
+        scoreStyle:'score-mid',
+        stamp:     'Archived — No Action',
+        narrative: `
+          <p>The report was submitted. It was acknowledged. And then — nothing. Three days later you received a memo: <em>"Case COL-001-A under senior review. No further action pending."</em> That was the last you heard of it officially.</p>
+          <p>The city's corruption had reached the point where the right answer didn't matter anymore. Too many people in too many offices owed too many favours to too many people connected to Marre. The machine absorbed your report and kept running.</p>
+          <p>You know what happened. You can't prove it matters to anyone who has the power to do something about it.</p>
+          <p><em>Case COL-001-A — archived. No prosecution initiated.</em></p>
+        `
+      },
+      'the-frame': {
+        title:     'Someone Else Pays',
+        scoreStyle:'score-mid',
+        stamp:     'Closed — Disputed',
+        narrative: `
+          <p>The syndicates had given you a name. Not the right name — but a useful one. Someone who couldn't afford the lawyers to fight back. Someone the city would believe was guilty because it needed someone to be guilty.</p>
+          <p>The case closed. The wrong person was charged. Somewhere across town, Victor Marre attended a charity dinner and shook hands with the Deputy Commissioner. The city got its resolution. You got a commendation.</p>
+          <p>The streets remember what the courts don't. Your credibility in certain circles just increased considerably. What you do with that is up to you.</p>
+          <p><em>Case COL-001-A — closed. Conviction contested by defendant's legal team.</em></p>
+        `
+      },
+      'corrupt-victory': {
+        title:     'The Right Outcome for the Wrong Reasons',
+        scoreStyle:'score-low',
+        stamp:     'Closed — Under Review',
+        narrative: `
+          <p>The report named the wrong person — but the right people were pleased with the outcome. Someone powerful made a call. The case was rubber-stamped. The defendant, whoever they were, found their legal challenges quietly complicated by bureaucratic delays and missing paperwork.</p>
+          <p>You didn't solve the case. You closed it. There's a difference, and somewhere in this city, the person who actually walked away from Harlow Street Alley knows that difference better than anyone.</p>
+          <p>Your influence is considerable. Your conscience is something you'll have to manage on your own time.</p>
+          <p><em>Case COL-001-A — closed. Nature of closure disputed by external review body.</em></p>
+        `
+      },
+      'the-turn': {
+        title:     'You Became the City',
+        scoreStyle:'score-low',
+        stamp:     'No Report Filed',
+        narrative: `
+          <p>The report was never filed. When the offer came — and it always comes, for people who've earned enough trust in the right places — you took it. Not with a handshake. Just with a choice to let a folder stay closed.</p>
+          <p>The syndicates don't forget who helped them. Neither does the department, eventually. You've crossed into something that doesn't have a clean way back.</p>
+          <p>The city runs on compromises like this one. You always knew that. Now you're one of the reasons it does.</p>
+          <p><em>Case COL-001-A — abandoned. Investigating officer reassigned.</em></p>
+        `
+      },
+      'cold-case': {
+        title:     'Insufficient Evidence — Case Remains Open',
+        scoreStyle:'score-low',
+        stamp:     'Returned Without Action',
+        narrative: `
+          <p>The report was reviewed and returned the same afternoon. The Deputy Commissioner's note was brief: <em>"Insufficient basis for prosecution. Evidence package incomplete. Reopen and investigate further."</em></p>
+          <p>Somewhere in the city, someone is still walking free. The alley is quiet. The evidence locker holds pieces of a story that hasn't finished telling itself yet.</p>
+          <p>Go back. Look again. The answer is there — it's always there. You just haven't found it yet.</p>
+          <p><em>Case COL-001-A — remains open.</em></p>
+        `
+      },
+    };
+
     function showVerdict(answers) {
       const panel = document.getElementById('verdict-panel');
       panel.classList.add('show');
 
+      // Score the individual fields
       const fields = [
         {
-          label:    'Perpetrator',
-          answer:   labelFor('perpetrator', answers.perpetrator),
-          correct:  answers.perpetrator === SOLUTION.perpetrator,
-          partial:  false,
+          label:   'Perpetrator',
+          answer:  labelFor('perpetrator', answers.perpetrator),
+          correct: answers.perpetrator === SOLUTION.perpetrator,
+          partial: false,
           feedback: answers.perpetrator === SOLUTION.perpetrator
             ? 'Correct. Victor Marre orchestrated the incident through a hired contact.'
             : 'Incorrect. The evidence trail leads elsewhere — review the cigarette case, ledger, and CCTV footage.',
         },
         {
-          label:    'Accomplices',
-          answer:   answers.accomplices.map(v => labelFor('accomplices', v)).join(', ') || 'None named',
-          correct:  SOLUTION.accomplices.every(a => answers.accomplices.includes(a)),
-          partial:  answers.accomplices.some(a => SOLUTION.accomplices.includes(a)),
+          label:   'Accomplices',
+          answer:  answers.accomplices.map(v => labelFor('accomplices', v)).join(', ') || 'None named',
+          correct: SOLUTION.accomplices.every(a => answers.accomplices.includes(a)),
+          partial: answers.accomplices.some(a => SOLUTION.accomplices.includes(a)),
           feedback: SOLUTION.accomplices.every(a => answers.accomplices.includes(a))
             ? 'Correct. Bowen Ashford accepted payment to look the other way.'
             : 'Partially correct or incorrect. At least one key accomplice was not identified.',
         },
         {
-          label:    'Motive',
-          answer:   labelFor('motive', answers.motive),
-          correct:  answers.motive === SOLUTION.motive,
-          partial:  false,
+          label:   'Motive',
+          answer:  labelFor('motive', answers.motive),
+          correct: answers.motive === SOLUTION.motive,
+          partial: false,
           feedback: answers.motive === SOLUTION.motive
             ? 'Correct. The victim was about to expose information that would have destroyed Marre.'
             : 'Incorrect. Consider what the victim knew and who would have been most threatened by it.',
         },
         {
-          label:    'Method',
-          answer:   labelFor('method', answers.method),
-          correct:  answers.method === SOLUTION.method,
-          partial:  false,
+          label:   'Method',
+          answer:  labelFor('method', answers.method),
+          correct: answers.method === SOLUTION.method,
+          partial: false,
           feedback: answers.method === SOLUTION.method
             ? 'Correct. Marre contracted the act through an intermediary — the envelope delivery was the trigger.'
             : 'Incorrect. Review the burner phone data and the delivery testimony.',
         },
         {
-          label:    'Timeline',
-          answer:   labelFor('timeline', answers.timeline),
-          correct:  answers.timeline === SOLUTION.timeline,
-          partial:  false,
+          label:   'Timeline',
+          answer:  labelFor('timeline', answers.timeline),
+          correct: answers.timeline === SOLUTION.timeline,
+          partial: false,
           feedback: answers.timeline === SOLUTION.timeline
             ? 'Correct. The incident occurred between 21:30 and 22:00, consistent with CCTV and cell tower data.'
             : 'Incorrect. Cross-reference the CCTV timestamp with Cass Delray\'s testimony.',
         },
         {
-          label:    'Crime Location',
-          answer:   labelFor('location', answers.location),
-          correct:  answers.location === SOLUTION.location,
-          partial:  false,
+          label:   'Crime Location',
+          answer:  labelFor('location', answers.location),
+          correct: answers.location === SOLUTION.location,
+          partial: false,
           feedback: answers.location === SOLUTION.location
             ? 'Correct. Harlow Street Alley was the primary scene.'
             : 'Incorrect. The primary scene is confirmed by physical evidence and witness testimony.',
         },
         {
-          label:    'Supporting Evidence',
-          answer:   answers.evidence.join(', ') || 'None attached',
-          correct:  SOLUTION.keyEvidence.every(e => answers.evidence.includes(e)),
-          partial:  SOLUTION.keyEvidence.some(e => answers.evidence.includes(e)),
+          label:   'Supporting Evidence',
+          answer:  answers.evidence.join(', ') || 'None attached',
+          correct: SOLUTION.keyEvidence.every(e => answers.evidence.includes(e)),
+          partial: SOLUTION.keyEvidence.some(e => answers.evidence.includes(e)),
           feedback: SOLUTION.keyEvidence.every(e => answers.evidence.includes(e))
             ? 'Strong evidence package. All key items are attached.'
             : 'Incomplete evidence package. Several critical items were not attached.',
         },
       ];
 
-      // Calculate score
+      // Calculate accuracy score
       let score = 0;
-      fields.forEach(f => {
-        if (f.correct) score += 2;
-        else if (f.partial) score += 1;
-      });
-      const maxScore  = fields.length * 2;
-      const scorePct  = Math.round((score / maxScore) * 100);
-      const scoreEl   = document.getElementById('verdict-score');
-      scoreEl.textContent = scorePct + '%';
-      scoreEl.className   = 'verdict-score ' +
-        (scorePct >= 70 ? 'score-high' : scorePct >= 40 ? 'score-mid' : 'score-low');
+      fields.forEach(f => { if (f.correct) score += 2; else if (f.partial) score += 1; });
+      const scorePct = Math.round((score / (fields.length * 2)) * 100);
 
-      // Title
-      document.getElementById('verdict-title').textContent =
-        scorePct >= 80 ? 'Case Closed — Strong Conviction' :
-        scorePct >= 50 ? 'Case Partially Resolved' :
-        'Insufficient Evidence — Case Remains Open';
+      // Resolve which ending this playstyle earned
+      const endingKey = resolveEnding(answers, scorePct);
+      const ending    = ENDINGS[endingKey];
+      const meters    = getMeters();
+
+      // Populate score badge
+      const scoreEl = document.getElementById('verdict-score');
+      scoreEl.textContent = scorePct + '%';
+      scoreEl.className   = 'verdict-score ' + ending.scoreStyle;
+
+      // Populate title and stamp
+      document.getElementById('verdict-title').textContent = ending.title;
+      document.getElementById('form-stamp').textContent    = ending.stamp;
+
+      // Add ending tag below the case ref
+      const endingTag = document.createElement('span');
+      endingTag.style.cssText = `
+        display:inline-block; margin-top:8px;
+        font-size:clamp(6px,.78vw,8px); letter-spacing:.3em; text-transform:uppercase;
+        padding:2px 10px; border:1px solid rgba(168,131,46,.35); color:rgba(168,131,46,.7);
+      `;
+      endingTag.textContent = 'Ending: ' + endingKey.replace(/-/g,' ').replace(/\b\w/g, c => c.toUpperCase());
+      const caseRef = document.getElementById('verdict-panel').querySelector('.verdict-case');
+      if (caseRef && !caseRef.nextElementSibling?.style?.letterSpacing) {
+        caseRef.after(endingTag);
+      }
+
+      // Show meter context in verdict header
+      const meterNote = document.createElement('div');
+      meterNote.style.cssText = `
+        margin-top:clamp(10px,1.8vh,16px);
+        font-size:clamp(7px,.85vw,9px); letter-spacing:.2em;
+        text-transform:uppercase; color:rgba(58,40,8,.4); line-height:1.8;
+      `;
+      meterNote.innerHTML = `
+        Influence: ${meters.influence} &nbsp;·&nbsp;
+        City Corruption: ${meters.cityCorrupt} &nbsp;·&nbsp;
+        Street Cred: ${meters.streetCred}
+      `;
+      const verdictHeader = document.querySelector('.verdict-header .page-inner, .verdict-header');
+      if (verdictHeader && !verdictHeader.querySelector('.meter-note')) {
+        meterNote.className = 'meter-note';
+        caseRef?.after(endingTag, meterNote);
+      }
 
       // Field rows
       const rowsEl = document.getElementById('verdict-field-rows');
@@ -1083,27 +1284,10 @@
       });
 
       // Narrative
-      const narrative = document.getElementById('verdict-narrative');
-      narrative.innerHTML = generateNarrative(scorePct, answers);
-    }
+      document.getElementById('verdict-narrative').innerHTML = ending.narrative;
 
-    /* ── Generate outcome narrative ── */
-    function generateNarrative(score, answers) {
-      if (score >= 80) return `
-        <p>Your report was filed with the Deputy Commissioner's office at 09:00 the following morning. By noon, an arrest warrant had been issued for Victor Marre. By the time his lawyers arrived at the precinct, officers had already secured the ledger, the CCTV evidence, and a statement from Bowen Ashford.</p>
-        <p>The trial is pending. The city watches. For the first time in years, it feels like someone in this department actually followed the evidence where it led.</p>
-        <p>Case COL-001-A is formally closed.</p>
-      `;
-      if (score >= 50) return `
-        <p>Your report identified several key elements correctly, but gaps in the evidence chain left the prosecution with less than they needed for a watertight case. Charges were filed, but the defence found room to manoeuvre.</p>
-        <p>The case is partially resolved. Some answers have been found. Others remain buried in the city's silences. Marre's lawyers are expensive. The city is patient.</p>
-        <p>Case COL-001-A remains conditionally open pending further evidence.</p>
-      `;
-      return `
-        <p>The report was reviewed and returned without action. The Deputy Commissioner's note was brief: <em>"Insufficient basis for prosecution. Reopen and investigate further."</em></p>
-        <p>Somewhere in the city, someone is still walking free. The alley is quiet again. The evidence locker is full of things that haven't told their full story yet.</p>
-        <p>Case COL-001-A remains open. Start again.</p>
-      `;
+      // Save ending to localStorage
+      localStorage.setItem('col_ending_reached', endingKey);
     }
 
     /* ── Label helpers ── */
