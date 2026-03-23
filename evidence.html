@@ -393,6 +393,200 @@
       border-color: rgba(168,131,46,0.1);
     }
 
+    /* ════════════════════════════
+       LAB REPORT MODAL
+    ════════════════════════════ */
+    #lab-report-overlay {
+      position: fixed; inset: 0; z-index: 60;
+      background: rgba(4,2,0,.88);
+      display: flex; align-items: flex-start; justify-content: center;
+      padding: clamp(12px,3vw,40px) clamp(12px,3vw,40px);
+      opacity: 0; pointer-events: none;
+      transition: opacity .25s;
+      overflow-y: auto;
+      backdrop-filter: blur(6px);
+    }
+    #lab-report-overlay.open { opacity: 1; pointer-events: all; }
+
+    #lab-report {
+      width: 100%; max-width: 640px;
+      background: #ede0c0;
+      position: relative;
+      box-shadow: 4px 8px 40px rgba(0,0,0,.85);
+      transform: translateY(16px) scale(.97);
+      transition: transform .3s cubic-bezier(.34,1.1,.64,1);
+      /* ruled lines */
+      background-image:
+        repeating-linear-gradient(
+          to bottom,
+          transparent 0px, transparent 27px,
+          rgba(58,40,8,.07) 27px, rgba(58,40,8,.07) 28px
+        );
+      animation: none;
+    }
+    #lab-report-overlay.open #lab-report {
+      transform: translateY(0) scale(1);
+    }
+    /* Red margin */
+    #lab-report::before {
+      content:''; position:absolute;
+      top:0; bottom:0; left:clamp(44px,7vw,60px);
+      width:1px; background:rgba(196,48,48,.2);
+      pointer-events:none;
+    }
+
+    .lr-inner {
+      padding: clamp(24px,4vw,44px) clamp(24px,4vw,44px)
+               clamp(24px,4vw,44px) clamp(56px,9vw,76px);
+    }
+
+    /* Close button */
+    #lr-close {
+      position: absolute; top: 14px; right: 16px;
+      font-family: 'Courier Prime', monospace;
+      font-size: 9px; letter-spacing: .3em; text-transform: uppercase;
+      color: rgba(58,40,8,.45); background: none; border: none;
+      cursor: pointer; transition: color .2s;
+    }
+    #lr-close:hover { color: #3a2808; }
+
+    /* Letterhead */
+    .lr-letterhead {
+      display: flex; align-items: flex-start;
+      justify-content: space-between; gap: 16px;
+      padding-bottom: clamp(12px,2vh,18px);
+      margin-bottom: clamp(12px,2vh,18px);
+      border-bottom: 2px solid rgba(58,40,8,.5);
+    }
+    .lr-logo {
+      font-size: clamp(28px,5vw,44px);
+      line-height: 1; flex-shrink: 0;
+    }
+    .lr-org { flex: 1; }
+    .lr-org-name {
+      font-size: clamp(9px,1.2vw,12px); font-weight: 700;
+      letter-spacing: .08em; color: #1a0c00;
+      display: block; margin-bottom: 1px;
+      text-transform: uppercase;
+    }
+    .lr-org-div {
+      font-size: clamp(7px,.85vw,9px); letter-spacing: .25em;
+      color: rgba(58,40,8,.55); display: block;
+      text-transform: uppercase;
+    }
+    .lr-report-id-block { text-align: right; flex-shrink: 0; }
+    .lr-report-id {
+      font-size: clamp(8px,1vw,10px); font-weight: 700;
+      letter-spacing: .15em; color: #1a0c00;
+      display: block; text-transform: uppercase;
+    }
+    .lr-report-class {
+      font-size: clamp(6px,.75vw,8px); letter-spacing: .25em;
+      text-transform: uppercase; padding: 2px 8px;
+      border: 1px solid rgba(196,48,48,.45);
+      color: rgba(122,26,26,.7); display: inline-block;
+      margin-top: 4px;
+    }
+
+    /* Meta table */
+    .lr-meta {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(130px,1fr));
+      gap: clamp(6px,1vw,10px);
+      margin-bottom: clamp(16px,2.8vh,24px);
+      padding: clamp(8px,1.5vw,12px);
+      background: rgba(58,40,8,.06);
+      border: 1px solid rgba(58,40,8,.15);
+    }
+    .lr-meta-field { }
+    .lr-meta-label {
+      font-size: clamp(6px,.75vw,8px); letter-spacing: .3em;
+      text-transform: uppercase; color: rgba(58,40,8,.4);
+      display: block; margin-bottom: 2px;
+    }
+    .lr-meta-val {
+      font-size: clamp(9px,1.1vw,11px); color: #2a1400; line-height: 1.3;
+    }
+
+    /* Section */
+    .lr-section {
+      margin-bottom: clamp(14px,2.5vh,22px);
+    }
+    .lr-section-title {
+      font-size: clamp(7px,.85vw,9px); letter-spacing: .4em;
+      text-transform: uppercase; color: rgba(168,100,10,.8);
+      display: block; margin-bottom: clamp(6px,1.2vh,10px);
+      padding-bottom: 3px;
+      border-bottom: 1px solid rgba(168,100,10,.2);
+    }
+    .lr-text {
+      font-size: clamp(10px,1.3vw,13px); color: #2a1400;
+      line-height: 1.8;
+    }
+    .lr-text p { margin-bottom: 8px; }
+    .lr-text p:last-child { margin-bottom: 0; }
+
+    /* Findings list */
+    .lr-findings {
+      display: flex; flex-direction: column; gap: 6px;
+    }
+    .lr-finding {
+      display: flex; gap: 10px; align-items: baseline;
+      font-size: clamp(10px,1.3vw,13px); color: #2a1400; line-height: 1.7;
+    }
+    .lr-finding::before {
+      content: '›'; color: rgba(168,100,10,.7); flex-shrink: 0; font-size: 14px;
+    }
+
+    /* Conclusion box */
+    .lr-conclusion {
+      background: rgba(58,40,8,.07);
+      border: 1px solid rgba(58,40,8,.2);
+      border-left: 3px solid rgba(168,100,10,.6);
+      padding: clamp(10px,1.8vw,16px);
+      margin-top: clamp(14px,2.5vh,22px);
+    }
+    .lr-conclusion-label {
+      font-size: clamp(6px,.75vw,8px); letter-spacing: .35em;
+      text-transform: uppercase; color: rgba(168,100,10,.7);
+      display: block; margin-bottom: 5px;
+    }
+    .lr-conclusion-text {
+      font-size: clamp(10px,1.3vw,13px); color: #2a1400; line-height: 1.75;
+    }
+
+    /* Signature block */
+    .lr-sig-block {
+      margin-top: clamp(16px,3vh,28px);
+      padding-top: clamp(12px,2vh,18px);
+      border-top: 1px solid rgba(58,40,8,.2);
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: clamp(10px,2vw,20px);
+    }
+    .lr-sig { }
+    .lr-sig-label {
+      font-size: clamp(6px,.75vw,8px); letter-spacing: .3em;
+      text-transform: uppercase; color: rgba(58,40,8,.4);
+      display: block; margin-bottom: 20px;
+    }
+    .lr-sig-line { border-bottom: 1px solid rgba(58,40,8,.35); margin-bottom: 4px; }
+    .lr-sig-name {
+      font-size: clamp(9px,1.1vw,11px); color: rgba(58,40,8,.6); display: block;
+    }
+    .lr-sig-title {
+      font-size: clamp(7px,.85vw,9px); letter-spacing: .15em;
+      color: rgba(58,40,8,.35); display: block; font-style: italic;
+    }
+
+    /* Lab result badge on evidence row */
+    .ev-lab-badge {
+      font-size: clamp(6px,.72vw,7px); letter-spacing: .15em;
+      text-transform: uppercase; padding: 1px 6px;
+      border: 1px solid rgba(45,200,160,.35);
+      color: rgba(45,200,160,.7); margin-left: 6px;
+      vertical-align: middle; white-space: nowrap;
+    }
+
     /* ── Empty state ── */
     #empty-state {
       display: none;
@@ -685,6 +879,16 @@
     </div>
   </div>
 
+  <!-- ── LAB REPORT MODAL ── -->
+  <div id="lab-report-overlay" onclick="handleLabOverlay(event)">
+    <div id="lab-report">
+      <button id="lr-close" onclick="closeLabReport()">✕ Close</button>
+      <div class="lr-inner" id="lr-inner">
+        <!-- populated by JS -->
+      </div>
+    </div>
+  </div>
+
   <audio id="bg-music" loop preload="auto">
     <source src="Assets/Audio/Background music/Echoes_in_the_Concrete_Maze.mp3" type="audio/mpeg" />
   </audio>
@@ -846,10 +1050,13 @@
         };
 
         const inAnalysis = item.status === 'analysis';
+        const labBadge = LAB_RESULT_IDS.has(item.id)
+          ? '<span class="ev-lab-badge">Lab Result</span>' : '';
+
         row.innerHTML = `
           <div class="cell ev-id">${item.id}</div>
           <div class="cell">
-            <span class="ev-item-name">${item.name}</span>
+            <span class="ev-item-name">${item.name}${labBadge}</span>
           </div>
           <div class="cell ev-location hide-mobile">${item.location.split('—')[0].trim()}</div>
           <div class="cell ev-date hide-mobile">${item.date.split('·')[0].trim()}</div>
@@ -888,6 +1095,116 @@
     /* ════════════════════════════════════════
        DETAIL PANEL
     ════════════════════════════════════════ */
+    /* ════════════════════════════════════════
+       LAB REPORT MODAL
+    ════════════════════════════════════════ */
+    const LAB_FULL_NAMES = {
+      dna:'Forensic DNA Laboratory', tox:'Forensic Toxicology Laboratory',
+      trace:'Trace Evidence Laboratory', ballistics:'Ballistics & Firearms Laboratory',
+      digital:'Digital & Multimedia Laboratory', chemistry:'Forensic Chemistry Laboratory',
+      latent:'Latent Print Laboratory', document:'Document Analysis Laboratory',
+      anthro:'Forensic Anthropology Laboratory', bio:'Biocontainment Laboratory (NBFAC)',
+      metal:'Metallurgy Laboratory', intake:'Evidence Intake Unit'
+    };
+
+    function openLabReport(itemId) {
+      const report = LAB_REPORTS[itemId];
+      if (!report) return;
+
+      const now   = new Date();
+      const dated = now.toLocaleDateString('en-GB',{day:'2-digit',month:'long',year:'numeric'});
+
+      document.getElementById('lr-inner').innerHTML = `
+        <!-- Letterhead -->
+        <div class="lr-letterhead">
+          <div class="lr-logo">🔬</div>
+          <div class="lr-org">
+            <span class="lr-org-name">City of Lies Police Department</span>
+            <span class="lr-org-div">${report.lab}</span>
+            <span class="lr-org-div">${report.division}</span>
+          </div>
+          <div class="lr-report-id-block">
+            <span class="lr-report-id">${report.reportId}</span>
+            <span class="lr-report-class">Restricted — Case Use Only</span>
+          </div>
+        </div>
+
+        <!-- Meta -->
+        <div class="lr-meta">
+          <div class="lr-meta-field">
+            <span class="lr-meta-label">Case No.</span>
+            <span class="lr-meta-val">${CURRENT_CASE}</span>
+          </div>
+          <div class="lr-meta-field">
+            <span class="lr-meta-label">Exhibit Reference</span>
+            <span class="lr-meta-val">${report.exhibit}</span>
+          </div>
+          <div class="lr-meta-field">
+            <span class="lr-meta-label">Analysing Laboratory</span>
+            <span class="lr-meta-val">${report.lab}</span>
+          </div>
+          <div class="lr-meta-field">
+            <span class="lr-meta-label">Analyst</span>
+            <span class="lr-meta-val">${report.analyst}</span>
+          </div>
+          <div class="lr-meta-field">
+            <span class="lr-meta-label">Report Date</span>
+            <span class="lr-meta-val">${dated}</span>
+          </div>
+          <div class="lr-meta-field">
+            <span class="lr-meta-label">Reviewed By</span>
+            <span class="lr-meta-val">${report.reviewedBy}</span>
+          </div>
+        </div>
+
+        <!-- Methodology -->
+        <div class="lr-section">
+          <span class="lr-section-title">Methodology</span>
+          <div class="lr-text"><p>${report.methodology}</p></div>
+        </div>
+
+        <!-- Findings -->
+        <div class="lr-section">
+          <span class="lr-section-title">Findings</span>
+          <div class="lr-findings">
+            ${report.findings.map(f => `<div class="lr-finding">${f}</div>`).join('')}
+          </div>
+        </div>
+
+        <!-- Conclusions -->
+        <div class="lr-conclusion">
+          <span class="lr-conclusion-label">Forensic Conclusions &amp; Investigative Recommendations</span>
+          <p class="lr-conclusion-text">${report.conclusion}</p>
+        </div>
+
+        <!-- Signature block -->
+        <div class="lr-sig-block">
+          <div class="lr-sig">
+            <span class="lr-sig-label">Analyst Signature</span>
+            <div class="lr-sig-line"></div>
+            <span class="lr-sig-name">${report.analyst}</span>
+            <span class="lr-sig-title">${report.analystTitle}</span>
+          </div>
+          <div class="lr-sig">
+            <span class="lr-sig-label">Review &amp; Authorisation</span>
+            <div class="lr-sig-line"></div>
+            <span class="lr-sig-name">${report.reviewedBy}</span>
+            <span class="lr-sig-title">Supervising Officer</span>
+          </div>
+        </div>
+      `;
+
+      document.getElementById('lab-report-overlay').classList.add('open');
+    }
+
+    function closeLabReport() {
+      document.getElementById('lab-report-overlay').classList.remove('open');
+    }
+
+    function handleLabOverlay(e) {
+      if (e.target === document.getElementById('lab-report-overlay')) closeLabReport();
+    }
+
     function openDetail(item, row) {
       document.querySelectorAll('.ev-row').forEach(r => r.classList.remove('selected'));
       row.classList.add('selected');
@@ -896,13 +1213,11 @@
       document.getElementById('dp-name').textContent     = item.name;
       document.getElementById('dp-status').textContent   = statusLabel(item.status);
 
-      // Gate location/date/owner details — only show for logged items
       const isLocked = item.status === 'analysis' || item.status === 'pending';
       document.getElementById('dp-location').textContent = isLocked ? '— Restricted —' : item.location;
       document.getElementById('dp-date').textContent     = isLocked ? '— Restricted —' : item.date;
       document.getElementById('dp-owner').textContent    = isLocked ? '— Restricted —' : item.owner;
 
-      // Show/hide the correct bottom section
       const whySection      = document.getElementById('dp-why-section');
       const blockedAnalysis = document.getElementById('dp-blocked-analysis');
       const blockedPending  = document.getElementById('dp-blocked-pending');
@@ -911,21 +1226,36 @@
       blockedAnalysis.style.display = 'none';
       blockedPending.style.display  = 'none';
 
+      // Remove any previous lab report button
+      document.getElementById('dp-lab-report-btn')?.remove();
+
       if (item.status === 'logged') {
         document.getElementById('dp-why').textContent = item.why;
         whySection.style.display = 'block';
+
+        // If this is a lab result item, show the View Lab Report button
+        if (LAB_RESULT_IDS.has(item.id) && LAB_REPORTS[item.id]) {
+          const btn = document.createElement('button');
+          btn.id = 'dp-lab-report-btn';
+          btn.textContent = '📋 View Full Lab Report';
+          btn.style.cssText = `
+            margin-top:clamp(10px,1.8vh,16px);
+            font-family:'Courier Prime',monospace;
+            font-size:clamp(8px,1vw,10px); letter-spacing:.25em;
+            text-transform:uppercase; color:rgba(45,200,160,.8);
+            background:rgba(45,200,160,.06); border:1px solid rgba(45,200,160,.3);
+            padding:7px 18px; cursor:pointer; width:100%;
+            transition:background .2s, border-color .2s;
+          `;
+          btn.onmouseover = () => { btn.style.background='rgba(45,200,160,.12)'; btn.style.borderColor='rgba(45,200,160,.6)'; };
+          btn.onmouseout  = () => { btn.style.background='rgba(45,200,160,.06)'; btn.style.borderColor='rgba(45,200,160,.3)'; };
+          btn.onclick = () => openLabReport(item.id);
+          whySection.appendChild(btn);
+        }
       } else if (item.status === 'analysis') {
-        // Show which lab it's in
-        const timer   = labTimers[item.id];
-        const labKey  = timer?.lab;
-        const labNames = {
-          dna:'Forensic DNA Lab', tox:'Toxicology Lab', trace:'Trace Evidence Lab',
-          ballistics:'Ballistics Lab', digital:'Digital & Multimedia Lab',
-          chemistry:'Forensic Chemistry Lab', latent:'Latent Print Lab',
-          document:'Document Analysis Lab', anthro:'Forensic Anthropology Lab',
-          bio:'Biocontainment Lab', metal:'Metallurgy Lab', intake:'Evidence Intake'
-        };
-        const labName = labNames[labKey] || 'Forensics Lab';
+        const timer  = labTimers[item.id];
+        const labKey = timer?.lab;
+        const labName = LAB_FULL_NAMES[labKey] || 'Forensics Lab';
         document.getElementById('dp-blocked-analysis-text').textContent =
           `This item is currently being processed by the ${labName}. Full details will be available once analysis is complete and the item is returned to the Evidence Locker.`;
         blockedAnalysis.style.display = 'flex';
@@ -1180,6 +1510,361 @@
     let labUsed    = {};
     let extraItems = [];
     let waveState  = {};
+
+    /* ════════════════════════════════════════
+       LAB REPORT DEFINITIONS
+       One report per new evidence item (E09–E26).
+       Each report has: lab, analyst, exhibit,
+       methodology, findings[], conclusion.
+    ════════════════════════════════════════ */
+    const LAB_REPORTS = {
+
+      [`${CURRENT_CASE}-E09`]: {
+        lab:      'Latent Print Laboratory',
+        division: 'Friction Ridge Analysis Unit',
+        analyst:  'Sr. Examiner D. Holt',
+        exhibit:  `${CURRENT_CASE}-E01 — Monogrammed Cigarette Case`,
+        reportId: `LPL-${CURRENT_CASE}-001`,
+        methodology: `The submitted exhibit was processed using a sequential fluorescent powder technique (aluminium flake suspension) applied to the inner lid surface. Developed impressions were digitally captured at 1200 dpi under oblique and ultraviolet lighting conditions. Ridge detail was evaluated against SWGFAST quality thresholds prior to AFIS submission.`,
+        findings: [
+          'One partial latent print of value recovered from inner lid, lower right quadrant.',
+          'Print exhibits a right-hand loop pattern with sufficient ridge detail for comparison purposes (minimum 12 ridge characteristics identified).',
+          'AFIS candidate list generated — no immediate confirmed match returned.',
+          'Print is now designated LP/COL-001-A/01 and is active in the database for future comparison.',
+          'No additional latent prints of value were recovered from other surfaces of the exhibit.',
+        ],
+        conclusion: 'The recovered partial print is suitable for comparison against known suspect exemplars. The absence of an AFIS hit does not preclude identification — submission of elimination prints from persons of interest is recommended as a priority action.',
+        analystTitle: 'Senior Latent Print Examiner',
+        reviewedBy:  'Lt. Forensic Services M. Osei',
+      },
+
+      [`${CURRENT_CASE}-E10`]: {
+        lab:      'Forensic DNA Laboratory',
+        division: 'Biological Evidence Unit — Trace DNA Section',
+        analyst:  'Dr. A. Reyes',
+        exhibit:  `${CURRENT_CASE}-E01 — Monogrammed Cigarette Case`,
+        reportId: `DNA-${CURRENT_CASE}-001`,
+        methodology: `Inner rim swabbing was conducted using sterile cotton-tipped applicators pre-moistened with phosphate-buffered saline. Swabs were subjected to differential extraction followed by quantitative PCR (qPCR) to determine DNA yield. STR profiling was conducted using GlobalFiler™ amplification kit across 20 autosomal loci. Profile was submitted to CODIS for database comparison.`,
+        findings: [
+          'Saliva trace confirmed at inner hinge rim — amylase indicator positive.',
+          'Sufficient cellular material recovered for partial STR profiling (16 of 20 loci yielded interpretable data).',
+          'Partial profile designated DNA/COL-001-A/01 — submitted to CODIS Combined DNA Index System.',
+          'CODIS returned no confirmed hit at time of report. Profile remains active in the database.',
+          'Profile is sufficient for comparison against a known reference sample from any identified suspect.',
+        ],
+        conclusion: 'A partial DNA profile has been established from saliva deposited on the exhibit. The profile is attributable to a single contributor. Collection of buccal reference swabs from named suspects is strongly recommended to enable direct comparison.',
+        analystTitle: 'Forensic DNA Analyst',
+        reviewedBy:  'Dr. F. Nakamura, Laboratory Director',
+      },
+
+      [`${CURRENT_CASE}-E11`]: {
+        lab:      'Trace Evidence Laboratory',
+        division: 'Chemistry & Materials Analysis Unit',
+        analyst:  'Examiner S. Vandermeer',
+        exhibit:  `${CURRENT_CASE}-E01 — Monogrammed Cigarette Case`,
+        reportId: `TRC-${CURRENT_CASE}-001`,
+        methodology: `Residual tobacco dust was collected from the interior of the exhibit using micro-vacuum sampling onto 0.45μm membrane filters. Analysis was conducted by gas chromatography–mass spectrometry (GC-MS) for volatile compound characterisation, supplemented by stable isotope ratio analysis (SIRA) to determine geographic origin of leaf material. Results were compared against the Interpol Tobacco Reference Database (ITRD).`,
+        findings: [
+          'Tobacco residue confirmed — sufficient quantity for full compositional analysis.',
+          'Volatile compound profile consistent with Oriental/Latakia blend — Balkan-style composition.',
+          'Isotope ratios indicate leaf origin in the Eastern Aegean region, consistent with Turkish or Northern Greek production.',
+          'Blend is not commercially available through domestic retail channels — importation required.',
+          'Cross-reference with ITRD returned one licensed distributor operating in this jurisdiction: Marre Import Co., registered under import licence IM/2019/0441.',
+        ],
+        conclusion: 'The tobacco residue profile establishes a specific and traceable supply chain link between the exhibit and Marre Import Co. This connection is independent of the monogram and constitutes corroborating evidence of provenance. Formal confirmation of import licence records is recommended.',
+        analystTitle: 'Trace Evidence Examiner',
+        reviewedBy:  'Sr. Scientist P. Okafor',
+      },
+
+      [`${CURRENT_CASE}-E12`]: {
+        lab:      'Document Analysis Laboratory',
+        division: 'Questioned Documents Unit',
+        analyst:  'Examiner C. Brewster',
+        exhibit:  `${CURRENT_CASE}-E02 — Unsigned Threatening Letter`,
+        reportId: `DOC-${CURRENT_CASE}-001`,
+        methodology: `The submitted document was examined under transmitted light, oblique illumination, and infrared reflectography using a Video Spectral Comparator (VSC6000). Typeface characteristics were catalogued and compared against the Forensic Document Laboratory Typewriter Reference Collection (FDLTRC). Impression evidence was examined using electrostatic detection apparatus (ESDA).`,
+        findings: [
+          'Document was typed on a mechanical typewriter — ribbon impression characteristics confirm non-electric mechanism.',
+          'Typeface identified as Pica Elite, consistent with Hermes 3000 portable typewriter series (manufactured 1958–1967).',
+          'Distinctive character deformity: lowercase "e" exhibits a fractured upper serif, consistent with physical damage to the typehead — machine-specific identifier.',
+          'No significant ESDA impression evidence recovered — document was not placed over other documents during typing.',
+          'Paper stock is standard A4 bond (80gsm) — no watermark or premium stock identified.',
+        ],
+        conclusion: 'The typeface identification and character deformity together constitute a machine-specific signature. Recovery and examination of the typewriter believed responsible could provide a conclusive link. Physical examination of suspect premises and associated property is recommended.',
+        analystTitle: 'Questioned Documents Examiner',
+        reviewedBy:  'Lt. Forensic Services M. Osei',
+      },
+
+      [`${CURRENT_CASE}-E13`]: {
+        lab:      'Forensic DNA Laboratory',
+        division: 'Biological Evidence Unit',
+        analyst:  'Dr. A. Reyes',
+        exhibit:  `${CURRENT_CASE}-E02 — Unsigned Threatening Letter (Envelope)`,
+        reportId: `DNA-${CURRENT_CASE}-002`,
+        methodology: `The envelope flap gummed strip was excised using sterile scalpel and subjected to salivary amylase immunochromatographic testing (SALIgAE™). Positive material was subjected to differential extraction and STR profiling using GlobalFiler™ kit. Resulting profile was compared against the established victim profile and submitted to CODIS.`,
+        findings: [
+          'Salivary amylase confirmed on envelope gummed strip — licked seal confirmed.',
+          'Full STR profile obtained across 20 autosomal loci — designated DNA/COL-001-A/02.',
+          'Profile does not match victim DNA reference sample.',
+          'Profile does not match any existing person of interest reference sample on file.',
+          'CODIS search returned no confirmed hit — profile active in database.',
+        ],
+        conclusion: 'The envelope was sealed by a person other than the victim. A full DNA profile is available for comparison. Buccal reference samples from named suspects would enable direct elimination or inclusion. The profile may also be compared against future submissions in linked cases.',
+        analystTitle: 'Forensic DNA Analyst',
+        reviewedBy:  'Dr. F. Nakamura, Laboratory Director',
+      },
+
+      [`${CURRENT_CASE}-E14`]: {
+        lab:      'Latent Print Laboratory',
+        division: 'Friction Ridge Analysis Unit',
+        analyst:  'Sr. Examiner D. Holt',
+        exhibit:  `${CURRENT_CASE}-E02 — Unsigned Threatening Letter`,
+        reportId: `LPL-${CURRENT_CASE}-002`,
+        methodology: `Document surfaces were processed using ninhydrin reagent (1% solution in HFE-7100) with post-treatment steam development. Developed impressions were digitally captured and enhanced using Fourier Transform analysis. Ridge characteristics were catalogued and evaluated for AFIS submission threshold compliance.`,
+        findings: [
+          'One smudged partial print recovered from lower right corner of document.',
+          'Print exhibits a loop pattern — ridge detail partially obscured by smearing, estimated 8–10 usable characteristics.',
+          'Print falls below AFIS automatic submission threshold but is retained as LP/COL-001-A/02 for manual comparison.',
+          'Smearing pattern is consistent with a right-hand impression made under lateral movement — possible handling under time pressure.',
+          'No additional prints of value recovered from document or envelope surfaces.',
+        ],
+        conclusion: 'The recovered partial print is below the threshold for automated AFIS database searching. However, it is suitable for manual comparison against exemplar prints from identified suspects. This should be conducted if and when elimination printing of named suspects is carried out.',
+        analystTitle: 'Senior Latent Print Examiner',
+        reviewedBy:  'Lt. Forensic Services M. Osei',
+      },
+
+      [`${CURRENT_CASE}-E15`]: {
+        lab:      'Digital & Multimedia Laboratory',
+        division: 'Mobile Device Forensics Unit',
+        analyst:  'Analyst T. Vasquez',
+        exhibit:  `${CURRENT_CASE}-E03 — Burner Mobile Phone`,
+        reportId: `DML-${CURRENT_CASE}-001`,
+        methodology: `The device was imaged using Cellebrite UFED Physical Analyzer following a JTAG extraction method (SIM card absent). Internal memory (16GB eMMC) was subjected to file carving using Autopsy 4.19 with PhotoRec plugin enabled for image recovery. Recovered JPEG fragments were processed using Adobe Photoshop Neural Filters for enhancement. EXIF metadata was extracted using ExifTool 12.4.`,
+        findings: [
+          'One partial JPEG image file recovered from unallocated storage space — approximately 62% of original file intact.',
+          'Recovered image depicts a multi-storey building exterior, consistent with architecture in the Harlow Street / Canal District area.',
+          'EXIF metadata partially intact — timestamp reads 21:12:04, March 04 2026.',
+          'GPS data absent from metadata — location coordinates were disabled or stripped.',
+          'Visual analysis suggests the photo was taken from street level, approximately 15–20 metres from the subject building.',
+        ],
+        conclusion: 'The recovered image places the device — and by inference its user — in the vicinity of the Harlow Street area at 21:12 on the night of the incident, approximately 36 minutes before the estimated time of the primary event. This is a significant temporal and geographic correlation. Enhancement of the remaining image fragments is ongoing.',
+        analystTitle: 'Digital Forensics Analyst',
+        reviewedBy:  'Dr. K. Ellison, Unit Supervisor',
+      },
+
+      [`${CURRENT_CASE}-E16`]: {
+        lab:      'Metallurgy Laboratory',
+        division: 'Material Provenance & Manufacturing Analysis Unit',
+        analyst:  'Examiner R. Tran',
+        exhibit:  `${CURRENT_CASE}-E03 — Burner Mobile Phone`,
+        reportId: `MET-${CURRENT_CASE}-001`,
+        methodology: `Device IMEI was extracted via direct board-level access following chip-off. IMEI was cross-referenced against the GSMA Device Registry and correlated with OFCOM import declarations. Manufacturing batch data was sourced via formal request to device manufacturer's compliance division. Retail distribution records were obtained through liquidator's inventory files (Canal Street Electronics, liquidated 18 months prior).`,
+        findings: [
+          'IMEI confirmed: batch manufactured Q3 2023, distributed exclusively to Canal Street Electronics, Canal District.',
+          'Canal Street Electronics ceased trading 18 months ago — stock liquidated through public auction and private sale.',
+          'Retailer\'s surviving records show 14 units from this batch were sold — no purchaser identification recorded (cash sales).',
+          'IMEI not registered to any network operator — device was never activated on a carrier plan.',
+          'No prior IMEI flagging or law enforcement holds recorded.',
+        ],
+        conclusion: 'The device\'s retail origin has been traced to a now-closed cash-only retailer. Purchaser identification is not recoverable through official records. However, this information narrows the acquisition window and may be corroborated through witness testimony or other investigative means.',
+        analystTitle: 'Materials Provenance Examiner',
+        reviewedBy:  'Sr. Scientist P. Okafor',
+      },
+
+      [`${CURRENT_CASE}-E17`]: {
+        lab:      'Forensic DNA Laboratory',
+        division: 'Biological Evidence Unit — Serology Section',
+        analyst:  'Dr. A. Reyes',
+        exhibit:  `${CURRENT_CASE}-E04 — Bloodstained Cloth Fragment`,
+        reportId: `DNA-${CURRENT_CASE}-003`,
+        methodology: `The exhibit was subjected to presumptive testing using tetramethylbenzidine (TMB) followed by confirmatory Ouchterlony immunodiffusion for human bloodstain identification. DNA extraction was performed using differential lysis. Dual STR profiling was conducted to identify all contributors. Profiles were compared against the victim reference sample and submitted to CODIS.`,
+        findings: [
+          'Human blood confirmed — both presumptive and confirmatory tests positive.',
+          'Victim\'s DNA profile identified as primary contributor — confirmed against reference sample.',
+          'Secondary contributor profile identified — designated DNA/COL-001-A/03.',
+          'Secondary profile does not match victim. Does not match any current person of interest on file.',
+          'Secondary profile submitted to CODIS — no immediate match returned. Profile active in database.',
+        ],
+        conclusion: 'The presence of a secondary DNA profile establishes physical contact between the exhibit and a second individual — distinct from the victim. This is consistent with a struggle or direct contact at the scene. The secondary profile is of high evidentiary value. Reference sampling of named suspects is a priority recommendation.',
+        analystTitle: 'Forensic DNA Analyst — Serology',
+        reviewedBy:  'Dr. F. Nakamura, Laboratory Director',
+      },
+
+      [`${CURRENT_CASE}-E18`]: {
+        lab:      'Trace Evidence Laboratory',
+        division: 'Fibre & Textile Analysis Unit',
+        analyst:  'Examiner S. Vandermeer',
+        exhibit:  `${CURRENT_CASE}-E04 — Bloodstained Cloth Fragment`,
+        reportId: `TRC-${CURRENT_CASE}-002`,
+        methodology: `Trace fibre recovery was conducted using a systematic tape-lift protocol across the exhibit surface. Recovered fibres were mounted on glass slides and examined by polarised light microscopy (PLM) and scanning electron microscopy with energy-dispersive X-ray analysis (SEM-EDX). Fibre characteristics were compared against reference collections and automotive interior databases.`,
+        findings: [
+          'Multiple extraneous fibres recovered — 3 distinct types identified.',
+          'Primary foreign fibre: ultra-fine wool/cashmere blend (60/40), dyed charcoal-black, consistent with high-end automotive interior trim.',
+          'Fibre morphology and dye lot consistent with interior specifications used by two European manufacturers (BMW 5-series, Mercedes E-class) — both dark grey/charcoal interior options.',
+          'Secondary fibres: standard polyester — no significant attribution value.',
+          'Fibre transfer pattern suggests sustained contact rather than incidental exposure.',
+        ],
+        conclusion: 'The primary foreign fibres indicate the exhibit came into prolonged contact with the interior of a high-end European saloon vehicle with a dark grey or charcoal interior trim. This finding should be corroborated against vehicle ownership records for named suspects and persons of interest. Fibre samples are available for direct comparison against a recovered vehicle interior.',
+        analystTitle: 'Trace Evidence Examiner — Fibres',
+        reviewedBy:  'Sr. Scientist P. Okafor',
+      },
+
+      [`${CURRENT_CASE}-E19`]: {
+        lab:      'Document Analysis Laboratory',
+        division: 'Ink Chronology & Paper Analysis Unit',
+        analyst:  'Examiner C. Brewster',
+        exhibit:  `${CURRENT_CASE}-E05 — Ledger (Handwritten Accounts)`,
+        reportId: `DOC-${CURRENT_CASE}-002`,
+        methodology: `Ink samples were extracted from representative entries across the ledger using solvent extraction on micro-punches (0.5mm diameter). Samples were analysed by high-performance liquid chromatography (HPLC) and compared against the InkLinks ink database. Ink aging analysis was conducted using accelerated aging comparison and solvent loss ratio methodology.`,
+        findings: [
+          'Ink composition is consistent across all entries — single ink formulation used throughout.',
+          'Ink identified as a ballpoint formulation consistent with common commercial pens — no specialist source identified.',
+          'Aging analysis of entries spanning the document: solvent loss ratios confirm entries were made progressively across an estimated 5.5–7 month period.',
+          'No evidence of backdating detected — ink aging profile is consistent with contemporaneous entry.',
+          'No evidence of erasure, alteration, or page substitution detected.',
+        ],
+        conclusion: 'The ledger entries were made progressively over approximately six months and have not been backdated or altered. This finding substantially increases the document\'s evidentiary credibility. The contents can be relied upon as contemporaneous records of the transactions described. The document is suitable for introduction as evidence.',
+        analystTitle: 'Questioned Documents Examiner — Ink Chronology',
+        reviewedBy:  'Lt. Forensic Services M. Osei',
+      },
+
+      [`${CURRENT_CASE}-E20`]: {
+        lab:      'Latent Print Laboratory',
+        division: 'Friction Ridge Analysis Unit',
+        analyst:  'Sr. Examiner D. Holt',
+        exhibit:  `${CURRENT_CASE}-E05 — Ledger (Handwritten Accounts)`,
+        reportId: `LPL-${CURRENT_CASE}-003`,
+        methodology: `All pages of the exhibit were processed using ninhydrin reagent with steam development, followed by physical developer (PD) for aged impressions on paper. Developed prints were photographed and evaluated for AFIS submission. All identified prints were compared against Victor Marre\'s exemplar prints held on file.`,
+        findings: [
+          'Three distinct fingerprint contributors identified across the ledger pages.',
+          'Contributor 1: confirmed match to Victor Marre (exemplar on file) — present on multiple pages.',
+          'Contributor 2: partial loop pattern — no current match on file. Designated LP/COL-001-A/03.',
+          'Contributor 3: arch pattern — no current match on file. Designated LP/COL-001-A/04.',
+          'Distribution of prints from Contributors 2 and 3 is consistent with regular handling — not incidental contact.',
+        ],
+        conclusion: 'The ledger was regularly handled by at least two individuals other than Victor Marre. This is inconsistent with the ledger being a personal private record — it was accessed and used by others. Identification of Contributors 2 and 3 should be treated as a priority. Elimination printing of named associates of Marre is recommended.',
+        analystTitle: 'Senior Latent Print Examiner',
+        reviewedBy:  'Lt. Forensic Services M. Osei',
+      },
+
+      [`${CURRENT_CASE}-E21`]: {
+        lab:      'Digital & Multimedia Laboratory',
+        division: 'Video Analysis & Enhancement Unit',
+        analyst:  'Analyst T. Vasquez',
+        exhibit:  `${CURRENT_CASE}-E06 — Security Footage USB Drive (Bay 7)`,
+        reportId: `DML-${CURRENT_CASE}-002`,
+        methodology: `Raw footage was extracted from the USB drive and ingested into Amped FIVE video analysis platform. The target sequence (21:45–21:52) was subjected to frame-by-frame enhancement using spatial noise reduction, deblurring (Wiener filter), and super-resolution upscaling (4x factor). The optimal frame for subject identification was selected and processed using AI-assisted facial region enhancement.`,
+        findings: [
+          'Target sequence successfully enhanced — significant improvement in subject visibility achieved.',
+          'Subject identified in frame at timestamp 21:48:22 — position consistent with Bay 7 patrol zone.',
+          'Enhanced still (DML-COL-001-A-STILL-001) produced at sufficient resolution for facial comparison.',
+          'Subject is wearing a dark jacket and appearing to hold a small object — consistent with an envelope or document.',
+          'A second partial figure is visible at the extreme right edge of frame 21:48:37 — further enhancement requested.',
+        ],
+        conclusion: 'The enhanced still provides a usable facial image of the subject present at Bay 7 at 21:48 on the night of the incident. The image has been forwarded to the Portrait Identification Queue for facial comparison against known suspects and persons of interest. The partial second figure warrants further processing.',
+        analystTitle: 'Digital Forensics Analyst — Video Enhancement',
+        reviewedBy:  'Dr. K. Ellison, Unit Supervisor',
+      },
+
+      [`${CURRENT_CASE}-E22`]: {
+        lab:      'Metallurgy Laboratory',
+        division: 'Material Provenance & Manufacturing Analysis Unit',
+        analyst:  'Examiner R. Tran',
+        exhibit:  `${CURRENT_CASE}-E06 — Security Footage USB Drive (Bay 7)`,
+        reportId: `MET-${CURRENT_CASE}-002`,
+        methodology: `USB casing was subjected to X-ray fluorescence (XRF) analysis for elemental composition mapping. Serial number and batch markings were examined under magnification. Findings were cross-referenced against the City Harbour Authority\'s procurement asset register (obtained under formal request) and the relevant supplier\'s batch shipping records.`,
+        findings: [
+          'USB drive casing composition: ABS plastic, consistent with standard consumer-grade manufacture.',
+          'Batch marking identified: CHA/BATCH/2024/009 — City Harbour Authority procurement batch.',
+          'Asset register confirms batch of 50 units procured by City Harbour Authority, delivered March 2024.',
+          'Serial number of exhibit falls within the registered batch — chain of custody to CHA confirmed.',
+          'No evidence of tampering with casing, serial number, or storage medium.',
+        ],
+        conclusion: 'The exhibit has been confirmed as a legitimate City Harbour Authority asset from a traceable procurement batch. Chain of custody integrity from original procurement is established. This finding supports the authenticity of the footage contained on the drive and removes any question of substitution or external tampering.',
+        analystTitle: 'Materials Provenance Examiner',
+        reviewedBy:  'Sr. Scientist P. Okafor',
+      },
+
+      [`${CURRENT_CASE}-E23`]: {
+        lab:      'Forensic DNA Laboratory',
+        division: 'Biological Evidence Unit',
+        analyst:  'Dr. A. Reyes',
+        exhibit:  `${CURRENT_CASE}-E07 — Prescription Medicine Bottle`,
+        reportId: `DNA-${CURRENT_CASE}-004`,
+        methodology: `The bottle rim and cap inner surface were swabbed using sterile nylon flocked swabs. Epithelial cell yield was assessed by quantitative PCR. STR profiling was conducted using GlobalFiler™ kit. The resulting profile was compared against the prescription registrant\'s reference profile (Elara Voss, obtained via formal request to prescribing physician\'s records) and against the victim\'s reference profile.`,
+        findings: [
+          'Epithelial cells recovered from bottle rim — sufficient for full STR profiling.',
+          'Full STR profile obtained across all 20 autosomal loci — designated DNA/COL-001-A/04.',
+          'Profile compared to Elara Voss reference profile: confirmed match across all 20 loci.',
+          'Profile compared to victim reference profile: no match.',
+          'No additional contributors detected — single-source profile.',
+        ],
+        conclusion: 'DNA analysis confirms that Elara Voss is the most recent person to have handled the bottle in a manner involving direct skin contact with the rim. This biologically corroborates her access to the victim\'s apartment. The nature of the bottle\'s presence in the victim\'s bathroom cabinet — given it was prescribed to a different individual — warrants further investigative enquiry.',
+        analystTitle: 'Forensic DNA Analyst',
+        reviewedBy:  'Dr. F. Nakamura, Laboratory Director',
+      },
+
+      [`${CURRENT_CASE}-E24`]: {
+        lab:      'Forensic Toxicology Laboratory',
+        division: 'Pharmaceutical & Controlled Substance Analysis Unit',
+        analyst:  'Dr. M. Charoenwong',
+        exhibit:  `${CURRENT_CASE}-E07 — Prescription Medicine Bottle`,
+        reportId: `TOX-${CURRENT_CASE}-001`,
+        methodology: `Residual pharmaceutical material was recovered from bottle interior via solvent wash (methanol extraction). Extracts were analysed by liquid chromatography–tandem mass spectrometry (LC-MS/MS) for quantitative compound identification. Results were compared against the prescription label compound and the SWGTOX reference library.`,
+        findings: [
+          'Primary compound identified: consistent with labelled prescription — therapeutic class confirmed.',
+          'Secondary compound identified: zopiclone — a non-benzodiazepine sedative hypnotic.',
+          'Zopiclone is not listed on the prescription label and is a separate controlled substance.',
+          'Zopiclone concentration in residue is sub-therapeutic as a standalone dose but significant as an additive.',
+          'Zopiclone has a half-life of 5–6 hours and would not be detectable in standard post-mortem toxicological screens without targeted testing.',
+        ],
+        conclusion: 'An unexpected controlled substance — zopiclone — has been identified in residue from the bottle interior. Its presence is unexplained by the prescription. Zopiclone\'s sedative properties and its detectability window are relevant to the circumstances of the case. A targeted toxicological re-examination of any biological samples from the victim is strongly recommended.',
+        analystTitle: 'Forensic Toxicologist',
+        reviewedBy:  'Prof. J. Osei-Bonsu, Head of Toxicology',
+      },
+
+      [`${CURRENT_CASE}-E25`]: {
+        lab:      'Trace Evidence Laboratory',
+        division: 'Geoscience & Soil Analysis Unit',
+        analyst:  'Examiner S. Vandermeer',
+        exhibit:  `${CURRENT_CASE}-E08 — Partial Boot Print Cast`,
+        reportId: `TRC-${CURRENT_CASE}-003`,
+        methodology: `Soil material was recovered from the tread impression using sterile micro-spatula excavation. Samples were subjected to particle size analysis, X-ray diffraction (XRD) for mineral identification, and heavy metal profiling by ICP-MS. Results were compared against the City Geological Survey reference soil map and a reference sample collected from the exhibit recovery site.`,
+        findings: [
+          'Two distinct soil populations identified within the tread material.',
+          'Population 1: silty clay with high organic content — consistent with the muddy lot recovery site.',
+          'Population 2: calcitic sandy loam with elevated manganese — distinct from recovery site.',
+          'Population 2 composition matches geological reference profiles for reclaimed industrial land — specifically the Kessler Warehouse District foreshore (reclaimed circa 1980s).',
+          'Spatial distribution within tread suggests Population 2 was deposited first — the wearer walked through the Kessler area before arriving at the recovery site.',
+        ],
+        conclusion: 'Pedological analysis establishes that the boot print\'s owner passed through the Kessler Warehouse District prior to arriving at the alley. This provides a partial movement timeline for an unidentified individual and links two sites that are relevant to the investigation. Comparison of this soil profile against footwear recovered from suspects is recommended.',
+        analystTitle: 'Trace Evidence Examiner — Geoscience',
+        reviewedBy:  'Sr. Scientist P. Okafor',
+      },
+
+      [`${CURRENT_CASE}-E26`]: {
+        lab:      'Forensic Anthropology Laboratory',
+        division: 'Human Gait & Biomechanics Analysis Unit',
+        analyst:  'Dr. B. Marchetti',
+        exhibit:  `${CURRENT_CASE}-E08 — Partial Boot Print Cast`,
+        reportId: `ANT-${CURRENT_CASE}-001`,
+        methodology: `The cast was digitally scanned using structured light 3D scanning (Artec Eva) at 0.1mm resolution. Stride geometry was inferred from impression depth distribution across the tread surface using pressure mapping algorithms. Foot length and width measurements were correlated against published anthropometric regression equations for stature and body mass estimation. Gait asymmetry was evaluated against biomechanical reference ranges.`,
+        findings: [
+          'Boot size: UK 11 (EU 46) — foot length approximately 295mm.',
+          'Estimated stature: 187–192cm (6\'2"–6\'3") based on foot length/stature regression.',
+          'Estimated body mass: 88–98kg (195–216 lbs) based on impression depth distribution.',
+          'Left-side pronation detected: medial aspect of left impression shows disproportionate depth — consistent with a chronic ankle or lower-leg condition.',
+          'Gait pattern is consistent with a physically active individual — stride length and cadence inference points to a person in good general physical condition.',
+        ],
+        conclusion: 'A physical profile has been established from gait and impression analysis: male, tall (187–192cm), 88–98kg, with a left-side gait asymmetry consistent with a prior lower-leg injury. This profile can be used to exclude suspects who do not conform to these parameters. Footwear comparison against recovered boots from suspects falling within this profile is recommended.',
+        analystTitle: 'Forensic Anthropologist',
+        reviewedBy:  'Prof. L. Ashworth, Human Identification Unit',
+      },
+
+    };
+
+    /* IDs of all lab-generated evidence items */
+    const LAB_RESULT_IDS = new Set(Object.keys(LAB_REPORTS));
 
     /* ── Initialise wave staging and load all persisted data ── */
     (function initWavesAndLoad() {
