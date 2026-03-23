@@ -741,6 +741,17 @@
 
     loadLog();
 
+    /* ════════════════════════════════════════════════
+       ANTI-EXPLOIT CONSTANTS
+       Declared here so checkCooldownOnLoad can use them
+    ════════════════════════════════════════════════ */
+    const SCORE_CAP       = 85;
+    const COOLDOWN_MS     = 3 * 60 * 1000;
+    const DIMINISH_RATE   = 4;
+    const DIMINISH_FLOOR  = 60;
+    const NOISE_RANGE     = 5;
+    const EVIDENCE_GATE   = 50;
+
     /* ── Restore cooldown on page load if still active ── */
     (function checkCooldownOnLoad() {
       const lastSubmit = parseInt(localStorage.getItem('col_journal_last_submit') || '0');
@@ -791,13 +802,6 @@
           relevant evidence is attached
        6. ±5% noise on every category score
     ════════════════════════════════════════════════ */
-
-    const SCORE_CAP       = 85;   // max any category can score
-    const COOLDOWN_MS     = 3 * 60 * 1000; // 3 minutes
-    const DIMINISH_RATE   = 4;    // % per repeat submission of same correct answer
-    const DIMINISH_FLOOR  = 60;   // minimum after diminishing returns
-    const NOISE_RANGE     = 5;    // ±5% random variance
-    const EVIDENCE_GATE   = 50;   // cap if no evidence attached
 
     // Evidence items relevant to each category
     const CATEGORY_EVIDENCE = {
