@@ -1743,19 +1743,7 @@
             <div id="meta-table-body"></div>
           </div>
 
-          <!-- Detail drawer -->
-          <div id="meta-detail" class="meta-detail">
-            <div class="meta-detail-header">
-              <span class="meta-detail-id" id="md-id"></span>
-              <span class="meta-detail-source" id="md-source"></span>
-              <button class="meta-detail-close" onclick="closeMeta()">✕</button>
-            </div>
-            <div class="meta-detail-body">
-              <div class="meta-detail-grid" id="md-grid"></div>
-              <div class="meta-hex" id="md-hex"></div>
-              <div class="meta-detail-note" id="md-note"></div>
-            </div>
-          </div>
+          <!-- Detail drawer replaced by modal — see #meta-report-overlay -->
 
         </div>
         <div class="panel" id="panel-documents">
@@ -2111,6 +2099,44 @@
       </div><!-- /main -->
     </div><!-- /body -->
   </div><!-- /app -->
+
+  <!-- ── METADATA REPORT MODAL ── -->
+  <div id="meta-report-overlay" onclick="handleMetaOverlay(event)" style="
+    position:fixed; inset:0; z-index:60;
+    background:rgba(4,2,0,.88); backdrop-filter:blur(6px);
+    display:flex; align-items:flex-start; justify-content:center;
+    padding:clamp(12px,3vw,40px);
+    opacity:0; pointer-events:none; transition:opacity .25s;
+    overflow-y:auto;
+  ">
+    <div id="meta-report-doc" style="
+      width:100%; max-width:640px; margin:auto;
+      background:#ede0c0; position:relative;
+      box-shadow:4px 8px 40px rgba(0,0,0,.85);
+      transform:translateY(16px) scale(.97);
+      transition:transform .3s cubic-bezier(.34,1.1,.64,1);
+      background-image:repeating-linear-gradient(
+        to bottom,transparent 0px,transparent 27px,
+        rgba(58,40,8,.07) 27px,rgba(58,40,8,.07) 28px);
+    ">
+      <!-- Red margin line -->
+      <div style="position:absolute;top:0;bottom:0;left:clamp(44px,7vw,60px);
+        width:1px;background:rgba(196,48,48,.2);pointer-events:none;"></div>
+
+      <button onclick="closeMeta()" style="
+        position:absolute;top:14px;right:16px;
+        font-family:'Courier Prime',monospace;
+        font-size:9px;letter-spacing:.3em;text-transform:uppercase;
+        color:rgba(58,40,8,.45);background:none;border:none;cursor:pointer;
+        transition:color .2s;z-index:2;
+      " onmouseover="this.style.color='#3a2808'" onmouseout="this.style.color='rgba(58,40,8,.45)'">✕ Close</button>
+
+      <div id="meta-report-inner" style="
+        padding:clamp(24px,4vw,44px) clamp(24px,4vw,44px)
+                clamp(24px,4vw,44px) clamp(56px,9vw,76px);
+      "></div>
+    </div>
+  </div>
 
   <!-- ── BOARD LAB REPORT VIEWER ── -->
   <div id="board-lr-overlay" onclick="handleBoardLROverlay(event)">
@@ -2803,45 +2829,206 @@
       closeMeta();
     }
 
+    /* Category → report type label and icon */
+    const META_CATEGORY_INFO = {
+      device:    { label:'Device & Hardware Analysis',    icon:'📱', division:'Digital Forensics Unit' },
+      network:   { label:'Network & Communications Log',  icon:'📡', division:'Signals Intelligence Unit' },
+      financial: { label:'Financial Transaction Record',  icon:'💰', division:'Economic Crime Unit' },
+      access:    { label:'Building Access & Entry Log',   icon:'🔑', division:'Physical Security Unit' },
+      exif:      { label:'File & Metadata Analysis',      icon:'🗂', division:'Digital Evidence Unit' },
+    };
+
+    /* Flag → formatted label */
+    const META_FLAG_LABELS = {
+      critical: { text:'⚑ Critical — Direct Case Relevance', color:'#7a1a1a' },
+      notable:  { text:'● Notable — Requires Follow-Up',     color:'#c47c1a' },
+      clean:    { text:'✓ Clean — Low Evidential Value',     color:'#2a7a3a' },
+      pending:  { text:'◌ Pending — Under Review',           color:'#7a6a4a' },
+    };
+
     function openMetaDetail(item, row) {
       document.querySelectorAll('.meta-row').forEach(r => r.classList.remove('active'));
       row.classList.add('active');
       activeMetaRow = row;
 
-      document.getElementById('md-id').textContent     = item.id;
-      document.getElementById('md-source').textContent = item.source + ' · ' + item.type;
+      const catInfo  = META_CATEGORY_INFO[item.category] || { label:'Metadata Record', icon:'📋', division:'Analysis Unit' };
+      const flagInfo = META_FLAG_LABELS[item.flag]       || META_FLAG_LABELS.pending;
+      const dated    = new Date(item.timestamp).toLocaleDateString('en-GB', { day:'2-digit', month:'long', year:'numeric' });
+      const time     = item.timestamp.split(' ')[1] || '—';
 
-      // Build field grid
-      const grid = document.getElementById('md-grid');
-      grid.innerHTML = '';
-      item.fields.forEach(f => {
-        grid.innerHTML += `
-          <div class="mdg-field">
-            <span class="mdg-label">${f.label}</span>
-            <span class="mdg-val ${f.cls || ''}">${f.val}</span>
+      // Build field rows HTML
+      const fieldsHtml = item.fields.map(f => {
+        const valColor = f.cls === 'critical' ? '#7a1a1a' : f.cls === 'highlight' ? '#c47c1a' : '#2a1400';
+        return `
+          <div style="display:flex;flex-direction:column;gap:2px;">
+            <span style="font-size:clamp(6px,.75vw,8px);letter-spacing:.3em;text-transform:uppercase;
+              color:rgba(58,40,8,.4);">${f.label}</span>
+            <span style="font-size:clamp(9px,1.1vw,11px);color:${valColor};line-height:1.35;
+              word-break:break-word;">${f.val}</span>
           </div>
         `;
-      });
+      }).join('');
 
-      // Hex dump
-      const hexEl = document.getElementById('md-hex');
-      if (item.hex) {
-        hexEl.textContent = item.hex;
-        hexEl.classList.add('show');
-      } else {
-        hexEl.classList.remove('show');
-      }
+      // Build hex dump section
+      const hexHtml = item.hex ? `
+        <div style="margin-bottom:clamp(14px,2.5vh,22px);">
+          <span style="font-size:clamp(7px,.85vw,9px);letter-spacing:.4em;text-transform:uppercase;
+            color:rgba(168,100,10,.8);display:block;margin-bottom:clamp(6px,1.2vh,10px);
+            padding-bottom:3px;border-bottom:1px solid rgba(168,100,10,.2);">
+            Raw Data Extract
+          </span>
+          <pre style="font-family:'Courier Prime',monospace;font-size:clamp(7px,.82vw,9px);
+            color:rgba(58,40,8,.35);line-height:1.6;letter-spacing:.08em;
+            background:rgba(58,40,8,.04);border:1px solid rgba(58,40,8,.1);
+            padding:8px 10px;overflow-x:auto;white-space:pre;">${item.hex}</pre>
+        </div>
+      ` : '';
 
-      // Note
-      document.getElementById('md-note').textContent = item.note;
+      document.getElementById('meta-report-inner').innerHTML = `
+        <!-- Letterhead -->
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;
+          gap:16px;padding-bottom:clamp(12px,2vh,18px);margin-bottom:clamp(12px,2vh,18px);
+          border-bottom:2px solid rgba(58,40,8,.5);">
+          <div style="font-size:clamp(28px,5vw,44px);line-height:1;flex-shrink:0;">${catInfo.icon}</div>
+          <div style="flex:1;">
+            <span style="font-size:clamp(9px,1.2vw,12px);font-weight:700;letter-spacing:.08em;
+              color:#1a0c00;display:block;text-transform:uppercase;margin-bottom:1px;">
+              City of Lies Police Department
+            </span>
+            <span style="font-size:clamp(7px,.85vw,9px);letter-spacing:.25em;
+              color:rgba(58,40,8,.55);display:block;text-transform:uppercase;">
+              ${catInfo.label}
+            </span>
+            <span style="font-size:clamp(7px,.85vw,9px);letter-spacing:.25em;
+              color:rgba(58,40,8,.4);display:block;text-transform:uppercase;">
+              ${catInfo.division}
+            </span>
+          </div>
+          <div style="text-align:right;flex-shrink:0;">
+            <span style="font-size:clamp(8px,1vw,10px);font-weight:700;letter-spacing:.15em;
+              color:#1a0c00;display:block;text-transform:uppercase;">${item.id}</span>
+            <span style="font-size:clamp(6px,.75vw,8px);letter-spacing:.25em;text-transform:uppercase;
+              padding:2px 8px;border:1px solid rgba(196,48,48,.45);color:rgba(122,26,26,.7);
+              display:inline-block;margin-top:4px;">Restricted</span>
+          </div>
+        </div>
 
-      document.getElementById('meta-detail').classList.add('open');
+        <!-- Meta strip -->
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));
+          gap:clamp(6px,1vw,10px);margin-bottom:clamp(16px,2.8vh,24px);
+          padding:clamp(8px,1.5vw,12px);background:rgba(58,40,8,.06);
+          border:1px solid rgba(58,40,8,.15);">
+          <div>
+            <span style="font-size:clamp(6px,.75vw,8px);letter-spacing:.3em;text-transform:uppercase;
+              color:rgba(58,40,8,.4);display:block;margin-bottom:2px;">Case No.</span>
+            <span style="font-size:clamp(9px,1.1vw,11px);color:#2a1400;">COL-001-A</span>
+          </div>
+          <div>
+            <span style="font-size:clamp(6px,.75vw,8px);letter-spacing:.3em;text-transform:uppercase;
+              color:rgba(58,40,8,.4);display:block;margin-bottom:2px;">Record Type</span>
+            <span style="font-size:clamp(9px,1.1vw,11px);color:#2a1400;">${item.type}</span>
+          </div>
+          <div>
+            <span style="font-size:clamp(6px,.75vw,8px);letter-spacing:.3em;text-transform:uppercase;
+              color:rgba(58,40,8,.4);display:block;margin-bottom:2px;">Source</span>
+            <span style="font-size:clamp(9px,1.1vw,11px);color:#2a1400;">${item.source}</span>
+          </div>
+          <div>
+            <span style="font-size:clamp(6px,.75vw,8px);letter-spacing:.3em;text-transform:uppercase;
+              color:rgba(58,40,8,.4);display:block;margin-bottom:2px;">Date / Time</span>
+            <span style="font-size:clamp(9px,1.1vw,11px);color:#2a1400;">${dated} · ${time}</span>
+          </div>
+          <div>
+            <span style="font-size:clamp(6px,.75vw,8px);letter-spacing:.3em;text-transform:uppercase;
+              color:rgba(58,40,8,.4);display:block;margin-bottom:2px;">Significance</span>
+            <span style="font-size:clamp(9px,1.1vw,11px);color:${flagInfo.color};">${flagInfo.text}</span>
+          </div>
+        </div>
+
+        <!-- Summary value -->
+        <div style="margin-bottom:clamp(16px,2.8vh,24px);">
+          <span style="font-size:clamp(7px,.85vw,9px);letter-spacing:.4em;text-transform:uppercase;
+            color:rgba(168,100,10,.8);display:block;margin-bottom:clamp(6px,1.2vh,10px);
+            padding-bottom:3px;border-bottom:1px solid rgba(168,100,10,.2);">Summary Value</span>
+          <span style="font-size:clamp(11px,1.5vw,14px);color:#2a1400;line-height:1.5;
+            font-weight:700;">${item.value}</span>
+        </div>
+
+        <!-- Field data -->
+        <div style="margin-bottom:clamp(16px,2.8vh,24px);">
+          <span style="font-size:clamp(7px,.85vw,9px);letter-spacing:.4em;text-transform:uppercase;
+            color:rgba(168,100,10,.8);display:block;margin-bottom:clamp(6px,1.2vh,10px);
+            padding-bottom:3px;border-bottom:1px solid rgba(168,100,10,.2);">Extracted Data Fields</span>
+          <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));
+            gap:clamp(8px,1.4vw,14px);">
+            ${fieldsHtml}
+          </div>
+        </div>
+
+        ${hexHtml}
+
+        <!-- Analyst note / conclusion -->
+        <div style="background:rgba(58,40,8,.07);border:1px solid rgba(58,40,8,.2);
+          border-left:3px solid rgba(168,100,10,.6);
+          padding:clamp(10px,1.8vw,16px);margin-bottom:clamp(16px,3vh,28px);">
+          <span style="font-size:clamp(6px,.75vw,8px);letter-spacing:.35em;text-transform:uppercase;
+            color:rgba(168,100,10,.7);display:block;margin-bottom:5px;">
+            Investigative Assessment
+          </span>
+          <p style="font-size:clamp(10px,1.3vw,13px);color:#2a1400;line-height:1.75;">${item.note}</p>
+        </div>
+
+        <!-- Signature block -->
+        <div style="padding-top:clamp(12px,2vh,18px);border-top:1px solid rgba(58,40,8,.2);
+          display:grid;grid-template-columns:1fr 1fr;gap:clamp(10px,2vw,20px);">
+          <div>
+            <span style="font-size:clamp(6px,.75vw,8px);letter-spacing:.3em;text-transform:uppercase;
+              color:rgba(58,40,8,.4);display:block;margin-bottom:20px;">Extracting Analyst</span>
+            <div style="border-bottom:1px solid rgba(58,40,8,.35);margin-bottom:4px;"></div>
+            <span style="font-size:clamp(9px,1.1vw,11px);color:rgba(58,40,8,.6);display:block;">
+              Det. Gary Langley
+            </span>
+            <span style="font-size:clamp(7px,.85vw,9px);letter-spacing:.15em;
+              color:rgba(58,40,8,.35);display:block;font-style:italic;">
+              Investigating Officer, COL-001-A
+            </span>
+          </div>
+          <div>
+            <span style="font-size:clamp(6px,.75vw,8px);letter-spacing:.3em;text-transform:uppercase;
+              color:rgba(58,40,8,.4);display:block;margin-bottom:20px;">Review &amp; Authorisation</span>
+            <div style="border-bottom:1px solid rgba(58,40,8,.35);margin-bottom:4px;"></div>
+            <span style="font-size:clamp(9px,1.1vw,11px);color:rgba(58,40,8,.6);display:block;">
+              — Pending Senior Review —
+            </span>
+            <span style="font-size:clamp(7px,.85vw,9px);letter-spacing:.15em;
+              color:rgba(58,40,8,.35);display:block;font-style:italic;">
+              Supervising Officer
+            </span>
+          </div>
+        </div>
+      `;
+
+      // Open modal
+      const overlay = document.getElementById('meta-report-overlay');
+      const doc     = document.getElementById('meta-report-doc');
+      overlay.style.opacity      = '1';
+      overlay.style.pointerEvents = 'all';
+      doc.style.transform        = 'translateY(0) scale(1)';
+      overlay.scrollTop          = 0;
     }
 
     function closeMeta() {
-      document.getElementById('meta-detail').classList.remove('open');
       document.querySelectorAll('.meta-row').forEach(r => r.classList.remove('active'));
       activeMetaRow = null;
+      const overlay = document.getElementById('meta-report-overlay');
+      const doc     = document.getElementById('meta-report-doc');
+      overlay.style.opacity       = '0';
+      overlay.style.pointerEvents = 'none';
+      doc.style.transform         = 'translateY(16px) scale(.97)';
+    }
+
+    function handleMetaOverlay(e) {
+      if (e.target === document.getElementById('meta-report-overlay')) closeMeta();
     }
 
     // Build on panel open
