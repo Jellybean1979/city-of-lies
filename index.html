@@ -828,8 +828,20 @@
     /* ── Menu actions ── */
     function handleMenu(action) {
       if (action === 'continue' && document.getElementById('btn-continue').classList.contains('disabled')) return;
+
+      // New game requires confirmation if a save exists
+      if (action === 'new') {
+        const hasSave = Object.keys(localStorage).some(k => k.startsWith('col_') && k !== 'col_music');
+        if (hasSave) {
+          showNewGameConfirm();
+          return;
+        }
+        // No existing save — go straight in
+        startNewGame();
+        return;
+      }
+
       const routes = {
-        new:      'game.html',
         continue: 'game.html?continue=1',
         codex:    'codex.html',
         settings: 'settings.html',
@@ -839,6 +851,40 @@
         saveMusicState();
         window.location.href = routes[action];
       }
+    }
+
+    function showNewGameConfirm() {
+      const overlay = document.getElementById('new-game-overlay');
+      const modal   = document.getElementById('new-game-modal');
+      overlay.style.opacity = '1';
+      overlay.style.pointerEvents = 'all';
+      modal.style.transform = 'scale(1)';
+    }
+
+    function cancelNewGame() {
+      const overlay = document.getElementById('new-game-overlay');
+      const modal   = document.getElementById('new-game-modal');
+      overlay.style.opacity = '0';
+      overlay.style.pointerEvents = 'none';
+      modal.style.transform = 'scale(.95)';
+    }
+
+    function confirmNewGame() {
+      clearSave();
+      startNewGame();
+    }
+
+    function clearSave() {
+      // Remove all game keys — static and dynamic (col_classify_*, col_note_*)
+      const keys = Object.keys(localStorage).filter(k =>
+        k.startsWith('col_') && k !== 'col_music'
+      );
+      keys.forEach(k => localStorage.removeItem(k));
+    }
+
+    function startNewGame() {
+      saveMusicState();
+      window.location.href = 'game.html';
     }
 
     /* ── Commit hash ── */
@@ -855,5 +901,60 @@
     }
     updateCommitHash();
   </script>
+  <!-- ── NEW GAME CONFIRMATION ── -->
+  <div id="new-game-overlay" style="
+    position:fixed; inset:0; z-index:80;
+    background:rgba(4,2,0,.88); backdrop-filter:blur(8px);
+    display:flex; align-items:center; justify-content:center;
+    padding:clamp(16px,4vw,40px);
+    opacity:0; pointer-events:none; transition:opacity .25s;
+  ">
+    <div id="new-game-modal" style="
+      width:100%; max-width:420px;
+      background:rgba(14,11,8,.97);
+      border:1px solid rgba(168,131,46,.3);
+      padding:clamp(24px,4vw,36px);
+      transform:scale(.95); transition:transform .25s cubic-bezier(.34,1.1,.64,1);
+    ">
+      <span style="
+        font-size:clamp(7px,.85vw,9px); letter-spacing:.4em;
+        text-transform:uppercase; color:rgba(168,131,46,.6);
+        display:block; margin-bottom:10px;
+      ">Warning</span>
+      <span style="
+        font-family:'Courier Prime',monospace;
+        font-size:clamp(18px,3vw,24px);
+        color:#d8c8a8; display:block; margin-bottom:8px;
+      ">Start New Investigation?</span>
+      <p style="
+        font-size:clamp(10px,1.3vw,13px);
+        color:rgba(168,150,100,.6); line-height:1.7;
+        margin-bottom:clamp(20px,3.5vh,28px);
+      ">All progress on Case COL-001-A will be permanently erased — evidence, lab results, journal entries, theories, and character notes. This cannot be undone.</p>
+      <div style="display:flex; gap:10px;">
+        <button onclick="confirmNewGame()" style="
+          flex:1; font-family:'Courier Prime',monospace;
+          font-size:clamp(9px,1.2vw,11px); letter-spacing:.25em;
+          text-transform:uppercase; padding:clamp(10px,1.8vw,14px);
+          background:#5a1a1a; color:#d8c8a8; border:1px solid rgba(180,40,40,.4);
+          cursor:pointer; transition:background .2s;
+        " onmouseover="this.style.background='#7a2020'" onmouseout="this.style.background='#5a1a1a'">
+          Erase &amp; Start Fresh
+        </button>
+        <button onclick="cancelNewGame()" style="
+          flex:1; font-family:'Courier Prime',monospace;
+          font-size:clamp(9px,1.2vw,11px); letter-spacing:.25em;
+          text-transform:uppercase; padding:clamp(10px,1.8vw,14px);
+          background:none; color:rgba(168,131,46,.6);
+          border:1px solid rgba(168,131,46,.2);
+          cursor:pointer; transition:color .2s, border-color .2s;
+        " onmouseover="this.style.color='#c47c1a';this.style.borderColor='rgba(168,131,46,.5)'"
+           onmouseout="this.style.color='rgba(168,131,46,.6)';this.style.borderColor='rgba(168,131,46,.2)'">
+          Cancel
+        </button>
+      </div>
+    </div>
+  </div>
+
 </body>
 </html>
