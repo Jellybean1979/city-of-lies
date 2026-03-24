@@ -548,10 +548,12 @@
   const TIMER_MAX_MS        = 7 * 60 * 1000;
   const METER_MAX           = 100;
   const METER_MIN           = 0;
+  const NEXT_EVENT_KEY      = 'col_faction_next_time';
+  const CHECK_INTERVAL_MS   = 15 * 1000; // check every 15 seconds
 
   /* ── STATE ── */
-  let eventTimer  = null;
-  let isModalOpen = false;
+  let checkInterval = null;
+  let isModalOpen   = false;
 
   /* ── LOAD SAVE STATE ── */
   function getMeters() {
@@ -621,14 +623,30 @@
     return unseen[Math.floor(Math.random() * unseen.length)];
   }
 
-  /* ── SCHEDULE NEXT EVENT ── */
+  /* ── SCHEDULE NEXT EVENT ──
+     Stores the target timestamp in localStorage so it
+     survives page navigation. Checked every 15 seconds.
+  ── */
   function scheduleNext() {
-    if (eventTimer) clearTimeout(eventTimer);
-    const delay = TIMER_MIN_MS + Math.random() * (TIMER_MAX_MS - TIMER_MIN_MS);
-    eventTimer = setTimeout(() => {
-      if (!isModalOpen) triggerEvent();
-      else scheduleNext(); // try again if modal already open
-    }, delay);
+    // Only set a new time if one isn't already pending
+    const existing = parseInt(localStorage.getItem(NEXT_EVENT_KEY) || '0');
+    const now = Date.now();
+    if (!existing || existing <= now) {
+      const delay = TIMER_MIN_MS + Math.random() * (TIMER_MAX_MS - TIMER_MIN_MS);
+      localStorage.setItem(NEXT_EVENT_KEY, String(Math.floor(now + delay)));
+    }
+  }
+
+  /* ── TICK — called every 15 seconds ── */
+  function tick() {
+    if (isModalOpen) return;
+    const nextTime = parseInt(localStorage.getItem(NEXT_EVENT_KEY) || '0');
+    if (!nextTime) { scheduleNext(); return; }
+    if (Date.now() >= nextTime) {
+      // Clear the scheduled time first so we don't double-fire
+      localStorage.removeItem(NEXT_EVENT_KEY);
+      triggerEvent();
+    }
   }
 
   /* ── TRIGGER EVENT ── */
@@ -884,6 +902,7 @@
   window.closeFactionModal = function() {
     document.getElementById('faction-event-overlay')?.remove();
     isModalOpen = false;
+    // Schedule the next event now that this one is done
     scheduleNext();
   };
 
@@ -974,13 +993,20 @@
 
   /* ── INIT ── */
   function init() {
-    // Don't run on index, settings, credits, codex
-    const page = window.location.pathname.split('/').pop();
+    const page = window.location.pathname.split('/').pop() || 'index.html';
     const skipPages = ['index.html','settings.html','credits.html'];
     if (skipPages.includes(page)) return;
 
-    // Start the timer
+    // Schedule first event if none pending
     scheduleNext();
+
+    // Check every 15 seconds — survives page navigation because
+    // the target time is stored in localStorage
+    if (checkInterval) clearInterval(checkInterval);
+    checkInterval = setInterval(tick, CHECK_INTERVAL_MS);
+
+    // Also check immediately in case we're already past due
+    tick();
   }
 
   // Start when DOM ready
