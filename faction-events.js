@@ -1,7 +1,7 @@
 /* ═══════════════════════════════════════════════════════════════════
    FACTION EVENTS SYSTEM — City of Lies / Merrehope
    ═══════════════════════════════════════════════════════════════════
-   Pops a choice modal every 3–8 minutes during gameplay.
+   Pops a choice modal every 2–7 minutes during gameplay.
    Each event belongs to a faction, offers 2–3 choices, and
    honestly shows the player the meter consequences upfront.
    30% of choices carry a bonus (new evidence) or penalty
@@ -544,8 +544,8 @@
 
   /* ── CONSTANTS ── */
   const BONUS_CHANCE        = 0.30;
-  const TIMER_MIN_MS        = 3 * 60 * 1000;
-  const TIMER_MAX_MS        = 8 * 60 * 1000;
+  const TIMER_MIN_MS        = 2 * 60 * 1000;
+  const TIMER_MAX_MS        = 7 * 60 * 1000;
   const METER_MAX           = 100;
   const METER_MIN           = 0;
 
@@ -976,7 +976,7 @@
   function init() {
     // Don't run on index, settings, credits, codex
     const page = window.location.pathname.split('/').pop();
-    const skipPages = ['index.html','settings.html','credits.html','codex.html'];
+    const skipPages = ['index.html','settings.html','credits.html'];
     if (skipPages.includes(page)) return;
 
     // Start the timer
@@ -991,4 +991,3 @@
   }
 
 })();
-
