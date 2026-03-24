@@ -736,8 +736,7 @@
           </div>
 
           <div class="verdict-actions doc-page">
-            <button class="va-btn primary"   onclick="reviseReport()">Revise &amp; Resubmit</button>
-            <button class="va-btn secondary" onclick="goBack()">← Return to Board</button>
+            <button class="va-btn primary" onclick="startNewGameFromReport()">Start New Investigation</button>
           </div>
 
         </div>
@@ -1229,10 +1228,46 @@
         },
       ];
 
-      // Calculate accuracy score
+      /* ── Padding penalties ──
+         Penalise players who pad their submission with
+         all available evidence or all accomplices rather
+         than making considered choices.
+      ── */
+      const loggedEvidence   = BASE_EVIDENCE.filter(e => e.status === 'logged');
+      const totalLogged      = loggedEvidence.length;
+      const selectedAll      = totalLogged > 0 && answers.evidence.length >= totalLogged;
+      const allAccomplices   = document.getElementById('f-accomplices').options.length - 1;
+      const selectedAllAccom = answers.accomplices.length >= allAccomplices;
+
+      if (selectedAll) {
+        fields.push({
+          label:   'Evidence Selection',
+          answer:  `All ${answers.evidence.length} available items attached`,
+          correct: false, partial: false, isPenalty: true,
+          feedback: 'Submitting all available evidence without discrimination weakens the case — it signals a lack of analytical judgement and raises admissibility questions. A prosecutor needs a curated package, not a data dump.',
+        });
+      }
+
+      if (selectedAllAccom) {
+        fields.push({
+          label:   'Accomplice Identification',
+          answer:  'All persons named as accomplices',
+          correct: false, partial: false, isPenalty: true,
+          feedback: 'Naming every available person of interest as an accomplice undermines the report\'s credibility. A specific, evidenced claim is far stronger than a broad accusation against everyone.',
+        });
+      }
+
+      // Calculate accuracy score — penalty fields reduce the max and deduct points
       let score = 0;
-      fields.forEach(f => { if (f.correct) score += 2; else if (f.partial) score += 1; });
-      const scorePct = Math.round((score / (fields.length * 2)) * 100);
+      let penaltyDeductions = 0;
+      fields.forEach(f => {
+        if (f.isPenalty) { penaltyDeductions += 2; return; }
+        if (f.correct) score += 2;
+        else if (f.partial) score += 1;
+      });
+      const baseFields = fields.filter(f => !f.isPenalty);
+      const maxScore   = (baseFields.length * 2);
+      const scorePct   = Math.max(0, Math.round(((score - penaltyDeductions) / Math.max(maxScore, 1)) * 100));
 
       // Resolve which ending this playstyle earned
       const endingKey = resolveEnding(answers, scorePct);
@@ -1283,10 +1318,16 @@
       const rowsEl = document.getElementById('verdict-field-rows');
       rowsEl.innerHTML = '';
       fields.forEach(f => {
-        const resultCls  = f.correct ? 'result-correct' : f.partial ? 'result-partial' : 'result-incorrect';
-        const resultText = f.correct ? '✓ Correct'      : f.partial ? '~ Partial'      : '✗ Incorrect';
+        const resultCls  = f.isPenalty  ? 'result-incorrect'
+                         : f.correct    ? 'result-correct'
+                         : f.partial    ? 'result-partial'
+                         :               'result-incorrect';
+        const resultText = f.isPenalty  ? '⚠ Penalty'
+                         : f.correct    ? '✓ Correct'
+                         : f.partial    ? '~ Partial'
+                         :               '✗ Incorrect';
         rowsEl.innerHTML += `
-          <div class="vf-row">
+          <div class="vf-row" ${f.isPenalty ? 'style="background:rgba(122,26,26,.04);border-left:2px solid rgba(122,26,26,.3);padding-left:8px;"' : ''}>
             <div>
               <span class="vf-label">${f.label}</span>
               <span class="vf-answer">${f.answer}</span>
@@ -1346,12 +1387,15 @@
       return labels[field]?.[value] ?? value;
     }
 
-    /* ── Revise report ── */
-    function reviseReport() {
-      document.getElementById('verdict-panel').classList.remove('show');
-      document.getElementById('form-stamp').textContent = 'Pending Submission';
-      document.getElementById('form-stamp').className   = 'doc-stamp stamp-pending';
-      document.getElementById('report-form').scrollIntoView({ behavior:'smooth' });
+    /* ── Start new game from Final Report — clears all save data ── */
+    function startNewGameFromReport() {
+      // Clear all game progress keys except music
+      const keys = Object.keys(localStorage).filter(k =>
+        k.startsWith('col_') && k !== 'col_music'
+      );
+      keys.forEach(k => localStorage.removeItem(k));
+      saveMusicState();
+      window.location.href = 'index.html';
     }
 
     /* ════════════════════════════════════════════════
