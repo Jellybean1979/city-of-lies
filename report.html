@@ -814,16 +814,30 @@
     function buildEvidencePicker() {
       const picker = document.getElementById('evidence-picker');
       picker.innerHTML = '';
+      const penalties = JSON.parse(localStorage.getItem('col_faction_penalties') || '{}');
+
       BASE_EVIDENCE.forEach(item => {
-        const isLogged    = item.status === 'logged';
+        const isLogged      = item.status === 'logged';
+        const isInadmissible = !!penalties[item.id];
+        const isAvailable   = isLogged && !isInadmissible;
+
         const el = document.createElement('div');
-        el.className = 'ev-pick-item' + (isLogged ? '' : ' unavailable');
+        el.className = 'ev-pick-item' + (isAvailable ? '' : ' unavailable');
         el.dataset.id = item.id;
-        if (isLogged) el.onclick = () => toggleEvidence(el, item.id);
+        if (isAvailable) el.onclick = () => toggleEvidence(el, item.id);
+
+        const penaltyTag = isInadmissible
+          ? `<span style="font-size:7px;letter-spacing:.15em;text-transform:uppercase;
+               color:#c43030;display:block;margin-top:2px;">⚠ Inadmissible — ${penalties[item.id].reason}</span>`
+          : '';
+
         el.innerHTML = `
           <div class="ev-cb" data-id="${item.id}"></div>
           <span class="ev-pick-id">${item.id}</span>
-          <span class="ev-pick-name">${item.name}</span>
+          <div style="flex:1">
+            <span class="ev-pick-name">${item.name}</span>
+            ${penaltyTag}
+          </div>
           <span class="ev-pick-status ${item.status}">${statusLabel(item.status)}</span>
         `;
         picker.appendChild(el);
@@ -1390,5 +1404,6 @@
     }
     updateCommitHash();
   </script>
+  <script src="faction-events.js"></script>
 </body>
 </html>
