@@ -3172,6 +3172,120 @@
     };
 
     /* Build the documents panel from localStorage */
+    /* ════════════════════════════════════════════════
+       CORONER'S REPORT SYSTEM
+       Shows a "pending" card for 3 minutes after first
+       game load, then unlocks the full report.
+       Key: col_coroner_arrival — timestamp when report arrives
+    ════════════════════════════════════════════════ */
+    const CORONER_DELAY_MS   = 3 * 60 * 1000; // 3 minutes
+    const CORONER_ARRIVAL_KEY = 'col_coroner_arrival';
+    const CORONER_READY_KEY   = 'col_coroner_ready';
+
+    const CORONER_REPORT = {
+      id:       'COR-COL-001-A-001',
+      name:     'Post-Mortem Examination Report — Elias Voss',
+      lab:      'Merrehope City Mortuary',
+      division: 'Office of the Medical Examiner',
+      analyst:  'Dr. Constance Fairweather, M.D.',
+      exhibit:  'Deceased — Elias Voss, DOB 14 Mar 1979',
+      reportId: 'PME-COL-001-A-001',
+      analystTitle: 'Chief Medical Examiner',
+      reviewedBy:   'Deputy Medical Examiner T. Obi',
+      methodology: `Full external and internal post-mortem examination conducted under standard protocol at the Merrehope City Mortuary, Case Suite 3. Examination commenced at 08:30 on Mar 05 2026, approximately 9–11 hours post-mortem. Toxicological samples collected and forwarded to Forensic Toxicology Laboratory under separate submission. Histological sections prepared and retained. Full photographic record maintained under case reference PME-COL-001-A-001.`,
+      findings: [
+        'Deceased: Elias Voss, male, 47 years of age. Identified by accompanying documentation and confirmed via fingerprint comparison against national register.',
+        'Time of death estimated at 21:30–22:15 on Mar 04 2026, based on body temperature, rigor progression, and lividity pattern.',
+        'Cause of death: blunt force trauma to the posterior cranium — a single, forceful impact consistent with a smooth, heavy object. No weapon recovered at scene.',
+        'Secondary findings: contusions to the right forearm and left hand consistent with a defensive posture prior to the fatal blow. A struggle preceded the fatal impact.',
+        'Trace evidence: foreign fibres recovered from the left shoulder of the deceased\'s jacket — charcoal wool/cashmere blend consistent with high-end automotive interior trim (cross-reference: TRC-COL-001-A-002).',
+        'Toxicology: preliminary screen negative for alcohol and common narcotics. Full panel results pending — zopiclone specifically requested following cross-reference with evidence E07.',
+        'Perimortem abrasion noted on right wrist — consistent with a ligature or restraint. Not sustained during the fatal event; estimated 4–8 hours prior.',
+        'The deceased was otherwise in good general health with no underlying pathologies of note.',
+      ],
+      conclusion: `Death was caused by a single blunt force impact to the posterior skull, consistent with a deliberate strike from behind. The defensive injuries and perimortem restraint abrasion indicate the deceased was aware of and resisted the threat prior to the fatal blow. The attack was targeted, not opportunistic. The presence of matching trace fibres (see TRC-COL-001-A-002) and the perimortem restraint evidence significantly narrow the circumstances of the incident. Ruling: Homicide. This office recommends the toxicology full panel be treated as priority given the zopiclone finding in associated evidence — if the compound is detected in the deceased\'s system, the circumstances of the restraint and incapacitation require urgent reassessment.`,
+    };
+
+    /* Initialise coroner timer on first game visit */
+    function initCoronerTimer() {
+      const arrival = localStorage.getItem(CORONER_ARRIVAL_KEY);
+      if (!arrival) {
+        // First time — set arrival time 3 minutes from now
+        const arrivalTime = Date.now() + CORONER_DELAY_MS;
+        localStorage.setItem(CORONER_ARRIVAL_KEY, String(arrivalTime));
+      }
+    }
+
+    /* Check if coroner report has arrived */
+    function isCoronerReady() {
+      if (localStorage.getItem(CORONER_READY_KEY) === 'true') return true;
+      const arrival = parseInt(localStorage.getItem(CORONER_ARRIVAL_KEY) || '0');
+      if (arrival && Date.now() >= arrival) {
+        localStorage.setItem(CORONER_READY_KEY, 'true');
+        return true;
+      }
+      return false;
+    }
+
+    /* Time remaining until coroner report arrives (ms) */
+    function coronerTimeRemaining() {
+      const arrival = parseInt(localStorage.getItem(CORONER_ARRIVAL_KEY) || '0');
+      if (!arrival) return CORONER_DELAY_MS;
+      return Math.max(0, arrival - Date.now());
+    }
+
+    /* ── Update the pending card countdown every second ── */
+    let coronerCountdownInterval = null;
+
+    function startCoronerCountdown() {
+      if (coronerCountdownInterval) clearInterval(coronerCountdownInterval);
+      coronerCountdownInterval = setInterval(() => {
+        if (isCoronerReady()) {
+          clearInterval(coronerCountdownInterval);
+          // Refresh the documents panel to show the arrived report
+          buildDocumentsPanel();
+          // Show a brief notification if the Documents panel is active
+          const docsPanel = document.getElementById('panel-documents');
+          if (docsPanel?.classList.contains('active')) {
+            showCoronerArrivalToast();
+          }
+        } else {
+          // Update countdown on the pending card if visible
+          const countEl = document.getElementById('coroner-countdown');
+          if (countEl) {
+            const rem = coronerTimeRemaining();
+            const mins = Math.floor(rem / 60000);
+            const secs = Math.floor((rem % 60000) / 1000);
+            countEl.textContent = `${mins}:${secs.toString().padStart(2,'0')}`;
+          }
+        }
+      }, 1000);
+    }
+
+    function showCoronerArrivalToast() {
+      const toast = document.createElement('div');
+      toast.style.cssText = `
+        position:fixed;bottom:24px;left:50%;transform:translateX(-50%);
+        z-index:60;background:rgba(14,11,8,.97);
+        border:1px solid rgba(168,131,46,.4);
+        padding:10px 24px;white-space:nowrap;
+        font-family:'Courier Prime',monospace;
+        font-size:clamp(8px,1vw,10px);letter-spacing:.3em;
+        text-transform:uppercase;color:var(--amber);
+        pointer-events:none;animation:toastIn .4s ease;
+      `;
+      toast.innerHTML = `
+        <style>@keyframes toastIn{from{opacity:0;transform:translateX(-50%) translateY(8px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}</style>
+        📋 Coroner's Report received — Elias Voss
+      `;
+      document.body.appendChild(toast);
+      setTimeout(() => toast.remove(), 5000);
+    }
+
+    /* Initialise coroner on page load */
+    initCoronerTimer();
+    startCoronerCountdown();
+
     function buildDocumentsPanel() {
       try {
         const savedStatus = JSON.parse(localStorage.getItem('col_evidence_status') || '{}');
@@ -3183,12 +3297,14 @@
 
         resultIds.forEach(id => {
           const status = savedStatus[id];
-          // Also check if it exists in extraItems
           const inExtra = extraItems.find(e => e.id === id);
           if (status === 'logged' || (inExtra && (savedStatus[inExtra.id] === 'logged' || inExtra.status === 'logged'))) {
             loggedReports.push(id);
           }
         });
+
+        const coronerReady   = isCoronerReady();
+        const totalDocs      = loggedReports.length + (coronerReady ? 1 : 0);
 
         const grid    = document.getElementById('doc-grid');
         const empty   = document.getElementById('doc-empty');
@@ -3197,41 +3313,147 @@
         if (!grid) return;
         grid.innerHTML = '';
 
-        if (loggedReports.length === 0) {
-          empty.style.display = '';
-          badge.textContent = '0 reports filed';
-          return;
-        }
+        const hasAnything = totalDocs > 0 || !coronerReady; // always show pending card
 
-        empty.style.display = 'none';
-        badge.textContent = `${loggedReports.length} report${loggedReports.length > 1 ? 's' : ''} filed`;
-
-        loggedReports.forEach(id => {
-          const r = BOARD_LAB_REPORTS[id];
-          if (!r) return;
-          const typeInfo = LAB_TYPE_MAP[r.lab] || { cls:'type-document', icon:'📋' };
-
+        // Always show the coroner card — either pending or ready
+        if (coronerReady) {
+          // Full report card
+          empty.style.display = 'none';
           const card = document.createElement('div');
-          card.className = `doc-card ${typeInfo.cls}`;
-          card.onclick = () => openBoardLR(id);
+          card.className = 'doc-card type-document';
+          card.style.borderColor = 'rgba(168,131,46,.35)';
+          card.onclick = () => openCoronerReport();
           card.innerHTML = `
             <div class="doc-card-inner">
-              <span class="doc-card-icon">${typeInfo.icon}</span>
-              <span class="doc-card-ref">${r.reportId}</span>
-              <span class="doc-card-title">${r.name}</span>
-              <span class="doc-card-lab">${r.lab}</span>
-              <span class="doc-card-exhibit">Exhibit: ${r.exhibit}</span>
+              <span class="doc-card-icon">🏥</span>
+              <span class="doc-card-ref">${CORONER_REPORT.reportId}</span>
+              <span class="doc-card-title">${CORONER_REPORT.name}</span>
+              <span class="doc-card-lab">${CORONER_REPORT.lab}</span>
+              <span class="doc-card-exhibit">Deceased: Elias Voss · Mar 04 2026</span>
               <span class="doc-card-open">Open Report →</span>
             </div>
           `;
           grid.appendChild(card);
-        });
+        } else {
+          // Pending card with countdown
+          empty.style.display = 'none';
+          const rem  = coronerTimeRemaining();
+          const mins = Math.floor(rem / 60000);
+          const secs = Math.floor((rem % 60000) / 1000);
+          const pendingCard = document.createElement('div');
+          pendingCard.className = 'doc-card';
+          pendingCard.style.cssText = 'opacity:.6;cursor:default;border-style:dashed;';
+          pendingCard.innerHTML = `
+            <div class="doc-card-inner">
+              <span class="doc-card-icon" style="opacity:.5;">⏳</span>
+              <span class="doc-card-ref" style="color:var(--paper-dim);">PME-COL-001-A-001</span>
+              <span class="doc-card-title">Post-Mortem Examination Report</span>
+              <span class="doc-card-lab" style="color:var(--paper-dim);">Merrehope City Mortuary</span>
+              <span class="doc-card-exhibit" style="color:rgba(168,131,46,.4);">Report in preparation — Dr. C. Fairweather</span>
+              <span style="font-size:clamp(7px,.82vw,9px);letter-spacing:.2em;text-transform:uppercase;
+                color:rgba(168,131,46,.5);margin-top:6px;display:block;">
+                Expected in <span id="coroner-countdown">${mins}:${secs.toString().padStart(2,'0')}</span>
+              </span>
+            </div>
+          `;
+          grid.appendChild(pendingCard);
+        }
 
-        // Also update the overview card count
+        // Then the lab reports
+        if (loggedReports.length === 0 && !coronerReady) {
+          // Only the pending coroner card — don't hide it
+        } else {
+          loggedReports.forEach(id => {
+            const r = BOARD_LAB_REPORTS[id];
+            if (!r) return;
+            const typeInfo = LAB_TYPE_MAP[r.lab] || { cls:'type-document', icon:'📋' };
+            const card = document.createElement('div');
+            card.className = `doc-card ${typeInfo.cls}`;
+            card.onclick = () => openBoardLR(id);
+            card.innerHTML = `
+              <div class="doc-card-inner">
+                <span class="doc-card-icon">${typeInfo.icon}</span>
+                <span class="doc-card-ref">${r.reportId}</span>
+                <span class="doc-card-title">${r.name}</span>
+                <span class="doc-card-lab">${r.lab}</span>
+                <span class="doc-card-exhibit">Exhibit: ${r.exhibit}</span>
+                <span class="doc-card-open">Open Report →</span>
+              </div>
+            `;
+            grid.appendChild(card);
+          });
+        }
+
+        badge.textContent = coronerReady
+          ? `${totalDocs} report${totalDocs !== 1 ? 's' : ''} filed`
+          : `${loggedReports.length} filed · 1 pending`;
+
+        // Update overview card count
         const overviewCard = document.querySelector('.card[onclick*="panel-documents"] .card-count');
-        if (overviewCard) overviewCard.textContent = `${loggedReports.length} reports`;
+        if (overviewCard) overviewCard.textContent = coronerReady
+          ? `${totalDocs} reports`
+          : `${loggedReports.length} filed · 1 pending`;
 
       } catch(e) { console.error('buildDocumentsPanel:', e); }
+    }
+
+    /* Open the coroner's report modal */
+    function openCoronerReport() {
+      const r   = CORONER_REPORT;
+      const now = new Date();
+      const dated = now.toLocaleDateString('en-GB',{day:'2-digit',month:'long',year:'numeric'});
+
+      document.getElementById('blr-inner').innerHTML = `
+        <div class="blr-letterhead">
+          <div class="blr-logo">🏥</div>
+          <div>
+            <span class="blr-org-name">Merrehope Police Department</span>
+            <span class="blr-org-div">${r.lab}</span>
+            <span class="blr-org-div">${r.division}</span>
+          </div>
+          <div style="text-align:right;flex-shrink:0">
+            <span class="blr-report-id">${r.reportId}</span>
+            <span class="blr-class">Restricted — Investigating Officer Only</span>
+          </div>
+        </div>
+        <div class="blr-meta">
+          <div><span class="blr-meta-label">Case No.</span><span class="blr-meta-val">COL-001-A</span></div>
+          <div><span class="blr-meta-label">Deceased</span><span class="blr-meta-val">Elias Voss, M, 47</span></div>
+          <div><span class="blr-meta-label">Date of Death</span><span class="blr-meta-val">Mar 04 2026 (est. 21:30–22:15)</span></div>
+          <div><span class="blr-meta-label">Examiner</span><span class="blr-meta-val">${r.analyst}</span></div>
+          <div><span class="blr-meta-label">Report Date</span><span class="blr-meta-val">${dated}</span></div>
+          <div><span class="blr-meta-label">Reviewed By</span><span class="blr-meta-val">${r.reviewedBy}</span></div>
+          <div><span class="blr-meta-label">Ruling</span><span class="blr-meta-val" style="color:#7a1a1a;font-weight:700;">HOMICIDE</span></div>
+          <div><span class="blr-meta-label">Report Ref.</span><span class="blr-meta-val">${r.reportId}</span></div>
+        </div>
+        <div class="blr-section">
+          <span class="blr-section-title">Examination Methodology</span>
+          <p class="blr-text">${r.methodology}</p>
+        </div>
+        <div class="blr-section">
+          <span class="blr-section-title">Findings</span>
+          ${r.findings.map(f => `<div class="blr-finding">${f}</div>`).join('')}
+        </div>
+        <div class="blr-conclusion">
+          <span class="blr-conclusion-label">Medical Examiner's Conclusions &amp; Recommendations</span>
+          <p class="blr-conclusion-text">${r.conclusion}</p>
+        </div>
+        <div class="blr-sig-block">
+          <div>
+            <span class="blr-sig-label">Examining Pathologist</span>
+            <div class="blr-sig-line"></div>
+            <span class="blr-sig-name">${r.analyst}</span>
+            <span class="blr-sig-title">${r.analystTitle}</span>
+          </div>
+          <div>
+            <span class="blr-sig-label">Deputy Medical Examiner</span>
+            <div class="blr-sig-line"></div>
+            <span class="blr-sig-name">${r.reviewedBy}</span>
+            <span class="blr-sig-title">Merrehope City Mortuary</span>
+          </div>
+        </div>
+      `;
+      document.getElementById('board-lr-overlay').classList.add('open');
     }
 
     /* Open lab report modal in board.html */
@@ -3399,5 +3621,6 @@
     }
     updateCommitHash();
   </script>
+  <script src="faction-events.js"></script>
 </body>
 </html>
