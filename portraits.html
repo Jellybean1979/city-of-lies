@@ -1325,8 +1325,24 @@
 
       // Interview button label
       const isSuspect = ['suspect'].includes(char.role) || activeRole === 'suspect';
-      document.getElementById('interview-btn-label').textContent =
-        (activeRole === 'suspect') ? 'Conduct Interrogation' : 'Conduct Interview';
+      // Interview button — show locked state if evidence gate not met
+      const iBtn      = document.getElementById('interview-btn');
+      const iBtnLabel = document.getElementById('interview-btn-label');
+      const unlocked  = isInterviewUnlocked(char.id);
+      const gateLabel = interviewGateSummary(char.id);
+      if (unlocked) {
+        iBtn.disabled = false;
+        iBtn.style.opacity = '';
+        iBtn.style.cursor  = '';
+        iBtnLabel.textContent = (activeRole === 'suspect') ? 'Conduct Interrogation' : 'Conduct Interview';
+        iBtn.title = '';
+      } else {
+        iBtn.disabled = true;
+        iBtn.style.opacity = '0.35';
+        iBtn.style.cursor  = 'not-allowed';
+        iBtnLabel.textContent = '🔒 Interview Locked';
+        iBtn.title = 'Required evidence not yet logged: ' + gateLabel;
+      }
 
       document.getElementById('dossier-overlay').classList.add('open');
       document.getElementById('dossier').scrollTop = 0;
@@ -1350,9 +1366,16 @@
       document.getElementById('dossier-role-badge').className = `dossier-role-badge ${rc.cls}`;
       document.getElementById('dossier-stamp').textContent = rc.label.toUpperCase();
 
-      // Update interview button label
-      document.getElementById('interview-btn-label').textContent =
-        (role === 'suspect') ? 'Conduct Interrogation' : 'Conduct Interview';
+      // Update interview button label (re-check gate since role may have changed)
+      const _unlocked2 = isInterviewUnlocked(currentCharId);
+      const iBtnEl = document.getElementById('interview-btn');
+      if (_unlocked2) {
+        iBtnEl.disabled = false;
+        iBtnEl.style.opacity = '';
+        iBtnEl.style.cursor  = '';
+        document.getElementById('interview-btn-label').textContent =
+          (role === 'suspect') ? 'Conduct Interrogation' : 'Conduct Interview';
+      }
 
       const card = document.querySelector(`.portrait-card[data-id="${currentCharId}"]`);
       if (card) {
@@ -1419,6 +1442,73 @@
        variants: array of { condition, conditionClass, lines[] }
          Lines: { speaker, cls, stage?, text, flagged? }
     */
+
+    /* ════════════════════════════════════════════════
+       INTERVIEW EVIDENCE GATES
+       Each character requires specific evidence items
+       to be logged before an interview is available.
+       Empty array = always available.
+    ════════════════════════════════════════════════ */
+    const INTERVIEW_GATES = {
+      // Suspects — need evidence directly implicating them
+      'city-councilman':         ['COL-001-A-E05'],            // Ledger (R.C./Fvr entries)
+      'security-guard':          ['COL-001-A-E06'],            // CCTV USB / credential abuse
+
+      // Key witnesses — always available (they came forward)
+      'female-bar-worker':       [],                           // Cass — on scene, no gate
+      'female-elderly-woman-2':  [],                           // Agnes — reported vehicle
+      'female-elderly-woman':    [],                           // Dorothy — came forward
+      'maintenance-worker-2':    ['COL-001-A-E04'],            // Deko — found the cloth
+      'maintenance-worker':      ['COL-001-A-E07'],            // Hector — prescription bottle
+
+      // POI / witnesses needing specific evidence
+      'er-doctor':               [],                           // Dr. Hale — incident report flagged
+      'it-specialist':           ['COL-001-A-E06'],            // Felix — CCTV USB anomaly
+      'female-social-worker':    [],                           // Tomoe — victim's contact
+      'office-worker':           ['COL-001-A-E05'],            // Patrick — near the ledger
+      'offixe-worker-2':         ['COL-001-A-E05'],            // Gerald Tench — Whitmore finances
+
+      // Powerful figures — need financial evidence
+      'female-corporate-executive': ['COL-001-A-E05'],         // Whitmore — ledger/wire transfers
+      'female-socialite':           ['COL-001-A-E05'],         // Isabelle — event/Marre connection
+
+      // Undercover / special — needs enhanced CCTV
+      'female-undercover-detective': ['COL-001-A-E21'],        // Okafor — CCTV still
+
+      // Informants — always available (they approach you)
+      'female-data-analyst':     [],                           // Priya — came forward with USB
+      'graffiti-artist':         [],                           // Reno — at scene
+      'street-level-informant-2':['COL-001-A-E03'],            // Two-Stop — burner phone context
+      'street-level-informant':  [],                           // Patch — street presence
+    };
+
+    function isInterviewUnlocked(charId) {
+      const gates = INTERVIEW_GATES[charId];
+      if (!gates || gates.length === 0) return true;
+      try {
+        const status = JSON.parse(localStorage.getItem('col_evidence_status') || '{}');
+        const extra  = JSON.parse(localStorage.getItem('col_evidence_extra')  || '[]');
+        return gates.every(id => {
+          if (status[id] === 'logged') return true;
+          return extra.some(e => e.id === id && (status[e.id] === 'logged' || e.status === 'logged'));
+        });
+      } catch { return false; }
+    }
+
+    function interviewGateSummary(charId) {
+      const gates = INTERVIEW_GATES[charId];
+      if (!gates || gates.length === 0) return null;
+      const labels = {
+        'COL-001-A-E03': 'Burner Phone (E03)',
+        'COL-001-A-E04': 'Bloodstained Cloth (E04)',
+        'COL-001-A-E05': 'Ledger (E05)',
+        'COL-001-A-E06': 'CCTV USB Drive (E06)',
+        'COL-001-A-E07': 'Prescription Bottle (E07)',
+        'COL-001-A-E21': 'Enhanced CCTV Still (E21)',
+      };
+      return gates.map(id => labels[id] || id).join(', ');
+    }
+
     const D = 'Det. Langley'; // shorthand
 
     const INTERVIEW_DATA = {
@@ -2053,6 +2143,9 @@
     /* ── Open interview modal ── */
     function openInterview() {
       if (!currentChar) return;
+      // Re-check evidence gate (button may have been visible before evidence came in)
+      if (!isInterviewUnlocked(currentCharId)) return;
+
       const entry = INTERVIEW_DATA[currentCharId];
       if (!entry) {
         alert('No interview record available for this person yet.');
@@ -2089,6 +2182,37 @@
 
       document.getElementById('interview-overlay').classList.add('open');
       document.getElementById('interview-doc').scrollTop = 0;
+
+      // ── Save completed transcript to localStorage for board.html ──
+      saveCompletedTranscript(currentChar, entry, variant, m);
+    }
+
+    function saveCompletedTranscript(char, entry, variant, meters) {
+      try {
+        const key   = 'col_transcripts';
+        const saved = JSON.parse(localStorage.getItem(key) || '[]');
+        // Don't duplicate — check if this char already has an entry
+        const existing = saved.findIndex(t => t.charId === char.id);
+        const record = {
+          charId:       char.id,
+          charName:     char.name,
+          charRole:     localStorage.getItem('col_classify_' + char.id) || char.role,
+          sessionLabel: entry.sessionLabel,
+          condition:    variant.condition,
+          conditionClass: variant.conditionClass,
+          date:         new Date().toLocaleDateString('en-GB', {day:'2-digit',month:'short',year:'numeric'}),
+          influence:    meters.influence,
+          cityCorrupt:  meters.cityCorrupt,
+          streetCred:   meters.streetCred,
+          lines:        variant.lines,
+        };
+        if (existing >= 0) {
+          saved[existing] = record; // overwrite with latest
+        } else {
+          saved.push(record);
+        }
+        localStorage.setItem(key, JSON.stringify(saved));
+      } catch(e) { console.error('saveCompletedTranscript:', e); }
     }
 
     function closeInterview() {
