@@ -581,13 +581,171 @@
       opacity: .25; cursor: not-allowed; pointer-events: none;
     }
 
-    /* ── RESPONSIVE ── */
-    @media (max-width:480px) {
-      .dossier-photo-section { flex-direction:column; align-items:center; }
-      .dossier-photo-wrap { width:clamp(120px,45vw,160px); }
-      #portrait-grid { grid-template-columns:repeat(auto-fill, minmax(130px,1fr)); }
+    /* ── Disable button when classification not allowed ── */
+    .classify-btn.not-allowed {
+      opacity: .22;
+      cursor: not-allowed;
+      pointer-events: none;
     }
-  </style>
+
+    /* ════════════════════════════
+       INTERVIEW MODAL
+    ════════════════════════════ */
+    #interview-overlay {
+      position: fixed; inset: 0; z-index: 120;
+      background: rgba(2,1,0,.95);
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      padding: clamp(14px,3vw,40px);
+      opacity: 0; pointer-events: none;
+      transition: opacity .25s;
+      backdrop-filter: blur(10px);
+      overflow-y: auto;
+    }
+    #interview-overlay.open { opacity: 1; pointer-events: all; }
+
+    #interview-modal {
+      width: 100%; max-width: 620px;
+      display: flex; flex-direction: column;
+      gap: 0;
+      transform: scale(.96);
+      transition: transform .28s cubic-bezier(.34,1.1,.64,1);
+    }
+    #interview-overlay.open #interview-modal { transform: scale(1); }
+
+    /* Top bar */
+    #interview-topbar {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 8px 14px;
+      background: rgba(6,4,2,.98);
+      border: 1px solid rgba(168,131,46,.25);
+      border-bottom: none;
+    }
+    .interview-label {
+      font-size: clamp(7px,.85vw,9px); letter-spacing: .3em;
+      text-transform: uppercase; color: rgba(168,131,46,.6);
+    }
+    .interview-condition {
+      font-size: clamp(7px,.82vw,9px); letter-spacing: .2em;
+      text-transform: uppercase;
+    }
+    .cond-cooperative { color: #3a9a5a; }
+    .cond-cautious    { color: #c47c1a; }
+    .cond-hostile     { color: #c43030; }
+    .cond-cracked     { color: #c47c1a; }
+    .cond-stonewalling{ color: #c43030; }
+    .cond-forthcoming { color: #3a9a5a; }
+    .cond-guarded     { color: #c47c1a; }
+    .cond-silent      { color: #c43030; }
+    .cond-engaged     { color: #4080c0; }
+    .cond-dismissive  { color: #c43030; }
+
+    /* Document body */
+    #interview-doc {
+      background: var(--paper);
+      padding: clamp(20px,3.5vw,36px) clamp(20px,3.5vw,36px) clamp(20px,3.5vw,36px) clamp(52px,8vw,68px);
+      border: 1px solid rgba(168,131,46,.25);
+      position: relative;
+      background-image: repeating-linear-gradient(
+        to bottom, transparent 0px, transparent 27px,
+        rgba(100,80,40,.06) 27px, rgba(100,80,40,.06) 28px
+      );
+      max-height: 62vh; overflow-y: auto;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(168,131,46,.2) transparent;
+    }
+    #interview-doc::before {
+      content: ''; position: absolute;
+      top: 0; bottom: 0; left: clamp(44px,7vw,60px);
+      width: 1px; background: rgba(196,48,48,.18);
+      pointer-events: none;
+    }
+    #interview-doc::-webkit-scrollbar { width: 3px; }
+    #interview-doc::-webkit-scrollbar-thumb { background: rgba(168,131,46,.2); }
+
+    /* Meter context bar inside doc */
+    .interview-meters {
+      display: flex; gap: 0;
+      margin-bottom: clamp(14px,2.5vh,20px);
+      border: 1px solid rgba(58,40,8,.15);
+      background: rgba(58,40,8,.06);
+    }
+    .im-cell {
+      flex: 1; padding: 6px 10px; text-align: center;
+      border-right: 1px solid rgba(58,40,8,.1);
+    }
+    .im-cell:last-child { border-right: none; }
+    .im-label {
+      font-size: clamp(5px,.7vw,7px); letter-spacing: .3em;
+      text-transform: uppercase; color: rgba(58,40,8,.4);
+      display: block; margin-bottom: 2px;
+    }
+    .im-val {
+      font-size: clamp(10px,1.4vw,14px); font-weight: 700;
+    }
+    .im-influence { color: #c43030; }
+    .im-corrupt   { color: #4080c0; }
+    .im-cred      { color: #3a9a5a; }
+
+    /* Transcript lines */
+    .int-line {
+      display: grid;
+      grid-template-columns: clamp(90px,15vw,130px) 1fr;
+      gap: clamp(8px,1.5vw,14px);
+      margin-bottom: clamp(10px,1.8vh,16px);
+      align-items: baseline;
+      animation: lineIn .25s ease both;
+    }
+    @keyframes lineIn { from{opacity:0;transform:translateX(-4px)} to{opacity:1;transform:none} }
+    .int-speaker {
+      font-size: clamp(7px,.85vw,9px); letter-spacing: .2em;
+      text-transform: uppercase; font-weight: 700; color: #4a3218;
+      line-height: 1.6; padding-top: 1px; flex-shrink: 0;
+    }
+    .int-speaker.detective { color: #2a1400; }
+    .int-speaker.subject   { color: #7a1a1a; }
+    .int-dialogue {
+      font-size: clamp(10px,1.3vw,13px); color: #2a1400; line-height: 1.75;
+    }
+    .int-stage {
+      font-size: clamp(8px,.95vw,10px); color: rgba(42,20,0,.4);
+      font-style: italic; display: block; margin-bottom: 2px;
+    }
+    .int-line.flagged .int-dialogue {
+      border-left: 2px solid rgba(196,124,26,.5);
+      padding-left: 8px; margin-left: -10px;
+    }
+
+    /* Close button */
+    #interview-close {
+      margin-top: 12px; align-self: center;
+      font-family: 'Courier Prime', monospace;
+      font-size: clamp(8px,1vw,10px); letter-spacing: .3em;
+      text-transform: uppercase; color: var(--paper-dim);
+      background: none; border: 1px solid rgba(168,131,46,.2);
+      padding: 7px 28px; cursor: pointer;
+      transition: color .2s, border-color .2s;
+    }
+    #interview-close:hover { color: var(--amber); border-color: rgba(168,131,46,.5); }
+
+    /* Interview button in dossier */
+    .interview-btn {
+      width: 100%; margin-top: clamp(12px,2vh,18px);
+      font-family: 'Courier Prime', monospace;
+      font-size: clamp(9px,1.2vw,11px); letter-spacing: .25em;
+      text-transform: uppercase;
+      background: rgba(58,40,8,.08);
+      border: 1px solid rgba(58,40,8,.25);
+      color: rgba(58,40,8,.7);
+      padding: clamp(9px,1.6vw,13px);
+      cursor: pointer; transition: background .2s, border-color .2s, color .2s;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+    }
+    .interview-btn:hover {
+      background: rgba(58,40,8,.15);
+      border-color: rgba(58,40,8,.5);
+      color: #1a0c00;
+    }
 </head>
 <body>
 
@@ -706,17 +864,36 @@
               <span class="interaction-box-text" id="interaction-box-text"></span>
             </div>
             <span class="classify-saved" id="classify-saved-indicator">✓ Classification saved</span>
-            <div class="classify-locked" id="classify-locked">
-              <span class="classify-locked-title">Classification Determined by Investigation</span>
-              <span class="classify-locked-text" id="classify-locked-text"></span>
-              <span class="classify-locked-role" id="classify-locked-role"></span>
-            </div>
           </div>
+
+          <!-- Interview / Interrogation button -->
+          <button class="interview-btn" id="interview-btn" onclick="openInterview()">
+            🎤 <span id="interview-btn-label">Conduct Interview</span>
+          </button>
 
         </div>
       </div>
     </div><!-- /dossier -->
     <span class="overlay-hint">Tap outside to close</span>
+  </div>
+
+  <!-- INTERVIEW MODAL -->
+  <div id="interview-overlay" onclick="handleInterviewOverlay(event)">
+    <div id="interview-modal">
+      <div id="interview-topbar">
+        <span class="interview-label" id="interview-session-label">Interview Session</span>
+        <span class="interview-condition" id="interview-condition-label"></span>
+      </div>
+      <div id="interview-doc">
+        <div class="interview-meters">
+          <div class="im-cell"><span class="im-label">Influence</span><span class="im-val im-influence" id="int-influence">—</span></div>
+          <div class="im-cell"><span class="im-label">City Corrupt.</span><span class="im-val im-corrupt" id="int-corrupt">—</span></div>
+          <div class="im-cell"><span class="im-label">Street Cred</span><span class="im-val im-cred" id="int-cred">—</span></div>
+        </div>
+        <div id="interview-lines"></div>
+      </div>
+      <button id="interview-close" onclick="closeInterview()">✕ Close Session</button>
+    </div>
   </div>
 
   <audio id="bg-music" loop preload="auto">
@@ -1004,41 +1181,37 @@
     };
 
     /* ════════════════════════════════════════════════
-       FIXED ROLES
-       Characters whose classification is determined
-       by the investigation, not the player.
-       Value: { role, reason }
+       TYPE-BASED CLASSIFICATION RESTRICTIONS
+       base type → which buttons the player may use
+       Suspects → POI or Suspect only
+       Witnesses → POI or Witness only
+       Informants → POI or Informant only
+       POI base → any (no restriction)
     ════════════════════════════════════════════════ */
-    const FIXED_ROLES = {
-      // Informants — their function in the case is unambiguous
-      'female-data-analyst':       { role:'informant', reason:'Priya Nair is an active intelligence source who voluntarily supplies data analysis to the investigation. Her role as an informant is established by the nature of her assistance, not by player discretion.' },
-      'street-level-informant-2':  { role:'informant', reason:'Two-Stop operates as a registered street-level contact under identity protection. His informant status was established prior to this investigation and is a matter of departmental record.' },
-      'street-level-informant':    { role:'informant', reason:'Patch has provided intelligence on two prior occasions under formal protection arrangements. His informant relationship with the department predates Case COL-001-A.' },
-      'graffiti-artist':           { role:'informant', reason:'Reno has been formally designated as a civilian contact under the Harbour District community liaison programme. His informant status is protected and cannot be altered without senior authorisation.' },
-      // Witnesses — their connection to the case is purely observational
-      'er-doctor':                 { role:'witness',   reason:'Dr. Marcus Hale\'s involvement is limited to professional contact with a person connected to this case. There is no evidence of any further connection. He is a witness by the nature of his observations alone.' },
-      'female-elderly-woman-2':    { role:'witness',   reason:'Agnes Whittle reported a vehicle sighting on the night of the incident. Her status as a witness is confirmed — she has no established connection to any party in this case.' },
-      'female-elderly-woman':      { role:'witness',   reason:'Dorothy Osei provided a voluntary statement regarding activity near Harlow Street. She is a witness. Reclassification would not be supported by the available evidence.' },
-      'it-specialist':             { role:'witness',   reason:'Felix Drummond noticed and reported a technical anomaly relevant to this case. His involvement is entirely incidental — he is a witness to a specific event and nothing more.' },
-      'female-bar-worker':         { role:'witness',   reason:'Cass Delray was on duty at The Blue Meridian on the night of the incident. Her testimony is already on record as a witness statement. No evidence connects her to any other role in this case.' },
+    const TYPE_ALLOWED = {
+      suspect:  ['poi', 'suspect'],
+      witness:  ['poi', 'witness'],
+      informant:['poi', 'informant'],
+      poi:      ['poi', 'suspect', 'witness', 'informant'],
     };
+
+    /* Default display role — suspects start showing as POI */
+    function defaultRole(char) {
+      const saved = localStorage.getItem(`col_classify_${char.id}`);
+      if (saved) return saved;
+      return char.role === 'suspect' ? 'poi' : char.role;
+    }
+
     const grid = document.getElementById('portrait-grid');
 
     CHARACTERS.forEach((char, i) => {
-      const rc = ROLE_CONFIG[char.role];
       const card = document.createElement('div');
       card.className = 'portrait-card';
-
-      // Fixed roles always override player classification on the grid
-      const fixedEntry  = FIXED_ROLES[char.id];
-      const savedRole   = fixedEntry
-        ? fixedEntry.role
-        : (localStorage.getItem(`col_classify_${char.id}`) || char.role);
-
-      card.dataset.role = savedRole;
+      const role   = defaultRole(char);
+      const cardRc = ROLE_CONFIG[role];
+      card.dataset.role = role;
       card.dataset.id   = char.id;
       card.onclick = () => openDossier(char);
-      const cardRc = ROLE_CONFIG[savedRole];
       card.innerHTML = `
         <div class="portrait-polaroid">
           <span class="portrait-role ${cardRc.cls}">${cardRc.label}</span>
@@ -1059,13 +1232,9 @@
     function filterBy(role, btn) {
       document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
       if (btn) btn.classList.add('active');
-      else {
-        // Called programmatically — activate matching button
-        document.querySelectorAll('.filter-btn').forEach(b => {
-          if (b.getAttribute('onclick').includes(`'${role}'`)) b.classList.add('active');
-        });
-      }
-
+      else document.querySelectorAll('.filter-btn').forEach(b => {
+        if (b.getAttribute('onclick').includes(`'${role}'`)) b.classList.add('active');
+      });
       let count = 0;
       document.querySelectorAll('.portrait-card').forEach(card => {
         const match = role === 'all' || card.dataset.role === role;
@@ -1075,7 +1244,6 @@
       document.getElementById('showing-count').textContent = count;
     }
 
-    /* Auto-apply filter from URL param e.g. ?filter=suspect */
     (function applyUrlFilter() {
       const params = new URLSearchParams(window.location.search);
       const urlFilter = params.get('filter');
@@ -1087,20 +1255,14 @@
     /* ════════════════════════════════════════════════
        DOSSIER MODAL
     ════════════════════════════════════════════════ */
+    let currentChar   = null;
     let currentCharId = null;
     let noteTimer = null;
 
     function openDossier(char) {
+      currentChar   = char;
       currentCharId = char.id;
-
-      // Check if this character has a fixed role
-      const fixedEntry = FIXED_ROLES[char.id];
-      const isFixed    = !!fixedEntry;
-
-      // Use fixed role if applicable, otherwise player's saved classification
-      const activeRole = isFixed
-        ? fixedEntry.role
-        : (localStorage.getItem(`col_classify_${char.id}`) || char.role);
+      const activeRole = defaultRole(char);
       const rc = ROLE_CONFIG[activeRole];
 
       document.getElementById('dossier-photo').src = `Assets/JPG/Characters/${char.file}`;
@@ -1115,12 +1277,10 @@
       document.getElementById('dossier-bio').textContent = char.bio;
       document.getElementById('dossier-connection').textContent = char.connection;
 
-      // Role badge
       const badge = document.getElementById('dossier-role-badge');
       badge.textContent = rc.label;
       badge.className = `dossier-role-badge ${rc.cls}`;
 
-      // Associates
       const assocEl = document.getElementById('dossier-associates');
       assocEl.innerHTML = '';
       char.associates.forEach(a => {
@@ -1130,95 +1290,77 @@
         assocEl.appendChild(tag);
       });
 
-      // Load saved note
       const savedNote = localStorage.getItem(`col_note_${char.id}`) || '';
       document.getElementById('dossier-notes-field').value = savedNote;
       document.getElementById('notes-saved-indicator').classList.remove('show');
 
-      // Classification buttons
-      const btnsWrap    = document.getElementById('classify-btns-wrap');
-      const labelEl     = document.getElementById('classify-label-text');
-      const lockedEl    = document.getElementById('classify-locked');
-      const lockedText  = document.getElementById('classify-locked-text');
-      const lockedRole  = document.getElementById('classify-locked-role');
-      const interactBox = document.getElementById('interaction-box');
+      // Classification buttons — show allowed, grey out disallowed
+      const allowed = TYPE_ALLOWED[char.role] || ['poi'];
+      document.querySelectorAll('.classify-btn').forEach(btn => {
+        const btnRole = btn.dataset.role;
+        btn.classList.remove('selected','sel-suspect','sel-witness','sel-poi','sel-informant','not-allowed');
+        if (!allowed.includes(btnRole)) {
+          btn.classList.add('not-allowed');
+        }
+        if (btnRole === activeRole) {
+          btn.classList.add('selected', `sel-${activeRole}`);
+        }
+      });
 
-      if (isFixed) {
-        // Lock the buttons and show the locked indicator
-        btnsWrap.classList.add('is-locked');
-        labelEl.textContent = 'Classification — Determined by Investigation';
-        lockedEl.classList.add('show');
-        lockedText.textContent = fixedEntry.reason;
-        lockedRole.textContent = `${rc.icon || ''} ${rc.label}`.trim();
-        interactBox.classList.remove('show');
-        document.getElementById('classify-saved-indicator').classList.remove('show');
-
-        // Still highlight the correct button for visual reference
-        document.querySelectorAll('.classify-btn').forEach(btn => {
-          btn.classList.remove('selected','sel-suspect','sel-witness','sel-poi','sel-informant');
-          if (btn.dataset.role === activeRole) {
-            btn.classList.add('selected', `sel-${activeRole}`);
-          }
-        });
+      // Label explains restriction
+      const labelEl = document.getElementById('classify-label-text');
+      if (char.role === 'suspect') {
+        labelEl.textContent = 'Classification — Suspects can be designated Person of Interest or Suspect';
+      } else if (char.role === 'witness') {
+        labelEl.textContent = 'Classification — Witnesses can be designated Witness or Person of Interest';
+      } else if (char.role === 'informant') {
+        labelEl.textContent = 'Classification — Informants can be designated Informant or Person of Interest';
       } else {
-        // Unlocked — normal classification behaviour
-        btnsWrap.classList.remove('is-locked');
         labelEl.textContent = 'Player Classification — How do you classify this person?';
-        lockedEl.classList.remove('show');
-
-        document.querySelectorAll('.classify-btn').forEach(btn => {
-          btn.classList.remove('selected','sel-suspect','sel-witness','sel-poi','sel-informant');
-          if (btn.dataset.role === activeRole) {
-            btn.classList.add('selected', `sel-${activeRole}`);
-          }
-        });
-
-        showInteraction(activeRole);
-        document.getElementById('classify-saved-indicator').classList.remove('show');
       }
 
-      // Open
+      showInteraction(activeRole);
+      document.getElementById('classify-saved-indicator').classList.remove('show');
+
+      // Interview button label
+      const isSuspect = ['suspect'].includes(char.role) || activeRole === 'suspect';
+      document.getElementById('interview-btn-label').textContent =
+        (activeRole === 'suspect') ? 'Conduct Interrogation' : 'Conduct Interview';
+
       document.getElementById('dossier-overlay').classList.add('open');
       document.getElementById('dossier').scrollTop = 0;
       document.body.style.overflow = 'hidden';
     }
 
     function classifyChar(role) {
-      if (!currentCharId) return;
+      if (!currentCharId || !currentChar) return;
+      const allowed = TYPE_ALLOWED[currentChar.role] || ['poi'];
+      if (!allowed.includes(role)) return; // blocked
 
-      // Block classification for fixed-role characters
-      if (FIXED_ROLES[currentCharId]) return;
-
-      // Save player's classification
       localStorage.setItem(`col_classify_${currentCharId}`, role);
 
-      // Update buttons
       document.querySelectorAll('.classify-btn').forEach(btn => {
         btn.classList.remove('selected','sel-suspect','sel-witness','sel-poi','sel-informant');
         if (btn.dataset.role === role) btn.classList.add('selected', `sel-${role}`);
       });
 
-      // Update role badge and stamp in dossier header
       const rc = ROLE_CONFIG[role];
-      const badge = document.getElementById('dossier-role-badge');
-      badge.textContent = rc.label;
-      badge.className = `dossier-role-badge ${rc.cls}`;
+      document.getElementById('dossier-role-badge').textContent = rc.label;
+      document.getElementById('dossier-role-badge').className = `dossier-role-badge ${rc.cls}`;
       document.getElementById('dossier-stamp').textContent = rc.label.toUpperCase();
 
-      // Update the grid card's role tag live
+      // Update interview button label
+      document.getElementById('interview-btn-label').textContent =
+        (role === 'suspect') ? 'Conduct Interrogation' : 'Conduct Interview';
+
       const card = document.querySelector(`.portrait-card[data-id="${currentCharId}"]`);
       if (card) {
         card.dataset.role = role;
         const tag = card.querySelector('.portrait-role');
-        if (tag) {
-          tag.textContent = rc.label;
-          tag.className = `portrait-role ${rc.cls}`;
-        }
+        if (tag) { tag.textContent = rc.label; tag.className = `portrait-role ${rc.cls}`; }
       }
 
       showInteraction(role);
-
-      // Flash saved
       const ind = document.getElementById('classify-saved-indicator');
       ind.classList.add('show');
       setTimeout(() => ind.classList.remove('show'), 2000);
@@ -1227,14 +1369,14 @@
     function showInteraction(role) {
       const rc = ROLE_CONFIG[role];
       if (!rc) return;
-      const box = document.getElementById('interaction-box');
       document.getElementById('interaction-box-text').textContent = rc.interaction;
-      box.classList.add('show');
+      document.getElementById('interaction-box').classList.add('show');
     }
 
     function closeDossier() {
       document.getElementById('dossier-overlay').classList.remove('open');
       document.body.style.overflow = '';
+      currentChar = null;
       currentCharId = null;
     }
 
@@ -1254,8 +1396,715 @@
       }, 700);
     }
 
+    /* ════════════════════════════════════════════════
+       INTERVIEW SYSTEM
+       Transcript variant selected by meter values:
+         Suspect / Powerful  → Influence Level
+         Witness / POI       → City Corruption
+         Informant           → Street Credibility (100 - cityCorrupt)
+    ════════════════════════════════════════════════ */
+    function getMeters() {
+      try {
+        const s = JSON.parse(localStorage.getItem('col_save') || '{}');
+        const influence   = Math.max(0, Math.min(100, s.influence   ?? 50));
+        const cityCorrupt = Math.max(0, Math.min(100, s.cityCorrupt ?? 50));
+        const streetCred  = 100 - cityCorrupt;
+        return { influence, cityCorrupt, streetCred };
+      } catch { return { influence:50, cityCorrupt:50, streetCred:50 }; }
+    }
+
+    /* Each character's interview entry:
+       type: 'suspect'|'witness'|'informant'|'powerful'|'poi'
+       variants: array of { condition, conditionClass, lines[] }
+         Lines: { speaker, cls, stage?, text, flagged? }
+    */
+    const D = 'Det. Langley'; // shorthand
+
+    const INTERVIEW_DATA = {
+      'city-councilman': {
+        sessionLabel:'Suspect Interrogation', type:'suspect',
+        variants:[
+          { condition:'Defensive — admits partial knowledge', conditionClass:'cond-cracked', meter:'influence', threshold:65, op:'>',
+            lines:[
+              {speaker:D, cls:'detective', text:'Alderman Cross. Thank you for coming in without counsel.'},
+              {speaker:'Cross', cls:'subject', stage:'straightens his jacket, over-composed', text:"I have nothing to hide, Detective. Ask what you need to ask."},
+              {speaker:D, cls:'detective', text:"We found a ledger. Four entries referencing 'R.C./Fvr' — payments totalling over thirty thousand dollars from Marre Import Co."},
+              {speaker:'Cross', cls:'subject', stage:'a flicker of something — not quite fear', text:"Victor and I had a business relationship. Entirely above board. Those payments were consulting fees, properly declared.", flagged:true},
+              {speaker:D, cls:'detective', text:"And the Velvet Anchor? You were seen there the night of March fourth."},
+              {speaker:'Cross', cls:'subject', stage:'long pause, jaw tight', text:"I drink there occasionally. That's not a crime.", flagged:true},
+              {speaker:D, cls:'detective', text:"What time did you leave?"},
+              {speaker:'Cross', cls:'subject', stage:'for the first time, looks away', text:"I don't recall precisely. Before midnight."},
+            ]
+          },
+          { condition:'Stonewalling — legal counsel invoked', conditionClass:'cond-stonewalling', meter:'influence', threshold:65, op:'<=',
+            lines:[
+              {speaker:D, cls:'detective', text:'Alderman Cross. I appreciate you coming in.'},
+              {speaker:'Cross', cls:'subject', stage:'calm, practised', text:"My attorney advised me to cooperate — within limits. You'll understand if I'm careful."},
+              {speaker:D, cls:'detective', text:"The ledger entries bearing your initials. Can you explain them?"},
+              {speaker:'Cross', cls:'subject', text:"I've asked my financial team to review those records. Until I have their assessment, I can't comment on any specific figures.", flagged:true},
+              {speaker:D, cls:'detective', text:"Your presence at The Velvet Anchor on the night of the incident."},
+              {speaker:'Cross', cls:'subject', text:"I am not aware of any incident connected to that establishment. And I'd remind you, Detective, that my movements on any given evening are my private business."},
+              {speaker:D, cls:'detective', text:"We'll be in touch, Alderman."},
+              {speaker:'Cross', cls:'subject', stage:'rising, already checking his phone', text:"My office will schedule anything further through counsel."},
+            ]
+          },
+        ]
+      },
+
+      'security-guard': {
+        sessionLabel:'Suspect Interrogation', type:'suspect',
+        variants:[
+          { condition:'Under pressure — partial admission', conditionClass:'cond-cracked', meter:'influence', threshold:65, op:'>',
+            lines:[
+              {speaker:D, cls:'detective', text:"Bowen. Walk me through your shift again. March fourth, Bay 7."},
+              {speaker:'Ashford', cls:'subject', stage:'won\'t meet your eyes', text:"I already wrote it all down in the log."},
+              {speaker:D, cls:'detective', text:"The log says nothing happened. The footage says differently. Someone deleted three minutes of recording using your credentials at 8:44 PM."},
+              {speaker:'Ashford', cls:'subject', stage:'voice drops', text:"Someone must have… I must have left myself logged in somewhere. I don't know how.", flagged:true},
+              {speaker:D, cls:'detective', text:"Four thousand dollars cash, deposited three days before the incident. From who?"},
+              {speaker:'Ashford', cls:'subject', stage:'head down, hands clasped', text:"It wasn't supposed to be anything. I just had to not see something. Look the other way for an hour. My wife's medical bills—", flagged:true},
+              {speaker:D, cls:'detective', text:"Who paid you, Bowen?"},
+              {speaker:'Ashford', cls:'subject', text:"The message was anonymous. Envelope in my locker the next morning. I deleted everything. I'm sorry."},
+            ]
+          },
+          { condition:'Stonewalling — lawyer invoked', conditionClass:'cond-stonewalling', meter:'influence', threshold:65, op:'<=',
+            lines:[
+              {speaker:D, cls:'detective', text:"Mr. Ashford. Let's talk about the footage gap."},
+              {speaker:'Ashford', cls:'subject', stage:'flat, coached', text:"My incident log accurately reflects my patrol observations for that shift."},
+              {speaker:D, cls:'detective', text:"Your credentials were used to delete footage at 8:44. You logged nothing unusual. Explain that."},
+              {speaker:'Ashford', cls:'subject', text:"System errors occur. I've flagged the discrepancy with the Harbour Authority IT team. My attorney is aware.", flagged:true},
+              {speaker:D, cls:'detective', text:"The four thousand in your account."},
+              {speaker:'Ashford', cls:'subject', text:"A personal loan. Documentation is being prepared. Is there anything else?"},
+              {speaker:D, cls:'detective', text:"We'll find out who paid you."},
+              {speaker:'Ashford', cls:'subject', stage:'standing, done', text:"I look forward to that conversation, Detective. With my lawyer present."},
+            ]
+          },
+        ]
+      },
+
+      'female-bar-worker': {
+        sessionLabel:'Witness Interview', type:'witness',
+        variants:[
+          { condition:'Cooperative — forthcoming', conditionClass:'cond-cooperative', meter:'cityCorrupt', threshold:35, op:'<',
+            lines:[
+              {speaker:D, cls:'detective', text:"Cass. You heard something that night. Walk me through it again."},
+              {speaker:'Cass', cls:'subject', stage:'relaxed, steady eye contact', text:"Around nine-forty. Two voices through the back wall. One calm — that unsettling, deliberate calm. The other was scared."},
+              {speaker:D, cls:'detective', text:"Words you could make out?"},
+              {speaker:'Cass', cls:'subject', text:"'Envelope' — I heard it twice. And 'you already took the money.' After that, silence.", flagged:true},
+              {speaker:D, cls:'detective', text:"You said you'd seen someone in the bar before — the man in the dark jacket."},
+              {speaker:'Cass', cls:'subject', stage:'slides a folded paper across', text:"Once with Victor Marre. Once alone, nursing a whiskey for two hours. I wrote down what I remembered of him. It's yours.", flagged:true},
+            ]
+          },
+          { condition:'Cautious — partial information', conditionClass:'cond-cautious', meter:'cityCorrupt', threshold:65, op:'<=',
+            lines:[
+              {speaker:D, cls:'detective', text:"Cass, anything you can add to your original statement?"},
+              {speaker:'Cass', cls:'subject', stage:'arms loosely crossed', text:"I heard voices. Two of them. I couldn't make out what they said — the kitchen extraction was running."},
+              {speaker:D, cls:'detective', text:"Did you look outside?"},
+              {speaker:'Cass', cls:'subject', text:"I cracked the door. Saw someone walking away toward Canal Street. Tall, dark jacket. That's all I can give you."},
+              {speaker:D, cls:'detective', text:"Is there anything else you haven't mentioned?"},
+              {speaker:'Cass', cls:'subject', stage:'long pause', text:"Not that I can verify."},
+            ]
+          },
+          { condition:'Uncooperative — reluctant', conditionClass:'cond-hostile', meter:'cityCorrupt', threshold:65, op:'>',
+            lines:[
+              {speaker:D, cls:'detective', text:"Ms. Delray. I need to go over the night of March fourth."},
+              {speaker:'Cass', cls:'subject', stage:'flat, tired', text:"I already made a statement. Twice."},
+              {speaker:D, cls:'detective', text:"I understand. Just one or two points—"},
+              {speaker:'Cass', cls:'subject', text:"I heard noise outside. Couldn't see anything. I don't know who it was. That's it.", flagged:true},
+              {speaker:D, cls:'detective', text:"People die when we stop talking, Cass."},
+              {speaker:'Cass', cls:'subject', stage:'quietly, with weight', text:"People die either way in this city. Are we done?"},
+            ]
+          },
+        ]
+      },
+
+      'er-doctor': {
+        sessionLabel:'Witness Interview', type:'witness',
+        variants:[
+          { condition:'Cooperative — details the anomaly', conditionClass:'cond-cooperative', meter:'cityCorrupt', threshold:35, op:'<',
+            lines:[
+              {speaker:D, cls:'detective', text:"Dr. Hale. Your incident report from March fourth — it was archived before I saw it."},
+              {speaker:'Hale', cls:'subject', stage:'measured, careful', text:"I'm not surprised. The patient presented with injuries inconsistent with the stated cause — a fall. The wound geometry suggested impact from above, not below."},
+              {speaker:D, cls:'detective', text:"You raised this with administration."},
+              {speaker:'Hale', cls:'subject', text:"They told me to document and move on. The report was archived within six hours of submission.", flagged:true},
+              {speaker:D, cls:'detective', text:"Can you tell me the patient's name?"},
+              {speaker:'Hale', cls:'subject', stage:'slides a handwritten note across the table', text:"Privacy law prevents me from saying it out loud. I can't help what you find on that piece of paper.", flagged:true},
+            ]
+          },
+          { condition:'Cautious — confirms anomaly, careful', conditionClass:'cond-cautious', meter:'cityCorrupt', threshold:65, op:'<=',
+            lines:[
+              {speaker:D, cls:'detective', text:"Doctor, your incident report was archived before we could access it."},
+              {speaker:'Hale', cls:'subject', text:"I'm aware. I flagged a clinical concern. The administrative decision to archive it was above my pay grade."},
+              {speaker:D, cls:'detective', text:"The injury pattern you noted — do you stand by your assessment?"},
+              {speaker:'Hale', cls:'subject', stage:'measured', text:"My documentation reflects my professional opinion at the time. I have nothing to add to what I wrote.", flagged:true},
+              {speaker:D, cls:'detective', text:"Have you received any pressure regarding this case?"},
+              {speaker:'Hale', cls:'subject', text:"I've received guidance on appropriate channels. I'd suggest following those yourself."},
+            ]
+          },
+          { condition:'Reluctant — concerns about safety', conditionClass:'cond-hostile', meter:'cityCorrupt', threshold:65, op:'>',
+            lines:[
+              {speaker:D, cls:'detective', text:"Dr. Hale. We need to discuss your archived report."},
+              {speaker:'Hale', cls:'subject', stage:'visibly tense', text:"I've been advised by hospital legal not to discuss any archived documentation without formal clearance."},
+              {speaker:D, cls:'detective', text:"Someone suppressed your report. That someone may be connected to a murder."},
+              {speaker:'Hale', cls:'subject', stage:'quiet, genuine fear', text:"I understand what you're implying. And I understand that the person who implied it to me last week had access to my home address. So if you'll excuse me.", flagged:true},
+            ]
+          },
+        ]
+      },
+
+      'female-corporate-executive': {
+        sessionLabel:'Person of Interest Interview', type:'powerful',
+        variants:[
+          { condition:'Engaged — civil but controlled', conditionClass:'cond-engaged', meter:'influence', threshold:65, op:'>',
+            lines:[
+              {speaker:D, cls:'detective', text:"Ms. Whitmore. The wire transfer — eighty thousand dollars to a Marre Import Co. shell company."},
+              {speaker:'Whitmore', cls:'subject', stage:'composed, immaculate', text:"Whitmore Capital invests across a broad portfolio. That transaction was reviewed and approved by our compliance team."},
+              {speaker:D, cls:'detective', text:"For what service?"},
+              {speaker:'Whitmore', cls:'subject', text:"Trade facilitation consulting. I can have the documentation sent to your department by close of business.", flagged:true},
+              {speaker:D, cls:'detective', text:"Did you know Elias Voss?"},
+              {speaker:'Whitmore', cls:'subject', stage:'a fraction of a pause', text:"The name isn't familiar. If there's nothing further, Detective, I have a board meeting in fourteen minutes."},
+            ]
+          },
+          { condition:'Dismissive — won\'t engage', conditionClass:'cond-dismissive', meter:'influence', threshold:65, op:'<=',
+            lines:[
+              {speaker:D, cls:'detective', text:"Ms. Whitmore. A routine question about a financial transaction—"},
+              {speaker:'Whitmore', cls:'subject', stage:'barely looks up from her phone', text:"My legal team handles all inquiries. You have their contact."},
+              {speaker:D, cls:'detective', text:"A man is dead. This could—"},
+              {speaker:'Whitmore', cls:'subject', text:"Detective, I host charity galas with two deputy commissioners. I suggest you make an appointment through the appropriate channel.", flagged:true},
+              {speaker:D, cls:'detective', text:"We'll be in touch, Ms. Whitmore."},
+              {speaker:'Whitmore', cls:'subject', text:"I'm sure you will."},
+            ]
+          },
+        ]
+      },
+
+      'female-data-analyst': {
+        sessionLabel:'Informant Debrief', type:'informant',
+        variants:[
+          { condition:'Forthcoming — names the gap', conditionClass:'cond-forthcoming', meter:'streetCred', threshold:65, op:'>',
+            lines:[
+              {speaker:D, cls:'detective', text:"Priya. The footage gap — three minutes, 8:45 to 8:48. What did you find?"},
+              {speaker:'Priya', cls:'subject', stage:'quiet, deliberate', text:"The deletion was remote — VPN tunnel, commercial exit node. But the credentials were Ashford's. Someone used them from outside the building."},
+              {speaker:D, cls:'detective', text:"Could Ashford have done it himself?"},
+              {speaker:'Priya', cls:'subject', text:"He'd have needed a second device and technical knowledge he doesn't have. Someone set this up for him. Or in his name.", flagged:true},
+              {speaker:D, cls:'detective', text:"There were other gaps. You mentioned three more."},
+              {speaker:'Priya', cls:'subject', stage:'slides over a USB drive', text:"Between March first and March fifth. All in the same thirty-minute window each night. Whoever did this was running a pattern.", flagged:true},
+            ]
+          },
+          { condition:'Guarded — metadata only', conditionClass:'cond-guarded', meter:'streetCred', threshold:35, op:'<=',
+            lines:[
+              {speaker:D, cls:'detective', text:"Priya. The archive anomalies you flagged."},
+              {speaker:'Priya', cls:'subject', text:"I submitted a formal report through the Authority's internal system. Everything I found is in there."},
+              {speaker:D, cls:'detective', text:"Someone deleted footage using Ashford's login. Who had access?"},
+              {speaker:'Priya', cls:'subject', stage:'careful, weighing something', text:"Several people theoretically. I'd need to check access logs. Which I'd rather do officially.", flagged:true},
+              {speaker:D, cls:'detective', text:"Can you do that?"},
+              {speaker:'Priya', cls:'subject', text:"Submit a formal data request. I'll process it in order. That's all I can do right now."},
+            ]
+          },
+          { condition:'Silent — concerned for safety', conditionClass:'cond-silent', meter:'streetCred', threshold:35, op:'<',
+            lines:[
+              {speaker:D, cls:'detective', text:"Priya. I need to talk about the footage."},
+              {speaker:'Priya', cls:'subject', stage:'won\'t look at you', text:"My lawyer has advised me not to discuss anything related to internal systems outside of a formal process."},
+              {speaker:D, cls:'detective', text:"You came to us. You had the USB."},
+              {speaker:'Priya', cls:'subject', text:"I did what I thought was right. And since then two people have mentioned my mother's address in conversation. So.", flagged:true},
+              {speaker:D, cls:'detective', text:"We can protect you."},
+              {speaker:'Priya', cls:'subject', stage:'quietly, flatly', text:"With respect, Detective, I don't think you can."},
+            ]
+          },
+        ]
+      },
+
+      'female-elderly-woman-2': {
+        sessionLabel:'Witness Interview', type:'witness',
+        variants:[
+          { condition:'Cooperative — vehicle detail', conditionClass:'cond-cooperative', meter:'cityCorrupt', threshold:35, op:'<',
+            lines:[
+              {speaker:D, cls:'detective', text:"Mrs. Whittle. The vehicle you saw at the alley entrance."},
+              {speaker:'Agnes', cls:'subject', stage:'straightens in her chair', text:"Dark saloon. European — I know my cars, Detective. High wheelbase. Charcoal or black. No front plate visible."},
+              {speaker:D, cls:'detective', text:"Time?"},
+              {speaker:'Agnes', cls:'subject', text:"Half past nine. I was walking the dog. The engine was running but the lights were off, which is what made me notice it.", flagged:true},
+              {speaker:D, cls:'detective', text:"Could you make out the rear plate?"},
+              {speaker:'Agnes', cls:'subject', stage:'slides her sketch across the table', text:"Partial. M-E and then I think a four. I drew it that morning while it was fresh. I was a city archivist for thirty years. My recall is reliable.", flagged:true},
+            ]
+          },
+          { condition:'Cautious — fewer details', conditionClass:'cond-cautious', meter:'cityCorrupt', threshold:65, op:'<=',
+            lines:[
+              {speaker:D, cls:'detective', text:"Mrs. Whittle, the vehicle you reported."},
+              {speaker:'Agnes', cls:'subject', text:"Dark coloured, saloon-style. Parked at the alley end with the engine running. That's what I saw."},
+              {speaker:D, cls:'detective', text:"Any identifying features? Plates?"},
+              {speaker:'Agnes', cls:'subject', text:"It was night. I'm seventy-four, not thirty. I saw what I saw. I put it in my statement."},
+              {speaker:D, cls:'detective', text:"You mentioned a sketch."},
+              {speaker:'Agnes', cls:'subject', stage:'pause', text:"I may have drawn something. I'd want to check it's accurate before handing it over."},
+            ]
+          },
+          { condition:'Blunt — statement already given', conditionClass:'cond-hostile', meter:'cityCorrupt', threshold:65, op:'>',
+            lines:[
+              {speaker:D, cls:'detective', text:"Mrs. Whittle—"},
+              {speaker:'Agnes', cls:'subject', stage:'cutting across', text:"I reported what I saw. Someone wrote it down. I assume it went somewhere useful. Is that not how it works?"},
+              {speaker:D, cls:'detective', text:"We'd like more detail on the vehicle—"},
+              {speaker:'Agnes', cls:'subject', text:"It was dark. It had four wheels. You're welcome to the statement I already gave.", flagged:true},
+            ]
+          },
+        ]
+      },
+
+      'female-elderly-woman': {
+        sessionLabel:'Witness Interview', type:'witness',
+        variants:[
+          { condition:'Cooperative — the overheard conversation', conditionClass:'cond-cooperative', meter:'cityCorrupt', threshold:35, op:'<',
+            lines:[
+              {speaker:D, cls:'detective', text:"Dorothy. The conversation you overheard between the administrators."},
+              {speaker:'Dorothy', cls:'subject', stage:'serious, hands folded', text:"The morning after the incident. Two of them in the corridor outside records. One said — and I'm certain of this — 'the report needs to be quiet before it causes any grief.'"},
+              {speaker:D, cls:'detective', text:"Did you recognise either voice?"},
+              {speaker:'Dorothy', cls:'subject', text:"One was the deputy administrator, Mr. Venn. I'd know his voice in my sleep. The other I didn't recognise.", flagged:true},
+              {speaker:D, cls:'detective', text:"Would you put that in a formal statement?"},
+              {speaker:'Dorothy', cls:'subject', stage:'without hesitation', text:"I've been waiting for someone to ask. Yes."},
+            ]
+          },
+          { condition:'Cautious — confirms hearing something', conditionClass:'cond-cautious', meter:'cityCorrupt', threshold:65, op:'<=',
+            lines:[
+              {speaker:D, cls:'detective', text:"Dorothy, you mentioned overhearing something at the hospital."},
+              {speaker:'Dorothy', cls:'subject', text:"I heard two people in a corridor discussing a report. I couldn't make out all of it."},
+              {speaker:D, cls:'detective', text:"Was Venn one of them?"},
+              {speaker:'Dorothy', cls:'subject', stage:'hesitates', text:"I think so. But I'd want to be careful before I name names. I know what that costs people."},
+              {speaker:D, cls:'detective', text:"We'd keep you out of it as long as possible."},
+              {speaker:'Dorothy', cls:'subject', text:"Let me think on it. Give me a day."},
+            ]
+          },
+          { condition:'Worried — concerned about consequences', conditionClass:'cond-hostile', meter:'cityCorrupt', threshold:65, op:'>',
+            lines:[
+              {speaker:D, cls:'detective', text:"Dorothy, anything from the hospital you thought we should know?"},
+              {speaker:'Dorothy', cls:'subject', stage:'quiet, anxious', text:"I spoke too freely before. I've been thinking about what happens to people who say the wrong things around here."},
+              {speaker:D, cls:'detective', text:"We can help protect you."},
+              {speaker:'Dorothy', cls:'subject', text:"Marcus Hale filed a report and they archived it in six hours. I'm a retired nurse with a pension. I'd like to keep both.", flagged:true},
+            ]
+          },
+        ]
+      },
+
+      'female-social-worker': {
+        sessionLabel:'Person of Interest Interview', type:'poi',
+        variants:[
+          { condition:'Cooperative — reveals document details', conditionClass:'cond-cooperative', meter:'cityCorrupt', threshold:35, op:'<',
+            lines:[
+              {speaker:D, cls:'detective', text:"Tomoe. You met with Elias Voss three days before he died."},
+              {speaker:'Tomoe', cls:'subject', stage:'direct, clear-eyed', text:"He came to me. He had documents — financial records he'd photocopied from somewhere. He was frightened."},
+              {speaker:D, cls:'detective', text:"What did the documents show?"},
+              {speaker:'Tomoe', cls:'subject', text:"Cash flows between a city official and a property developer. He thought someone was about to use them to silence him. He was right.", flagged:true},
+              {speaker:D, cls:'detective', text:"Where are the documents now?"},
+              {speaker:'Tomoe', cls:'subject', stage:'meets your eyes steadily', text:"Safe. With someone Elias trusted besides me. If anything happens to me, they surface automatically."},
+            ]
+          },
+          { condition:'Guarded — confirms meeting, not content', conditionClass:'cond-cautious', meter:'cityCorrupt', threshold:65, op:'<=',
+            lines:[
+              {speaker:D, cls:'detective', text:"Ms. Reyes. Your meeting with Elias Voss — what was discussed?"},
+              {speaker:'Tomoe', cls:'subject', text:"That falls under client confidentiality. I can confirm a meeting took place. I cannot share the content."},
+              {speaker:D, cls:'detective', text:"He's dead, Tomoe. That protection arguably doesn't apply."},
+              {speaker:'Tomoe', cls:'subject', stage:'firmly', text:"Actually it does. And even if it didn't — people confide in me because they know I won't be pressured into disclosing it. The moment I do that, everyone I've ever helped is at risk.", flagged:true},
+            ]
+          },
+          { condition:'Closed — strict confidentiality', conditionClass:'cond-hostile', meter:'cityCorrupt', threshold:65, op:'>',
+            lines:[
+              {speaker:D, cls:'detective', text:"Tomoe, the meeting with Voss—"},
+              {speaker:'Tomoe', cls:'subject', text:"Client confidentiality. Full stop."},
+              {speaker:D, cls:'detective', text:"He's dead."},
+              {speaker:'Tomoe', cls:'subject', stage:'quietly, without anger', text:"Which is exactly why I won't compromise the one protection he had left."},
+            ]
+          },
+        ]
+      },
+
+      'female-socialite': {
+        sessionLabel:'Person of Interest Interview', type:'powerful',
+        variants:[
+          { condition:'Civil — admits Marre connection', conditionClass:'cond-engaged', meter:'influence', threshold:65, op:'>',
+            lines:[
+              {speaker:D, cls:'detective', text:"Ms. Crane. The event on March first — you were photographed with Victor Marre and Alderman Cross."},
+              {speaker:'Isabelle', cls:'subject', stage:'perfectly at ease', text:"I attend a great many events, Detective. Victor is — was — a fixture at these things. We moved in overlapping circles."},
+              {speaker:D, cls:'detective', text:"And you left the country on March fifth. One day after the incident."},
+              {speaker:'Isabelle', cls:'subject', text:"A trip planned since January. My PA has all the booking confirmations. You're welcome to them.", flagged:true},
+              {speaker:D, cls:'detective', text:"Did you know Elias Voss?"},
+              {speaker:'Isabelle', cls:'subject', stage:'pauses fractionally', text:"The name doesn't connect to a face. Should it?"},
+            ]
+          },
+          { condition:'Dismissive — won\'t engage', conditionClass:'cond-dismissive', meter:'influence', threshold:65, op:'<=',
+            lines:[
+              {speaker:D, cls:'detective', text:"Ms. Crane—"},
+              {speaker:'Isabelle', cls:'subject', stage:'cuts across, barely interested', text:"My departure was planned. My alibi is documented. My connection to Victor Marre is purely social. I believe that covers the standard questions."},
+              {speaker:D, cls:'detective', text:"There are a few other areas I'd like to—"},
+              {speaker:'Isabelle', cls:'subject', text:"I'm sure you would. My assistant will follow up with your department on appropriate channels. Good afternoon.", flagged:true},
+            ]
+          },
+        ]
+      },
+
+      'female-undercover-detective': {
+        sessionLabel:'Person of Interest Interview', type:'poi',
+        variants:[
+          { condition:'Cryptic acknowledgement', conditionClass:'cond-cautious', meter:'influence', threshold:65, op:'>',
+            lines:[
+              {speaker:D, cls:'detective', text:"Detective Okafor. The enhanced footage places you at Bay 7 at 21:48."},
+              {speaker:'Okafor', cls:'subject', stage:'completely still', text:"I'm not going to confirm or deny my location on any given night. You know why."},
+              {speaker:D, cls:'detective', text:"Someone used Ashford's credentials to delete footage. You were there."},
+              {speaker:'Okafor', cls:'subject', stage:'a long pause, then quietly', text:"I can tell you I wasn't there because of Ashford. And I wasn't there because of your case. Those two things are true.", flagged:true},
+              {speaker:D, cls:'detective', text:"Then why?"},
+              {speaker:'Okafor', cls:'subject', text:"When my investigation concludes, you'll understand. Until then — be careful who you trust in this building.", flagged:true},
+            ]
+          },
+          { condition:'Stone wall — no information', conditionClass:'cond-hostile', meter:'influence', threshold:65, op:'<=',
+            lines:[
+              {speaker:D, cls:'detective', text:"Detective Okafor. Your presence at Bay 7 on March fourth."},
+              {speaker:'Okafor', cls:'subject', text:"I have no comment on any operation I may or may not be conducting. If you have a formal inquiry, submit it to IA command."},
+              {speaker:D, cls:'detective', text:"This is a murder investigation."},
+              {speaker:'Okafor', cls:'subject', text:"I'm aware. Submit your inquiry in writing.", flagged:true},
+            ]
+          },
+        ]
+      },
+
+      'graffiti-artist': {
+        sessionLabel:'Informant Debrief', type:'informant',
+        variants:[
+          { condition:'Forthcoming — describes the figures', conditionClass:'cond-forthcoming', meter:'streetCred', threshold:65, op:'>',
+            lines:[
+              {speaker:D, cls:'detective', text:"Reno. March fourth. The alley."},
+              {speaker:'Reno', cls:'subject', stage:'relaxed, tag on the edge of his jacket', text:"Two of them. One I know to see — doesn't work in the neighbourhood, doesn't drink in the neighbourhood. Doesn't belong."},
+              {speaker:D, cls:'detective', text:"Description?"},
+              {speaker:'Reno', cls:'subject', text:"Tall. Big hands. Wore his boots like someone who works outside. And he had a roll of something in his left coat pocket. Thin wire, maybe.", flagged:true},
+              {speaker:D, cls:'detective', text:"The other one?"},
+              {speaker:'Reno', cls:'subject', text:"Stayed by the car. Old woman. That's the part that surprised me. She just waited.", flagged:true},
+            ]
+          },
+          { condition:'Guarded — partial information', conditionClass:'cond-guarded', meter:'streetCred', threshold:35, op:'<=',
+            lines:[
+              {speaker:D, cls:'detective', text:"Reno. You said you'd seen something."},
+              {speaker:'Reno', cls:'subject', stage:'cautious', text:"I see things every night. Most of them aren't police business."},
+              {speaker:D, cls:'detective', text:"This one is."},
+              {speaker:'Reno', cls:'subject', text:"Two people near the alley around midnight. One of them didn't fit. That's as far as I'll go.", flagged:true},
+              {speaker:D, cls:'detective', text:"I need more than that."},
+              {speaker:'Reno', cls:'subject', text:"I know. Come back when it's safer to give it to you."},
+            ]
+          },
+          { condition:'Silent — won\'t talk', conditionClass:'cond-silent', meter:'streetCred', threshold:35, op:'<',
+            lines:[
+              {speaker:D, cls:'detective', text:"Reno. March fourth."},
+              {speaker:'Reno', cls:'subject', stage:'shrug', text:"I was working. Two streets over."},
+              {speaker:D, cls:'detective', text:"You told someone you saw something near the alley."},
+              {speaker:'Reno', cls:'subject', text:"Must have got the wrong Reno."},
+              {speaker:D, cls:'detective', text:"We can protect you."},
+              {speaker:'Reno', cls:'subject', stage:'looking past you', text:"Nobody in this city protects anybody. You know that as well as I do."},
+            ]
+          },
+        ]
+      },
+
+      'it-specialist': {
+        sessionLabel:'Witness Interview', type:'witness',
+        variants:[
+          { condition:'Cooperative — names the deleted records', conditionClass:'cond-cooperative', meter:'cityCorrupt', threshold:35, op:'<',
+            lines:[
+              {speaker:D, cls:'detective', text:"Felix. The tower records that were deleted on March fifth."},
+              {speaker:'Felix', cls:'subject', stage:'nervous energy, talks fast', text:"Someone accessed the historical log remotely. Three hours of records, gone. The access used a service credential I'd given to a colleague two months ago."},
+              {speaker:D, cls:'detective', text:"Which colleague?"},
+              {speaker:'Felix', cls:'subject', text:"Tariq Mossoud. He called in sick the day after and hasn't been back. His workstation's been cleared.", flagged:true},
+              {speaker:D, cls:'detective', text:"And the cell data from the night of the fourth — you pulled that yourself?"},
+              {speaker:'Felix', cls:'subject', stage:'quieter', text:"Tariq asked me to. Said it was for a network audit. I pulled it and sent it to his terminal. I didn't know what it was for. I swear.", flagged:true},
+            ]
+          },
+          { condition:'Cautious — confirms anomaly, scared', conditionClass:'cond-cautious', meter:'cityCorrupt', threshold:65, op:'<=',
+            lines:[
+              {speaker:D, cls:'detective', text:"Felix, the cell tower records anomaly."},
+              {speaker:'Felix', cls:'subject', text:"I filed an internal report. It was escalated. Beyond that it's above my access level."},
+              {speaker:D, cls:'detective', text:"Who asked you to pull the data in the first place?"},
+              {speaker:'Felix', cls:'subject', stage:'hesitates', text:"I'd rather not say anything that I'd have to repeat somewhere official. I have a mortgage. I have a kid."},
+              {speaker:D, cls:'detective', text:"Whatever you can give us helps."},
+              {speaker:'Felix', cls:'subject', text:"Then help me understand why the person who asked me to pull the data hasn't been to work in two weeks."},
+            ]
+          },
+          { condition:'Closed — won\'t go further', conditionClass:'cond-hostile', meter:'cityCorrupt', threshold:65, op:'>',
+            lines:[
+              {speaker:D, cls:'detective', text:"Felix. The records deletion."},
+              {speaker:'Felix', cls:'subject', stage:'clearly rehearsed', text:"I filed my incident report. My manager reviewed it. No further action has been requested of me."},
+              {speaker:D, cls:'detective', text:"Someone cleared a colleague's workstation—"},
+              {speaker:'Felix', cls:'subject', text:"That would be an HR matter. I really can't say anything else.", flagged:true},
+            ]
+          },
+        ]
+      },
+
+      'maintenance-worker-2': {
+        sessionLabel:'Witness Interview', type:'witness',
+        variants:[
+          { condition:'Cooperative — vehicle detail and timing', conditionClass:'cond-cooperative', meter:'cityCorrupt', threshold:35, op:'<',
+            lines:[
+              {speaker:D, cls:'detective', text:"Deko. The vehicle you saw near the alley."},
+              {speaker:'Deko', cls:'subject', stage:'steady, practical', text:"Dark saloon. Charcoal or very dark grey. European-made — something like a BMW or similar. Engine running, lights off, parked at the corner."},
+              {speaker:D, cls:'detective', text:"What time?"},
+              {speaker:'Deko', cls:'subject', text:"Between half eleven and midnight. I was checking the eastern fence line on my second loop.", flagged:true},
+              {speaker:D, cls:'detective', text:"Did you see the driver?"},
+              {speaker:'Deko', cls:'subject', text:"The interior was dark. I saw a shape in the driver's seat. Looked like a woman — older. Grey hair, maybe. She didn't look up.", flagged:true},
+            ]
+          },
+          { condition:'Cooperative — basics, vague on time', conditionClass:'cond-cautious', meter:'cityCorrupt', threshold:65, op:'<=',
+            lines:[
+              {speaker:D, cls:'detective', text:"Deko, the vehicle you reported."},
+              {speaker:'Deko', cls:'subject', text:"Dark saloon. Parked near the alley with the engine running. I noticed it because nobody parks there overnight."},
+              {speaker:D, cls:'detective', text:"Time?"},
+              {speaker:'Deko', cls:'subject', text:"Sometime between my eleven o'clock and midnight check. I didn't clock it exactly."},
+              {speaker:D, cls:'detective', text:"Driver?"},
+              {speaker:'Deko', cls:'subject', text:"Too dark to say."},
+            ]
+          },
+          { condition:'Brief — professional, clearly uneasy', conditionClass:'cond-hostile', meter:'cityCorrupt', threshold:65, op:'>',
+            lines:[
+              {speaker:D, cls:'detective', text:"Deko. The vehicle—"},
+              {speaker:'Deko', cls:'subject', text:"I found the cloth. I called it in. I saw a car parked somewhere it shouldn't be. All in the statement."},
+              {speaker:D, cls:'detective', text:"Any detail you didn't include—"},
+              {speaker:'Deko', cls:'subject', stage:'flatly', text:"If I didn't include it, there's a reason.", flagged:true},
+            ]
+          },
+        ]
+      },
+
+      'maintenance-worker': {
+        sessionLabel:'Witness Interview', type:'witness',
+        variants:[
+          { condition:'Cooperative — three visits, detailed description', conditionClass:'cond-cooperative', meter:'cityCorrupt', threshold:35, op:'<',
+            lines:[
+              {speaker:D, cls:'detective', text:"Hector. Elara Voss's visits to the building."},
+              {speaker:'Hector', cls:'subject', stage:'opens his notebook', text:"Three times. February twentieth, twenty-sixth, and March second. Each time between six and eight in the evening. Duration: twenty-five to thirty minutes."},
+              {speaker:D, cls:'detective', text:"She have a resident fob?"},
+              {speaker:'Hector', cls:'subject', text:"Visitor fob. I issued it on the first visit at the request of the tenant on floor six. Never got it back.", flagged:true},
+              {speaker:D, cls:'detective', text:"Describe her for me."},
+              {speaker:'Hector', cls:'subject', text:"Mid-thirties. Professional dress. Always carried a document bag. On the third visit she was in a hurry — she usually said hello, that time she didn't look up.", flagged:true},
+            ]
+          },
+          { condition:'Cooperative — confirms visits, fewer details', conditionClass:'cond-cautious', meter:'cityCorrupt', threshold:65, op:'<=',
+            lines:[
+              {speaker:D, cls:'detective', text:"Hector, the visitor records for Elara Voss."},
+              {speaker:'Hector', cls:'subject', text:"Three visits. Floor six. All within the last two weeks of February and into March."},
+              {speaker:D, cls:'detective', text:"She have access?"},
+              {speaker:'Hector', cls:'subject', text:"Visitor fob. Issued by me. It wasn't returned."},
+              {speaker:D, cls:'detective', text:"How did she seem?"},
+              {speaker:'Hector', cls:'subject', text:"Purposeful. Like someone who knew exactly where they were going."},
+            ]
+          },
+          { condition:'By-the-book — points to the log', conditionClass:'cond-hostile', meter:'cityCorrupt', threshold:65, op:'>',
+            lines:[
+              {speaker:D, cls:'detective', text:"Hector, the visitor access records—"},
+              {speaker:'Hector', cls:'subject', text:"The log says what it says. Three visits. Floor six. All properly signed in."},
+              {speaker:D, cls:'detective', text:"Any impressions—"},
+              {speaker:'Hector', cls:'subject', stage:'quiet, cautious', text:"I log what I see. I don't editorialize. The log is accurate.", flagged:true},
+            ]
+          },
+        ]
+      },
+
+      'office-worker': {
+        sessionLabel:'Person of Interest Interview', type:'poi',
+        variants:[
+          { condition:'Anxious — admits filing room visit', conditionClass:'cond-cooperative', meter:'cityCorrupt', threshold:35, op:'<',
+            lines:[
+              {speaker:D, cls:'detective', text:"Patrick. You were in the filing room on the morning of March fifth — the day after the incident."},
+              {speaker:'Lorne', cls:'subject', stage:'pale, tight', text:"I was looking for something. Before it could be moved."},
+              {speaker:D, cls:'detective', text:"What?"},
+              {speaker:'Lorne', cls:'subject', text:"A folder. Financial records. Victor kept a parallel set separate from the ledger. Handwritten. I knew where it was filed.", flagged:true},
+              {speaker:D, cls:'detective', text:"Did you find it?"},
+              {speaker:'Lorne', cls:'subject', stage:'looks down', text:"No. Someone got there first. The folder was empty.", flagged:true},
+            ]
+          },
+          { condition:'Evasive — confirms the visit, not the reason', conditionClass:'cond-cautious', meter:'cityCorrupt', threshold:65, op:'<=',
+            lines:[
+              {speaker:D, cls:'detective', text:"Patrick, the filing room. March fifth, 7:22 AM."},
+              {speaker:'Lorne', cls:'subject', text:"I came in early to sort some paperwork. Nothing unusual."},
+              {speaker:D, cls:'detective', text:"You called in sick two hours later and haven't been back."},
+              {speaker:'Lorne', cls:'subject', stage:'barely keeping it together', text:"I wasn't feeling well. That happens."},
+              {speaker:D, cls:'detective', text:"Patrick. Someone is dead. If you're frightened, that's understandable."},
+              {speaker:'Lorne', cls:'subject', stage:'long pause', text:"I need to think about this. Not here."},
+            ]
+          },
+          { condition:'Won\'t talk — scared into silence', conditionClass:'cond-hostile', meter:'cityCorrupt', threshold:65, op:'>',
+            lines:[
+              {speaker:D, cls:'detective', text:"Patrick—"},
+              {speaker:'Lorne', cls:'subject', stage:'immediately tense', text:"I came in, I did some filing, I left. That's all."},
+              {speaker:D, cls:'detective', text:"Your workstation at the office has been cleared."},
+              {speaker:'Lorne', cls:'subject', text:"I requested a remote work arrangement. HR can confirm.", flagged:true},
+              {speaker:D, cls:'detective', text:"You requested it on March fifth. The morning of the filing room visit."},
+              {speaker:'Lorne', cls:'subject', stage:'barely audible', text:"I'd like to stop talking now."},
+            ]
+          },
+        ]
+      },
+
+      'offixe-worker-2': {
+        sessionLabel:'Witness Interview', type:'witness',
+        variants:[
+          { condition:'Cooperative — confirms financial irregularities', conditionClass:'cond-cooperative', meter:'cityCorrupt', threshold:35, op:'<',
+            lines:[
+              {speaker:D, cls:'detective', text:"Gerald. The financial irregularities at Whitmore Capital — you mentioned they predate your employment."},
+              {speaker:'Tench', cls:'subject', stage:'voluntary, glad to have an audience', text:"By at least three years. The shell company arrangement was already established when I joined. I found it during a routine reconciliation."},
+              {speaker:D, cls:'detective', text:"And you flagged it?"},
+              {speaker:'Tench', cls:'subject', text:"Internally. To my line manager. Who escalated it to Diana Whitmore's office. After that — nothing. No response, no follow-up, no change.", flagged:true},
+              {speaker:D, cls:'detective', text:"You kept records?"},
+              {speaker:'Tench', cls:'subject', stage:'patting his jacket pocket', text:"I was a city archivist's nephew. Of course I kept records.", flagged:true},
+            ]
+          },
+          { condition:'Cautious — admits ledger access, partial', conditionClass:'cond-cautious', meter:'cityCorrupt', threshold:65, op:'<=',
+            lines:[
+              {speaker:D, cls:'detective', text:"Gerald. The shell company transfers."},
+              {speaker:'Tench', cls:'subject', text:"I was aware of certain inter-company transfers as part of my role. I can't speak to their purpose without my employment agreement in front of me."},
+              {speaker:D, cls:'detective', text:"Did you flag anything internally?"},
+              {speaker:'Tench', cls:'subject', stage:'careful', text:"I raised a query. The response was satisfactory at the time. I'd want to review my notes before saying more."},
+            ]
+          },
+          { condition:'Everything above board — cleaned up version', conditionClass:'cond-hostile', meter:'cityCorrupt', threshold:65, op:'>',
+            lines:[
+              {speaker:D, cls:'detective', text:"Gerald. Whitmore Capital financial records."},
+              {speaker:'Tench', cls:'subject', stage:'very polished', text:"My role is accounts management. All transactions I processed were properly authorized and documented."},
+              {speaker:D, cls:'detective', text:"There's a shell company—"},
+              {speaker:'Tench', cls:'subject', text:"Which my employer's legal team is aware of. I'd recommend any further questions go through them.", flagged:true},
+            ]
+          },
+        ]
+      },
+
+      'street-level-informant-2': {
+        sessionLabel:'Informant Debrief', type:'informant',
+        variants:[
+          { condition:'Forthcoming — names the courier', conditionClass:'cond-forthcoming', meter:'streetCred', threshold:65, op:'>',
+            lines:[
+              {speaker:D, cls:'detective', text:"Two-Stop. Who made the delivery that night?"},
+              {speaker:'Two-Stop', cls:'subject', stage:'leaning back, relaxed — this is a transaction', text:"Fellow goes by Breckett. Independent contractor, not affiliated. Does courier work for anyone who pays in cash."},
+              {speaker:D, cls:'detective', text:"Where do I find him?"},
+              {speaker:'Two-Stop', cls:'subject', text:"He'll find you. Put the word out that there's freight moving through the eastern docks on Thursday. He monitors those channels.", flagged:true},
+              {speaker:D, cls:'detective', text:"And who hired him?"},
+              {speaker:'Two-Stop', cls:'subject', stage:'slight smile', text:"That's a second conversation. Bring something worth trading.", flagged:true},
+            ]
+          },
+          { condition:'Guarded — confirms delivery, no name', conditionClass:'cond-guarded', meter:'streetCred', threshold:35, op:'<=',
+            lines:[
+              {speaker:D, cls:'detective', text:"Two-Stop. The delivery on March fourth."},
+              {speaker:'Two-Stop', cls:'subject', text:"I know there was one. Everybody in the district knows there was one."},
+              {speaker:D, cls:'detective', text:"Who made it?"},
+              {speaker:'Two-Stop', cls:'subject', text:"Not my business to know every face that moves through the harbour. Could've been anyone.", flagged:true},
+              {speaker:D, cls:'detective', text:"Could've been. But you know."},
+              {speaker:'Two-Stop', cls:'subject', text:"Come back with something that makes knowing worth the risk."},
+            ]
+          },
+          { condition:'Silent — won\'t risk it', conditionClass:'cond-silent', meter:'streetCred', threshold:35, op:'<',
+            lines:[
+              {speaker:D, cls:'detective', text:"Two-Stop. March fourth."},
+              {speaker:'Two-Stop', cls:'subject', stage:'blank', text:"I wasn't near the harbour that night."},
+              {speaker:D, cls:'detective', text:"I didn't say harbour."},
+              {speaker:'Two-Stop', cls:'subject', stage:'pause, then', text:"I'm not in the business of getting myself killed, Detective. We both know what happened to the last person who talked about this. Goodbye.", flagged:true},
+            ]
+          },
+        ]
+      },
+
+      'street-level-informant': {
+        sessionLabel:'Informant Debrief', type:'informant',
+        variants:[
+          { condition:'Forthcoming — partial plate and direction', conditionClass:'cond-forthcoming', meter:'streetCred', threshold:65, op:'>',
+            lines:[
+              {speaker:D, cls:'detective', text:"Patch. The vehicle near the alley."},
+              {speaker:'Patch', cls:'subject', stage:'measured, wants something for this', text:"M-E four, something. Can't give you the rest. Dark saloon. Turned south after ten minutes. Didn't rush — that's what you notice. People running usually rush."},
+              {speaker:D, cls:'detective', text:"Single occupant?"},
+              {speaker:'Patch', cls:'subject', text:"Two. Driver stayed. Passenger got out, went into the alley, came back in under four minutes.", flagged:true},
+              {speaker:D, cls:'detective', text:"What did the passenger look like?"},
+              {speaker:'Patch', cls:'subject', text:"Big. Dark coat. Kept his head down. Looked like someone who did work, not someone who ordered it.", flagged:true},
+            ]
+          },
+          { condition:'Partial — confirms vehicle type', conditionClass:'cond-guarded', meter:'streetCred', threshold:35, op:'<=',
+            lines:[
+              {speaker:D, cls:'detective', text:"Patch. The vehicle you might have seen."},
+              {speaker:'Patch', cls:'subject', text:"Dark saloon. European-style. That's as much as I'm comfortable with."},
+              {speaker:D, cls:'detective', text:"Time?"},
+              {speaker:'Patch', cls:'subject', text:"Late. After eleven I think."},
+              {speaker:D, cls:'detective', text:"Occupants?"},
+              {speaker:'Patch', cls:'subject', stage:'head shake', text:"Too dark. Two shapes, maybe. That's it."},
+            ]
+          },
+          { condition:'Silent — false alibi', conditionClass:'cond-silent', meter:'streetCred', threshold:35, op:'<',
+            lines:[
+              {speaker:D, cls:'detective', text:"Patch. Harlow Street, late March fourth."},
+              {speaker:'Patch', cls:'subject', text:"I was in a card game off Canal Street. Four other people can confirm."},
+              {speaker:D, cls:'detective', text:"You mentioned the vehicle to someone else."},
+              {speaker:'Patch', cls:'subject', stage:'flat denial', text:"Someone misheard me. I said I'd seen a car. Doesn't mean anything. There are cars everywhere.", flagged:true},
+            ]
+          },
+        ]
+      },
+    };
+
+    /* ── Pick the right variant based on meters ── */
+    function pickVariant(charId) {
+      const entry = INTERVIEW_DATA[charId];
+      if (!entry) return null;
+      const m = getMeters();
+      for (const v of entry.variants) {
+        const val = m[v.meter === 'streetCred' ? 'streetCred' : v.meter === 'cityCorrupt' ? 'cityCorrupt' : 'influence'];
+        const passes = v.op === '>' ? val > v.threshold : val <= v.threshold;
+        if (passes) return v;
+      }
+      return entry.variants[entry.variants.length - 1]; // default last
+    }
+
+    /* ── Open interview modal ── */
+    function openInterview() {
+      if (!currentChar) return;
+      const entry = INTERVIEW_DATA[currentCharId];
+      if (!entry) {
+        alert('No interview record available for this person yet.');
+        return;
+      }
+      const m = getMeters();
+      const variant = pickVariant(currentCharId);
+      if (!variant) return;
+
+      document.getElementById('interview-session-label').textContent = entry.sessionLabel;
+      const condEl = document.getElementById('interview-condition-label');
+      condEl.textContent = variant.condition;
+      condEl.className   = `interview-condition ${variant.conditionClass}`;
+
+      document.getElementById('int-influence').textContent = m.influence;
+      document.getElementById('int-corrupt').textContent   = m.cityCorrupt;
+      document.getElementById('int-cred').textContent      = m.streetCred;
+
+      const linesEl = document.getElementById('interview-lines');
+      linesEl.innerHTML = '';
+      variant.lines.forEach((line, i) => {
+        const div = document.createElement('div');
+        div.className = 'int-line' + (line.flagged ? ' flagged' : '');
+        div.style.animationDelay = (i * 0.05) + 's';
+        div.innerHTML = `
+          <span class="int-speaker ${line.cls}">${line.speaker}</span>
+          <div class="int-dialogue">
+            ${line.stage ? `<span class="int-stage">[${line.stage}]</span>` : ''}
+            ${line.text}
+          </div>
+        `;
+        linesEl.appendChild(div);
+      });
+
+      document.getElementById('interview-overlay').classList.add('open');
+      document.getElementById('interview-doc').scrollTop = 0;
+    }
+
+    function closeInterview() {
+      document.getElementById('interview-overlay').classList.remove('open');
+    }
+
+    function handleInterviewOverlay(e) {
+      if (e.target === document.getElementById('interview-overlay')) closeInterview();
+    }
+
     // Close on Escape key
-    document.addEventListener('keydown', e => { if (e.key === 'Escape') closeDossier(); });
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape') {
+        if (document.getElementById('interview-overlay').classList.contains('open')) closeInterview();
+        else closeDossier();
+      }
+    });
 
     /* ════════════════════════════════════════════════
        MUSIC RESUME
