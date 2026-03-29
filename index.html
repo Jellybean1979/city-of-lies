@@ -892,6 +892,11 @@
     }
 
     function startNewGame() {
+      // Seed a random story arc (A, B, or C) for this playthrough
+      const arcs = ['A', 'B', 'C'];
+      const arc  = arcs[Math.floor(Math.random() * arcs.length)];
+      localStorage.setItem('col_arc', arc);
+
       // Write a minimal save marker so Continue is available on return
       localStorage.setItem('col_save', JSON.stringify({
         influence: 0, cityCorrupt: 0, streetCred: 100,
