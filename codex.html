@@ -601,7 +601,7 @@
           <div class="faction-grid">
 
             <!-- Police Department -->
-            <a class="faction-card police" href="faction-police.html">
+            <a class="faction-card police" href="javascript:void(0)" onclick="openFactionDetail('police')">
               <div class="faction-inner">
                 <div class="faction-header">
                   <span class="faction-icon">🚔</span>
@@ -617,7 +617,7 @@
             </a>
 
             <!-- City Council -->
-            <a class="faction-card council" href="faction-council.html">
+            <a class="faction-card council" href="javascript:void(0)" onclick="openFactionDetail('council')">
               <div class="faction-inner">
                 <div class="faction-header">
                   <span class="faction-icon">🏛</span>
@@ -633,7 +633,7 @@
             </a>
 
             <!-- Private Security -->
-            <a class="faction-card security" href="faction-security.html">
+            <a class="faction-card security" href="javascript:void(0)" onclick="openFactionDetail('security')">
               <div class="faction-inner">
                 <div class="faction-header">
                   <span class="faction-icon">🛡</span>
@@ -649,7 +649,7 @@
             </a>
 
             <!-- Crime Syndicates -->
-            <a class="faction-card syndicate" href="faction-syndicates.html">
+            <a class="faction-card syndicate" href="javascript:void(0)" onclick="openFactionDetail('syndicate')">
               <div class="faction-inner">
                 <div class="faction-header">
                   <span class="faction-icon">💀</span>
@@ -665,7 +665,7 @@
             </a>
 
             <!-- Activist Groups -->
-            <a class="faction-card activist" href="faction-activists.html">
+            <a class="faction-card activist" href="javascript:void(0)" onclick="openFactionDetail('activist')">
               <div class="faction-inner">
                 <div class="faction-header">
                   <span class="faction-icon">✊</span>
@@ -681,7 +681,7 @@
             </a>
 
             <!-- Media Outlets -->
-            <a class="faction-card media" href="faction-media.html">
+            <a class="faction-card media" href="javascript:void(0)" onclick="openFactionDetail('media')">
               <div class="faction-inner">
                 <div class="faction-header">
                   <span class="faction-icon">📰</span>
@@ -1003,7 +1003,103 @@
       }
     }
     updateCommitHash();
+
+    /* ════════════════════════════════════════════════
+       FACTION DETAIL MODAL
+    ════════════════════════════════════════════════ */
+    const FACTION_DETAILS = {"police": {"icon": "🚔", "name": "Police Department", "badge": "Active", "badgeCls": "badge-active", "standing": "Your employer — for now.", "overview": "The Merrehope Police Department is the city's primary law enforcement body. Publicly committed to justice, it is internally fractured between officers who still believe in the job and those quietly on the payroll of powerful interests. Your badge opens doors. It also marks you as someone to watch.", "structure": "Headed by the Deputy Commissioner, who answers to the Mayor's office — and, informally, to whoever the Mayor owes favours to. Below her, a tier of superintendents each control their own patronage networks. The detective division operates with nominal independence, which is both an asset and a liability.", "contacts": [{"name": "Deputy Commissioner V. Marsh", "role": "Command authority", "status": "Active — cautious", "note": "Has applied quiet pressure to close the case quickly. Reasons unclear."}, {"name": "Det. Sylvia Okafor (Internal Affairs)", "role": "IA operative", "status": "Active — undercover designation", "note": "Identified at Bay 7 on the night of the incident. Has not provided a statement."}], "faction_events": "Faction events from this group affect your Influence Level and can flag your investigation for internal review. Cooperation may fast-track evidence requests; refusal may slow lab returns."}, "council": {"icon": "🏛", "name": "City Council", "badge": "Neutral", "badgeCls": "badge-neutral", "standing": "Watching you closely.", "overview": "The elected body governing Merrehope — though \"elected\" is a generous term in a city where campaign contributions and favours determine outcomes before ballots are cast. Several council members are deeply entangled in the same financial arrangements your investigation is uncovering. Watch who you expose, and who you protect.", "structure": "Twelve district councillors, a council president, and a finance committee that controls infrastructure spending. Alderman Raymond Cross sits on the finance committee and chairs the harbour redevelopment subcommittee — both relevant to this case.", "contacts": [{"name": "Alderman Raymond Cross", "role": "Finance Committee Chair", "status": "Person of interest", "note": "Coded ledger entries link him directly to Marre Import Co. payments."}], "faction_events": "Council faction events affect City Corruption. Protecting council members raises it; exposing them lowers it but may trigger legal challenges to your evidence."}, "security": {"icon": "🛡", "name": "Private Security Firms", "badge": "Neutral", "badgeCls": "badge-neutral", "standing": "Transactional.", "overview": "Well-funded, legally grey, and everywhere. Private security firms protect the city's wealthy enclaves, manage access to harbour facilities, and take contracts that municipal forces can't or won't handle. Some are legitimate operations. Others are fronts. Distinguishing between them requires evidence you may not yet have.", "structure": "No single dominant firm — the market is fragmented. The Harbour Authority's Bay 7 security contract was held by a firm whose client list is not public. A redacted security contract in the evidence suggests Marre Import Co. had a relationship with at least one of them.", "contacts": [], "faction_events": "Security faction events offer access to surveillance data in exchange for case information. Deals with security firms improve Street Credibility but risk evidence admissibility challenges."}, "syndicate": {"icon": "💀", "name": "Crime Syndicates", "badge": "Hostile", "badgeCls": "badge-hostile", "standing": "They know who you are.", "overview": "Three rival organisations control Merrehope's underworld. They hate each other almost as much as they hate the police. But their internal grudges make them predictable — and their information is priceless, if you can survive asking for it. Several informants in this case operate in syndicate-adjacent territory.", "structure": "The harbour district is contested between two factions; the financial district is controlled by a third. All three have interests in the case — the victim was apparently aware of financial flows that crossed syndicate territory.", "contacts": [{"name": "\"Two-Stop\"", "role": "Street-level contact", "status": "Informant — protected", "note": "Claims knowledge of the delivery contractor used on the night of the incident."}, {"name": "\"Patch\"", "role": "Street presence", "status": "Informant — intermittent", "note": "Witnessed a vehicle near the alley. Will not testify formally."}], "faction_events": "Syndicate faction events heavily affect Street Credibility. Cooperation with syndicates unlocks intelligence unavailable through official channels but permanently closes certain clean endings."}, "activist": {"icon": "✊", "name": "Activist Groups", "badge": "Neutral", "badgeCls": "badge-neutral", "standing": "Cautiously watching.", "overview": "Community organisers, whistleblowers, and agitators who have been documenting Merrehope's institutional rot for years. They don't trust police as a rule. If you earn their trust slowly — through action, not words — they will hand you evidence that no official channel can produce.", "structure": "Decentralised. A housing rights coalition, a harbour district watchdog group, and a network of anonymous bloggers who publish documents that official sources suppress. Tomoe Reyes has informal ties to the coalition.", "contacts": [{"name": "Tomoe Reyes", "role": "Senior Social Worker / activist contact", "status": "Cooperative — guarded", "note": "Was the victim's social services contact. Has documents she is protecting."}], "faction_events": "Activist faction events lower City Corruption when you cooperate and can unlock off-record witness statements. They expect consistency — one betrayal and this faction becomes hostile."}, "media": {"icon": "📰", "name": "Media Outlets", "badge": "Neutral", "badgeCls": "badge-neutral", "standing": "Interested.", "overview": "Two daily newspapers, one independent broadcaster, and a network of anonymous bloggers operate in Merrehope. Leak the right story and you control the public narrative. Feed them the wrong one and you become it. The press is a tool — one that cuts both ways.", "structure": "The Merrehope Courier (establishment, Whitmore Capital has a minority stake), the Independent Herald (opposition-leaning, limited resources), and an anonymous blogger network that has broken two major corruption stories in the past year.", "contacts": [], "faction_events": "Media faction events offer large City Corruption reductions when you cooperate but risk evidence admissibility and may trigger IA scrutiny. Using media as a tool is a high-reward, high-risk strategy."}};
+
+    function openFactionDetail(key) {
+      const f = FACTION_DETAILS[key];
+      if (!f) return;
+
+      const contactsHtml = f.contacts.length > 0
+        ? f.contacts.map(c => `
+          <div style="border:1px solid rgba(168,131,46,.15);padding:clamp(10px,1.5vw,14px);margin-bottom:8px;background:rgba(168,131,46,.04);">
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:4px;">
+              <span style="font-size:clamp(10px,1.4vw,13px);color:var(--paper);font-weight:700;">${c.name}</span>
+              <span style="font-size:clamp(6px,.78vw,8px);letter-spacing:.2em;text-transform:uppercase;color:var(--amber);flex-shrink:0;">${c.status}</span>
+            </div>
+            <span style="font-size:clamp(8px,1vw,10px);color:var(--paper-dim);display:block;margin-bottom:3px;">${c.role}</span>
+            <span style="font-size:clamp(8px,1vw,10px);color:rgba(168,131,46,.6);font-style:italic;">${c.note}</span>
+          </div>
+        `).join('')
+        : `<p style="font-size:clamp(9px,1.1vw,11px);color:rgba(168,131,46,.3);font-style:italic;letter-spacing:.1em;">No confirmed contacts on file for this faction.</p>`;
+
+      document.getElementById('faction-detail-inner').innerHTML = `
+        <!-- Header -->
+        <div style="display:flex;align-items:center;gap:14px;margin-bottom:clamp(14px,2.5vh,20px);padding-bottom:clamp(12px,2vh,16px);border-bottom:1px solid rgba(168,131,46,.2);">
+          <span style="font-size:clamp(28px,5vw,40px);line-height:1;flex-shrink:0;">${f.icon}</span>
+          <div style="flex:1;">
+            <span style="font-size:clamp(14px,2.2vw,20px);color:var(--paper);font-weight:700;display:block;margin-bottom:3px;">${f.name}</span>
+            <span style="font-size:clamp(7px,.85vw,9px);letter-spacing:.3em;text-transform:uppercase;color:rgba(168,131,46,.5);">${f.standing}</span>
+          </div>
+        </div>
+        <!-- Overview -->
+        <div style="margin-bottom:clamp(14px,2.5vh,20px);">
+          <span style="font-size:clamp(7px,.85vw,9px);letter-spacing:.4em;text-transform:uppercase;color:var(--amber);display:block;margin-bottom:8px;padding-bottom:3px;border-bottom:1px solid rgba(168,131,46,.15);">Overview</span>
+          <p style="font-size:clamp(10px,1.3vw,13px);color:var(--paper-dim);line-height:1.8;">${f.overview}</p>
+        </div>
+        <!-- Structure -->
+        <div style="margin-bottom:clamp(14px,2.5vh,20px);">
+          <span style="font-size:clamp(7px,.85vw,9px);letter-spacing:.4em;text-transform:uppercase;color:var(--amber);display:block;margin-bottom:8px;padding-bottom:3px;border-bottom:1px solid rgba(168,131,46,.15);">Structure &amp; Case Relevance</span>
+          <p style="font-size:clamp(10px,1.3vw,13px);color:var(--paper-dim);line-height:1.8;">${f.structure}</p>
+        </div>
+        <!-- Contacts -->
+        <div style="margin-bottom:clamp(14px,2.5vh,20px);">
+          <span style="font-size:clamp(7px,.85vw,9px);letter-spacing:.4em;text-transform:uppercase;color:var(--amber);display:block;margin-bottom:8px;padding-bottom:3px;border-bottom:1px solid rgba(168,131,46,.15);">Known Contacts</span>
+          ${contactsHtml}
+        </div>
+        <!-- Faction Events -->
+        <div style="background:rgba(168,131,46,.05);border:1px solid rgba(168,131,46,.15);border-left:3px solid rgba(168,131,46,.4);padding:clamp(10px,1.8vw,16px);">
+          <span style="font-size:clamp(6px,.78vw,8px);letter-spacing:.35em;text-transform:uppercase;color:rgba(168,131,46,.6);display:block;margin-bottom:5px;">Faction Events</span>
+          <p style="font-size:clamp(10px,1.3vw,13px);color:var(--paper-dim);line-height:1.75;">${f.faction_events}</p>
+        </div>
+      `;
+
+      const overlay = document.getElementById('faction-detail-overlay');
+      const doc     = document.getElementById('faction-detail-doc');
+      overlay.style.opacity       = '1';
+      overlay.style.pointerEvents = 'all';
+      doc.style.transform         = 'translateY(0) scale(1)';
+      overlay.scrollTop           = 0;
+    }
+
+    function closeFactionDetail() {
+      const overlay = document.getElementById('faction-detail-overlay');
+      const doc     = document.getElementById('faction-detail-doc');
+      overlay.style.opacity       = '0';
+      overlay.style.pointerEvents = 'none';
+      doc.style.transform         = 'translateY(16px) scale(.97)';
+    }
+
+    function handleFactionOverlay(e) {
+      if (e.target === document.getElementById('faction-detail-overlay')) closeFactionDetail();
+    }
   </script>
   <script src="faction-events.js"></script>
+
+  <!-- FACTION DETAIL MODAL -->
+  <div id="faction-detail-overlay" onclick="handleFactionOverlay(event)" style="
+    position:fixed;inset:0;z-index:80;
+    background:rgba(4,2,0,.90);backdrop-filter:blur(8px);
+    display:flex;align-items:flex-start;justify-content:center;
+    padding:clamp(12px,3vw,40px);overflow-y:auto;
+    opacity:0;pointer-events:none;transition:opacity .25s;">
+    <div id="faction-detail-doc" style="
+      width:100%;max-width:620px;margin:auto;
+      background:rgba(14,10,6,.98);
+      border:1px solid rgba(168,131,46,.3);
+      transform:translateY(16px) scale(.97);
+      transition:transform .3s cubic-bezier(.34,1.1,.64,1);">
+      <button onclick="closeFactionDetail()" style="
+        position:absolute;top:14px;right:16px;
+        font-family:'Courier Prime',monospace;font-size:9px;letter-spacing:.3em;
+        text-transform:uppercase;color:rgba(168,131,46,.4);background:none;border:none;cursor:pointer;
+        transition:color .2s;z-index:2;" onmouseover="this.style.color='#c47c1a'" onmouseout="this.style.color='rgba(168,131,46,.4)'">✕ Close</button>
+      <div id="faction-detail-inner" style="padding:clamp(20px,3.5vw,36px);"></div>
+    </div>
+  </div>
+
 </body>
 </html>
