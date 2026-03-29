@@ -3632,6 +3632,36 @@
           <span class="blr-section-title">Findings</span>
           ${r.findings.map(f => `<div class="blr-finding">${f}</div>`).join('')}
         </div>
+        ${r.forensicPhoto ? `
+        <div class="blr-section">
+          <span class="blr-section-title">Recovered Digital Exhibit</span>
+          <div style="display:flex;gap:clamp(14px,2.5vw,22px);align-items:flex-start;flex-wrap:wrap;margin-bottom:8px;">
+            <div style="flex-shrink:0;">
+              <!-- Forensic photo — dark mount, scanlines, corner brackets, evidence tape -->
+              <div style="background:#111;padding:7px 7px 32px;box-shadow:3px 5px 18px rgba(0,0,0,.75),inset 0 0 0 1px rgba(255,255,255,.05);position:relative;max-width:200px;transform:rotate(-0.6deg);">
+                <img src="${r.forensicPhoto}" alt="Recovered image exhibit"
+                  style="width:100%;display:block;max-width:186px;filter:contrast(1.12) saturate(0.65) brightness(0.85);"
+                  onerror="this.closest('div').style.display='none'"/>
+                <!-- Scanline overlay -->
+                <div style="position:absolute;inset:7px 7px 32px 7px;background:repeating-linear-gradient(to bottom,transparent 0,transparent 3px,rgba(0,0,0,.15) 3px,rgba(0,0,0,.15) 4px);pointer-events:none;"></div>
+                <!-- Corner targeting marks -->
+                <div style="position:absolute;top:4px;left:4px;width:11px;height:11px;border-top:1px solid rgba(196,48,48,.55);border-left:1px solid rgba(196,48,48,.55);pointer-events:none;"></div>
+                <div style="position:absolute;top:4px;right:4px;width:11px;height:11px;border-top:1px solid rgba(196,48,48,.55);border-right:1px solid rgba(196,48,48,.55);pointer-events:none;"></div>
+                <div style="position:absolute;bottom:32px;left:4px;width:11px;height:11px;border-bottom:1px solid rgba(196,48,48,.55);border-left:1px solid rgba(196,48,48,.55);pointer-events:none;"></div>
+                <div style="position:absolute;bottom:32px;right:4px;width:11px;height:11px;border-bottom:1px solid rgba(196,48,48,.55);border-right:1px solid rgba(196,48,48,.55);pointer-events:none;"></div>
+                <!-- Evidence label tape -->
+                <div style="position:absolute;bottom:0;left:0;right:0;height:32px;background:#d4b870;border-top:1px solid rgba(80,50,0,.3);display:flex;align-items:center;padding:0 7px;gap:6px;">
+                  <span style="font-family:'Courier Prime',monospace;font-size:6px;letter-spacing:.2em;text-transform:uppercase;color:#2a1400;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1;">EXHIBIT ${r.reportId}</span>
+                  <span style="font-family:'Courier Prime',monospace;font-size:6px;color:rgba(122,26,26,.7);white-space:nowrap;">62% RECOVERED</span>
+                </div>
+              </div>
+            </div>
+            <div style="flex:1;min-width:130px;padding-top:4px;">
+              <span style="font-size:clamp(6px,.75vw,8px);letter-spacing:.3em;text-transform:uppercase;color:rgba(168,100,10,.6);display:block;margin-bottom:6px;">Analyst Note</span>
+              <p style="font-size:clamp(9px,1.1vw,11px);color:#2a1400;line-height:1.75;font-style:italic;">${r.forensicPhotoCaption}</p>
+            </div>
+          </div>
+        </div>` : ''}
         <div class="blr-conclusion">
           <span class="blr-conclusion-label">Forensic Conclusions &amp; Investigative Recommendations</span>
           <p class="blr-conclusion-text">${r.conclusion}</p>
