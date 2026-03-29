@@ -1884,6 +1884,18 @@
         }
         const elapsed = now - waveState.firstVisit;
 
+        // ── Inject arc-specific evidence into wave 3 (if not already present) ──
+        const ARC_EV = {
+          A: { id:'COL-001-A-FARC-A01', wave:3, name:'Monogrammed Flask — Strychnine Residue', location:'The Velvet Anchor back office, behind the bar', date:'Mar 06 2026 · 13:10', owner:'Alderman Raymond Cross', why:'A silver flask bearing the initials R.C. was found concealed behind bottles in the Velvet Anchor back office. Toxicology confirmed strychnine residue inside. Gerald Tench, a Velvet Anchor regular, had access to this space. Cross is the documented owner.' },
+          B: { id:'COL-001-A-FARC-B01', wave:3, name:'Brass Paperweight — Blood and Prints', location:'Whitmore Estate — study fireplace ash pan, partially melted', date:'Mar 07 2026 · 09:55', owner:'Bowen Ashford (prints confirmed)', why:'A brass paperweight recovered from the Whitmore Estate study fireplace ash pan shows signs of attempted fire destruction. Blood residue matches the victim. Latent prints confirmed as belonging to Bowen Ashford.' },
+          C: { id:'COL-001-A-FARC-C01', wave:3, name:'Cut Piano Wire Spool — Partial Fingerprints', location:'Storm drain — rear of Kessler Warehouse District', date:'Mar 07 2026 · 11:30', owner:'Deko Brannigan (prints on spool shaft)', why:'A commercial spool of cut piano wire recovered from a storm drain near the Kessler Warehouse District. Partial prints on the spool shaft match Deko Brannigan. Wire gauge and cut length are consistent with a ligature weapon.' },
+        };
+        const arcKey = localStorage.getItem('col_arc') || 'A';
+        const arcEvDef = ARC_EV[arcKey];
+        if (arcEvDef && !ALL_EVIDENCE_DEFS.find(d => d.id === arcEvDef.id)) {
+          ALL_EVIDENCE_DEFS.push(arcEvDef);
+        }
+
         // Process each evidence definition
         ALL_EVIDENCE_DEFS.forEach(def => {
           const waveDelay   = WAVE_DELAYS[def.wave];
