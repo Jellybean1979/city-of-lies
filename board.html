@@ -1367,6 +1367,104 @@
       }
       #sidebar.open + #sidebar-overlay { display:block; }
     }
+
+    /* ════════════════════════════
+       SPECTROGRAM CARDS
+    ════════════════════════════ */
+    .specto-card {
+      background: rgba(4,6,12,.95);
+      border: 1px solid rgba(45,220,160,.18);
+      position: relative;
+      overflow: hidden;
+    }
+    .specto-topbar {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 6px 12px;
+      background: rgba(0,0,0,.7);
+      border-bottom: 1px solid rgba(45,220,160,.15);
+    }
+    .specto-id {
+      font-family: "Courier Prime", monospace;
+      font-size: clamp(7px,.82vw,9px); letter-spacing: .25em;
+      color: rgba(45,220,160,.8); text-transform: uppercase;
+    }
+    .specto-status {
+      display: flex; align-items: center; gap: 5px;
+      font-family: "Courier Prime", monospace;
+      font-size: clamp(7px,.82vw,9px); letter-spacing: .2em;
+      text-transform: uppercase;
+    }
+    .specto-dot {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: rgba(45,220,160,.8);
+      box-shadow: 0 0 6px rgba(45,220,160,.6);
+      animation: spectoBlink 1.2s ease infinite;
+    }
+    .specto-dot.red { background: rgba(196,48,48,.9); box-shadow: 0 0 6px rgba(196,48,48,.6); }
+    @keyframes spectoBlink { 0%,100%{opacity:1} 50%{opacity:.25} }
+    .specto-video-wrap {
+      position: relative; width: 100%; aspect-ratio: 16/7;
+      background: #000; overflow: hidden; cursor: pointer;
+    }
+    .specto-video { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .specto-scanlines {
+      position: absolute; inset: 0; pointer-events: none;
+      background: repeating-linear-gradient(to bottom, transparent 0, transparent 3px, rgba(0,0,0,.18) 3px, rgba(0,0,0,.18) 4px);
+    }
+    .specto-corner { position: absolute; width: 14px; height: 14px; border-color: rgba(45,220,160,.4); border-style: solid; pointer-events: none; }
+    .specto-corner.tl { top:8px; left:8px; border-width:1px 0 0 1px; }
+    .specto-corner.tr { top:8px; right:8px; border-width:1px 1px 0 0; }
+    .specto-corner.bl { bottom:8px; left:8px; border-width:0 0 1px 1px; }
+    .specto-corner.br { bottom:8px; right:8px; border-width:0 1px 1px 0; }
+    .specto-transcript-overlay {
+      position: absolute; inset: 0;
+      background: rgba(4,6,12,.83);
+      display: flex; flex-direction: column;
+      padding: clamp(12px,2vw,20px) clamp(14px,2.5vw,24px);
+      opacity: 0; pointer-events: none; transition: opacity .4s;
+      overflow-y: auto; scrollbar-width: thin;
+      scrollbar-color: rgba(45,220,160,.2) transparent;
+    }
+    .specto-transcript-overlay.visible { opacity: 1; pointer-events: all; }
+    .sto-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: clamp(10px,1.8vh,16px); padding-bottom: 6px;
+      border-bottom: 1px solid rgba(45,220,160,.2); flex-shrink: 0;
+    }
+    .sto-title { font-family: "Courier Prime", monospace; font-size: clamp(8px,1vw,10px); letter-spacing: .3em; text-transform: uppercase; color: rgba(45,220,160,.8); }
+    .sto-pct   { font-family: "Courier Prime", monospace; font-size: clamp(9px,1.2vw,12px); letter-spacing: .15em; color: rgba(196,124,26,.8); }
+    .sto-close { font-family: "Courier Prime", monospace; font-size: clamp(7px,.85vw,9px); letter-spacing: .25em; text-transform: uppercase; color: rgba(45,220,160,.5); background: none; border: 1px solid rgba(45,220,160,.2); padding: 3px 10px; cursor: pointer; transition: color .2s; }
+    .sto-close:hover { color: rgba(45,220,160,1); border-color: rgba(45,220,160,.5); }
+    .sto-lines { display: flex; flex-direction: column; gap: 6px; flex: 1; }
+    .sto-line { font-family: "Courier Prime", monospace; font-size: clamp(9px,1.2vw,12px); line-height: 1.7; opacity: 0; animation: stoLineIn .3s ease forwards; }
+    @keyframes stoLineIn { from{opacity:0;transform:translateY(4px)} to{opacity:1;transform:none} }
+    .sto-line.static  { color: rgba(100,140,100,.45); font-style: italic; }
+    .sto-line.decoded { color: rgba(45,220,160,.9); }
+    .sto-line.corrupt { color: rgba(196,124,26,.8); letter-spacing: .05em; }
+    .sto-line.signal  { color: rgba(196,48,48,.8); letter-spacing: .2em; font-size: clamp(7px,.85vw,9px); text-transform: uppercase; }
+    .sto-line.gap     { color: rgba(45,220,160,.3); border-top: 1px solid rgba(45,220,160,.1); padding-top: 5px; margin-top: 3px; }
+    .specto-meta { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px,1fr)); border-top: 1px solid rgba(45,220,160,.12); background: rgba(0,0,0,.5); }
+    .sm-cell { padding: 6px 12px; border-right: 1px solid rgba(45,220,160,.08); }
+    .sm-cell:last-child { border-right: none; }
+    .sm-label { font-family: "Courier Prime", monospace; font-size: clamp(5px,.65vw,7px); letter-spacing: .3em; text-transform: uppercase; color: rgba(45,220,160,.35); display: block; margin-bottom: 2px; }
+    .sm-val   { font-family: "Courier Prime", monospace; font-size: clamp(8px,1vw,10px); color: rgba(200,200,180,.7); }
+    .sm-val.hi   { color: rgba(45,220,160,.8); }
+    .sm-val.warn { color: rgba(196,124,26,.8); }
+    .specto-decode-btn {
+      position: absolute; bottom: 40px; right: 14px;
+      font-family: "Courier Prime", monospace;
+      font-size: clamp(7px,.85vw,9px); letter-spacing: .25em; text-transform: uppercase;
+      color: rgba(45,220,160,.8); background: rgba(0,0,0,.75);
+      border: 1px solid rgba(45,220,160,.35); padding: 5px 14px; cursor: pointer;
+      transition: color .2s, border-color .2s, background .2s;
+      animation: decodePulse 2s ease infinite;
+    }
+    .specto-decode-btn:hover { color: rgba(45,220,160,1); border-color: rgba(45,220,160,.7); background: rgba(45,220,160,.1); }
+    @keyframes decodePulse { 0%,100%{opacity:1} 50%{opacity:.6} }
+    .specto-locked { background: rgba(4,6,12,.7); border: 1px dashed rgba(45,220,160,.12); padding: clamp(20px,3.5vw,32px); display: flex; flex-direction: column; align-items: center; gap: 10px; text-align: center; }
+    .specto-locked-icon { font-size: clamp(22px,3.5vw,32px); opacity: .3; }
+    .specto-locked-title { font-family: "Courier Prime", monospace; font-size: clamp(9px,1.2vw,12px); letter-spacing: .25em; text-transform: uppercase; color: rgba(45,220,160,.35); }
+    .specto-locked-sub { font-size: clamp(8px,1vw,10px); letter-spacing: .15em; color: rgba(100,140,100,.3); }
   </style>
 </head>
 <body>
@@ -1659,9 +1757,23 @@
           <div class="evidence-empty"><span class="evidence-empty-icon">🎙</span><span class="evidence-empty-text">No audio files collected yet</span></div>
         </div>
         <div class="panel" id="panel-spectrograms">
-          <div class="panel-head"><div><span class="panel-title">Spectrograms</span><span class="panel-sub">Frequency analysis · Case COL-001-A</span></div><span class="wip-badge">Generated in Audio Lab</span></div>
+          <div class="panel-head">
+            <div>
+              <span class="panel-title">Spectrograms</span>
+              <span class="panel-sub">Voicemail frequency analysis · Case COL-001-A</span>
+            </div>
+            <span class="wip-badge" id="specto-badge">0 analyses on file</span>
+          </div>
           <div class="panel-rule"></div>
-          <div class="evidence-empty"><span class="evidence-empty-icon">📊</span><span class="evidence-empty-text">No spectrograms generated yet — visit the Audio Lab</span></div>
+
+          <!-- ── SPECTROGRAM GRID ── -->
+          <div id="specto-grid" style="display:flex;flex-direction:column;gap:clamp(20px,3vh,32px);"></div>
+
+          <!-- ── LOCKED / EMPTY STATE ── -->
+          <div id="specto-empty" class="evidence-empty">
+            <span class="evidence-empty-icon">📊</span>
+            <span class="evidence-empty-text">No spectrograms generated yet — submit the Burner Phone (E03) to the Digital Lab to unlock audio analysis</span>
+          </div>
         </div>
         <div class="panel" id="panel-transcripts">
           <div class="panel-head"><div><span class="panel-title">Interrogation Transcripts</span><span class="panel-sub">Session records · Case COL-001-A</span></div><span class="wip-badge">2 sessions on file</span></div>
@@ -2217,6 +2329,11 @@
       // Refresh documents panel when opened so new lab returns appear
       if (id === 'panel-documents') {
         buildDocumentsPanel();
+      }
+
+      // Refresh spectrograms panel
+      if (id === 'panel-spectrograms') {
+        buildSpectogramPanel();
       }
 
       // Close sidebar on mobile after selecting
@@ -3182,65 +3299,29 @@
     const CORONER_ARRIVAL_KEY = 'col_coroner_arrival';
     const CORONER_READY_KEY   = 'col_coroner_ready';
 
-    /* ── Arc-driven coroner report ── */
-    const CORONER_REPORTS_BY_ARC = {
-      A: {
-        id:'COR-COL-001-A-001', name:'Post-Mortem Examination Report — Elias Voss',
-        lab:'Merrehope City Mortuary', division:'Office of the Medical Examiner',
-        analyst:'Dr. Constance Fairweather, M.D.', exhibit:'Deceased — Elias Voss, DOB 14 Mar 1979',
-        reportId:'PME-COL-001-A-001', analystTitle:'Chief Medical Examiner', reviewedBy:'Deputy Medical Examiner T. Obi',
-        methodology:'Full external and internal post-mortem examination conducted at the Merrehope City Mortuary, Case Suite 3. Examination commenced at 08:30 on Mar 05 2026, approximately 10–12 hours post-mortem. Toxicological samples forwarded to the Forensic Toxicology Laboratory under separate submission. Histological sections prepared and retained.',
-        findings:[
-          'Deceased: Elias Voss, male, 47 years of age. Identified via fingerprint comparison against national register.',
-          'Time of death estimated at 23:30–00:15 based on body temperature, rigor progression, and lividity pattern.',
-          'Cause of death: strychnine toxicity — confirmed by toxicological analysis of gastric contents and liver tissue.',
-          'External findings: opisthotonus posture (rigid arching of the spine) consistent with tetanic convulsions. Perioral foam residue consistent with strychnine poisoning.',
-          'No blunt force trauma, ligature marks, or penetrating injuries were identified.',
-          'Trace evidence: residue on the victim\'s right hand is consistent with a glass or flask rim.',
-          'Toxicology: strychnine confirmed at a lethal concentration of 12.4 mg/L in liver tissue. Blood alcohol 0.04% — insufficient to impair response.',
-          'Onset to death estimated at 30–60 minutes from ingestion based on compound concentration and physiological profile.',
-        ],
-        conclusion:'Death was caused by acute strychnine toxicity, consistent with a lethal dose delivered in a liquid medium — most likely an alcoholic drink. The opisthotonus posture and perioral foam are pathognomonic of strychnine poisoning. The victim was conscious and aware during the onset of symptoms. No defensive injuries were found, consistent with the victim not anticipating the threat. Recovery of the delivery vessel is a priority forensic action. Ruling: Homicide.',
-      },
-      B: {
-        id:'COR-COL-001-A-001', name:'Post-Mortem Examination Report — Elias Voss',
-        lab:'Merrehope City Mortuary', division:'Office of the Medical Examiner',
-        analyst:'Dr. Constance Fairweather, M.D.', exhibit:'Deceased — Elias Voss, DOB 14 Mar 1979',
-        reportId:'PME-COL-001-A-001', analystTitle:'Chief Medical Examiner', reviewedBy:'Deputy Medical Examiner T. Obi',
-        methodology:'Full external and internal post-mortem examination conducted at the Merrehope City Mortuary, Case Suite 3. Examination commenced at 08:30 on Mar 05 2026, approximately 9–11 hours post-mortem. Toxicological samples forwarded to the Forensic Toxicology Laboratory under separate submission. Histological sections prepared and retained.',
-        findings:[
-          'Deceased: Elias Voss, male, 47 years of age. Identified via fingerprint comparison against national register.',
-          'Time of death estimated at 21:15–21:45 based on body temperature, rigor progression, and lividity pattern.',
-          'Cause of death: blunt force trauma to the posterior cranium — a single forceful impact consistent with a smooth, heavy object.',
-          'Impact site: a depressed skull fracture measuring 6.2 cm × 4.8 cm at the occipital bone, with radiating fracture lines.',
-          'Secondary findings: contusions to the right forearm and left hand consistent with a defensive posture immediately prior to the fatal blow.',
-          'No ligature marks or signs of poisoning were identified.',
-          'Trace evidence: fine metallic particulate consistent with brass alloy recovered from the wound margins.',
-          'The deceased was otherwise in good general health.',
-        ],
-        conclusion:'Death was caused by a single blunt force impact to the posterior skull delivered from behind, consistent with a deliberate attack. Defensive injuries confirm the victim was aware of the threat immediately before the fatal blow. The brass particulate in the wound margins provides a direct material link to the weapon. Recovery and examination of a brass implement is a priority forensic action. Ruling: Homicide.',
-      },
-      C: {
-        id:'COR-COL-001-A-001', name:'Post-Mortem Examination Report — Elias Voss',
-        lab:'Merrehope City Mortuary', division:'Office of the Medical Examiner',
-        analyst:'Dr. Constance Fairweather, M.D.', exhibit:'Deceased — Elias Voss, DOB 14 Mar 1979',
-        reportId:'PME-COL-001-A-001', analystTitle:'Chief Medical Examiner', reviewedBy:'Deputy Medical Examiner T. Obi',
-        methodology:'Full external and internal post-mortem examination conducted at the Merrehope City Mortuary, Case Suite 3. Examination commenced at 08:30 on Mar 05 2026, approximately 8–9 hours post-mortem. Toxicological samples forwarded to the Forensic Toxicology Laboratory under separate submission.',
-        findings:[
-          'Deceased: Elias Voss, male, 47 years of age. Identified via fingerprint comparison against national register.',
-          'Time of death estimated at 00:00–00:30 on Mar 05 based on body temperature, rigor progression, and lividity pattern.',
-          'Cause of death: asphyxiation by ligature strangulation.',
-          'Ligature mark: a deep horizontal furrow 4–6 mm wide encircling the neck at thyroid cartilage level — consistent with thin wire or cable, not rope or cord.',
-          'Petechial haemorrhaging identified bilaterally in the conjunctivae and on the facial skin — consistent with asphyxial death under venous obstruction.',
-          'Hyoid bone fracture confirmed — consistent with forceful neck compression.',
-          'No defensive wounds were identified on the hands or forearms.',
-          'Perimortem abrasion on both wrists consistent with temporary restraint prior to the fatal event.',
-        ],
-        conclusion:'Death was caused by asphyxiation via ligature strangulation. The narrow furrow pattern is consistent with piano wire or similar cable. The absence of defensive injuries and perimortem wrist abrasions indicate the victim was briefly restrained before the ligature was applied. The attack required physical strength and planning — it was not opportunistic. Recovery of the ligature instrument is a priority forensic action. Ruling: Homicide.',
-      },
+    const CORONER_REPORT = {
+      id:       'COR-COL-001-A-001',
+      name:     'Post-Mortem Examination Report — Elias Voss',
+      lab:      'Merrehope City Mortuary',
+      division: 'Office of the Medical Examiner',
+      analyst:  'Dr. Constance Fairweather, M.D.',
+      exhibit:  'Deceased — Elias Voss, DOB 14 Mar 1979',
+      reportId: 'PME-COL-001-A-001',
+      analystTitle: 'Chief Medical Examiner',
+      reviewedBy:   'Deputy Medical Examiner T. Obi',
+      methodology: `Full external and internal post-mortem examination conducted under standard protocol at the Merrehope City Mortuary, Case Suite 3. Examination commenced at 08:30 on Mar 05 2026, approximately 9–11 hours post-mortem. Toxicological samples collected and forwarded to Forensic Toxicology Laboratory under separate submission. Histological sections prepared and retained. Full photographic record maintained under case reference PME-COL-001-A-001.`,
+      findings: [
+        'Deceased: Elias Voss, male, 47 years of age. Identified by accompanying documentation and confirmed via fingerprint comparison against national register.',
+        'Time of death estimated at 21:30–22:15 on Mar 04 2026, based on body temperature, rigor progression, and lividity pattern.',
+        'Cause of death: blunt force trauma to the posterior cranium — a single, forceful impact consistent with a smooth, heavy object. No weapon recovered at scene.',
+        'Secondary findings: contusions to the right forearm and left hand consistent with a defensive posture prior to the fatal blow. A struggle preceded the fatal impact.',
+        'Trace evidence: foreign fibres recovered from the left shoulder of the deceased\'s jacket — charcoal wool/cashmere blend consistent with high-end automotive interior trim (cross-reference: TRC-COL-001-A-002).',
+        'Toxicology: preliminary screen negative for alcohol and common narcotics. Full panel results pending — zopiclone specifically requested following cross-reference with evidence E07.',
+        'Perimortem abrasion noted on right wrist — consistent with a ligature or restraint. Not sustained during the fatal event; estimated 4–8 hours prior.',
+        'The deceased was otherwise in good general health with no underlying pathologies of note.',
+      ],
+      conclusion: `Death was caused by a single blunt force impact to the posterior skull, consistent with a deliberate strike from behind. The defensive injuries and perimortem restraint abrasion indicate the deceased was aware of and resisted the threat prior to the fatal blow. The attack was targeted, not opportunistic. The presence of matching trace fibres (see TRC-COL-001-A-002) and the perimortem restraint evidence significantly narrow the circumstances of the incident. Ruling: Homicide. This office recommends the toxicology full panel be treated as priority given the zopiclone finding in associated evidence — if the compound is detected in the deceased\'s system, the circumstances of the restraint and incapacitation require urgent reassessment.`,
     };
-
-    const CORONER_REPORT = CORONER_REPORTS_BY_ARC[localStorage.getItem('col_arc') || 'A'] || CORONER_REPORTS_BY_ARC['A'];
 
     /* Initialise coroner timer on first game visit */
     function initCoronerTimer() {
@@ -3656,6 +3737,207 @@
       }
     }
     updateCommitHash();
+
+    /* ════════════════════════════════════════════════
+       SPECTROGRAM PANEL SYSTEM
+       Specto-1: unlocks when COL-001-A-E15 (Digital Lab
+                 result from Burner Phone) is logged.
+       Specto-2: unlocks when COL-001-A-E17 (DNA result
+                 from Bloodstained Cloth) is logged — a
+                 second wave-3 return suggesting a second
+                 source of audio evidence was recovered
+                 and cross-referenced.
+    ════════════════════════════════════════════════ */
+    const SPECTROGRAMS = [
+      {
+        id:          'SPECTO-001',
+        unlockId:    'COL-001-A-E15',
+        ref:         'COL-001-A · AUDIO-001',
+        label:       'VOICEMAIL_ANALYSIS_01',
+        src:         'Assets/Video/Forensic_Voicemail_Spectrogram_Generation.mp4',
+        exhibit:     'E03 — Burner Phone · Recovered voicemail fragment',
+        recovered:   '38% signal recovered',
+        duration:    '0:08 loop',
+        status:      'DECODING…',
+        statusClass: 'red',
+        lockedMsg:   'Submit E03 Burner Phone to the Digital Lab to unlock audio analysis',
+        transcript: [
+          { cls:'signal',  text:'[ VOICEMAIL_ANALYSIS_01 — DECODING IN PROGRESS — 38% RECOVERED ]',  delay:0.0  },
+          { cls:'gap',     text:'',                                                                   delay:0.4  },
+          { cls:'static',  text:'...\u00b7\u00b7\u00b7 static \u00b7\u00b7\u00b7',              delay:0.7  },
+          { cls:'decoded', text:'"...can\'t meet at the ——— ... bring it to ——— ... usual place..."', delay:1.2 },
+          { cls:'static',  text:'...\u00b7\u00b7\u00b7 static \u00b7\u00b7\u00b7',              delay:1.8  },
+          { cls:'corrupt', text:'"...he already kn̥ö̥̥w̥ṡ ... [SEGMENT CORRUPTED] ..."',          delay:2.3  },
+          { cls:'static',  text:'...\u00b7\u00b7\u00b7 static \u00b7\u00b7\u00b7',              delay:2.7  },
+          { cls:'decoded', text:'"...after midnight ... don\'t be ——— ... bring the envelope ..."',               delay:3.2  },
+          { cls:'signal',  text:'[ SIGNAL LOSS — 3.2 SEC ]',                                    delay:3.9  },
+          { cls:'static',  text:'...\u00b7\u00b7\u00b7 static \u00b7\u00b7\u00b7',              delay:4.3  },
+          { cls:'decoded', text:'"...leave it with ——— ... he won\'t ask questions ..."',                         delay:4.8  },
+          { cls:'static',  text:'...\u00b7\u00b7\u00b7 static \u00b7\u00b7\u00b7',              delay:5.3  },
+          { cls:'signal',  text:'[ RECONSTRUCTION FAILED — SEGMENT 4 ]',                        delay:5.8  },
+          { cls:'gap',     text:'',                                                                   delay:6.1  },
+          { cls:'corrupt', text:'"...no one will ̥̥̥̇̇ [CORRUPTED] ... make sure ——— ..."',  delay:6.4 },
+          { cls:'signal',  text:'[ END OF RECOVERABLE SIGNAL — COL-001-A-AUDIO-001 ]',          delay:7.2  },
+        ],
+      },
+      {
+        id:          'SPECTO-002',
+        unlockId:    'COL-001-A-E17',
+        ref:         'COL-001-A · AUDIO-002',
+        label:       'VOICEMAIL_ANALYSIS_02',
+        src:         'Assets/Video/Voicemail_Analysis_Corrupted_Data_Visualization.mp4',
+        exhibit:     'Recovered secondary audio trace — source: E04 cloth fibres / E08 site',
+        recovered:   '22% signal recovered',
+        duration:    '0:08 loop',
+        status:      'RECONSTRUCTING…',
+        statusClass: 'red',
+        lockedMsg:   'Secondary audio trace will unlock as forensic lab analysis progresses',
+        transcript: [
+          { cls:'signal',  text:'[ VOICEMAIL_ANALYSIS_02 — DECODING IN PROGRESS — 22% RECOVERED ]',  delay:0.0  },
+          { cls:'gap',     text:'',                                                                   delay:0.4  },
+          { cls:'static',  text:'...\u00b7\u00b7\u00b7 heavy interference \u00b7\u00b7\u00b7',  delay:0.6  },
+          { cls:'corrupt', text:'"...̇̇ė̇̇̇̇ [DATA CORRUPTION] ... talking to ——— ..."',  delay:1.1 },
+          { cls:'static',  text:'...\u00b7\u00b7\u00b7 static \u00b7\u00b7\u00b7',              delay:1.7  },
+          { cls:'decoded', text:'"...I need you to ——— ... tonight ... before they ——— ..."',              delay:2.2  },
+          { cls:'signal',  text:'[ DATA CORRUPTION — FREQUENCY SPIKE DETECTED ]',               delay:2.9  },
+          { cls:'static',  text:'...\u00b7\u00b7\u00b7 static \u00b7\u00b7\u00b7',              delay:3.3  },
+          { cls:'decoded', text:'"...the ledger ... if they find ——— ... everything falls apart ..."',               delay:3.8  },
+          { cls:'static',  text:'...\u00b7\u00b7\u00b7 static \u00b7\u00b7\u00b7',              delay:4.4  },
+          { cls:'corrupt', text:'"...make it look like ——— [SEGMENT CORRUPTED] ... no trace ..."',                    delay:4.9  },
+          { cls:'signal',  text:'[ SIGNAL LOSS — 8.1 SEC ]',                                    delay:5.5  },
+          { cls:'static',  text:'...\u00b7\u00b7\u00b7 static \u00b7\u00b7\u00b7',              delay:6.0  },
+          { cls:'decoded', text:'"...Harlow Street ... ——— won\'t be ——— ... understood?"',            delay:6.5  },
+          { cls:'signal',  text:'[ RECONSTRUCTION FAILED — SEGMENT 7 — COL-001-A-AUDIO-002 ]', delay:7.3 },
+        ],
+      },
+    ];
+
+    /* ── Check unlock state ── */
+    function isSpectoUnlocked(specto) {
+      try {
+        const status = JSON.parse(localStorage.getItem('col_evidence_status') || '{}');
+        const extra  = JSON.parse(localStorage.getItem('col_evidence_extra')  || '[]');
+        if (status[specto.unlockId] === 'logged') return true;
+        return extra.some(e => e.id === specto.unlockId && (status[e.id] === 'logged' || e.status === 'logged'));
+      } catch { return false; }
+    }
+
+    /* ── Build spectrogram card ── */
+    function buildSpectoCard(specto, unlocked) {
+      const wrap = document.createElement('div');
+      if (!unlocked) {
+        wrap.innerHTML = `
+          <div class="specto-locked">
+            <span class="specto-locked-icon">🔒</span>
+            <span class="specto-locked-title">${specto.label} — Locked</span>
+            <span class="specto-locked-sub">${specto.lockedMsg}</span>
+          </div>`;
+        return wrap;
+      }
+
+      wrap.className = 'specto-card';
+      wrap.innerHTML = `
+        <div class="specto-topbar">
+          <span class="specto-id">${specto.ref} &nbsp;·&nbsp; ${specto.label}</span>
+          <span class="specto-status">
+            <span class="specto-dot ${specto.statusClass}"></span>
+            ${specto.status}
+          </span>
+        </div>
+        <div class="specto-video-wrap" id="vwrap-${specto.id}">
+          <video class="specto-video" id="vid-${specto.id}"
+            src="${specto.src}" autoplay muted loop playsinline preload="metadata">
+          </video>
+          <div class="specto-scanlines"></div>
+          <div class="specto-corner tl"></div>
+          <div class="specto-corner tr"></div>
+          <div class="specto-corner bl"></div>
+          <div class="specto-corner br"></div>
+          <!-- Transcript overlay -->
+          <div class="specto-transcript-overlay" id="sto-${specto.id}">
+            <div class="sto-header">
+              <span class="sto-title">Partial Decode — ${specto.label}</span>
+              <span class="sto-pct">${specto.recovered}</span>
+              <button class="sto-close" onclick="hideTranscript('${specto.id}')">✕ Hide</button>
+            </div>
+            <div class="sto-lines" id="stolines-${specto.id}"></div>
+          </div>
+          <button class="specto-decode-btn" id="decbtn-${specto.id}"
+            onclick="showTranscript('${specto.id}')">▶ Decode Transcript</button>
+        </div>
+        <div class="specto-meta">
+          <div class="sm-cell"><span class="sm-label">Exhibit</span><span class="sm-val hi">${specto.id}</span></div>
+          <div class="sm-cell"><span class="sm-label">Source</span><span class="sm-val">${specto.exhibit}</span></div>
+          <div class="sm-cell"><span class="sm-label">Recovery</span><span class="sm-val warn">${specto.recovered}</span></div>
+          <div class="sm-cell"><span class="sm-label">Duration</span><span class="sm-val">${specto.duration}</span></div>
+        </div>
+      `;
+      return wrap;
+    }
+
+    /* ── Show/hide transcript ── */
+    function showTranscript(id) {
+      const overlay = document.getElementById('sto-' + id);
+      const btn     = document.getElementById('decbtn-' + id);
+      if (!overlay) return;
+
+      // Find matching specto
+      const specto = SPECTROGRAMS.find(s => s.id === id);
+      if (!specto) return;
+
+      // Build lines with staggered animation
+      const linesEl = document.getElementById('stolines-' + id);
+      linesEl.innerHTML = '';
+      specto.transcript.forEach((line, i) => {
+        const div = document.createElement('div');
+        div.className = 'sto-line ' + line.cls;
+        div.textContent = line.text;
+        div.style.animationDelay = line.delay + 's';
+        linesEl.appendChild(div);
+      });
+
+      overlay.classList.add('visible');
+      if (btn) btn.style.display = 'none';
+    }
+
+    function hideTranscript(id) {
+      const overlay = document.getElementById('sto-' + id);
+      const btn     = document.getElementById('decbtn-' + id);
+      if (overlay) overlay.classList.remove('visible');
+      if (btn)     btn.style.display = '';
+    }
+
+    /* ── Build/refresh the spectrograms panel ── */
+    function buildSpectogramPanel() {
+      const grid  = document.getElementById('specto-grid');
+      const empty = document.getElementById('specto-empty');
+      const badge = document.getElementById('specto-badge');
+      if (!grid) return;
+
+      grid.innerHTML = '';
+      let unlockedCount = 0;
+
+      SPECTROGRAMS.forEach(specto => {
+        const unlocked = isSpectoUnlocked(specto);
+        if (unlocked) unlockedCount++;
+        const card = buildSpectoCard(specto, unlocked);
+        grid.appendChild(card);
+      });
+
+      empty.style.display     = (unlockedCount === 0) ? 'flex' : 'none';
+      grid.style.display      = (unlockedCount === 0) ? 'none' : 'flex';
+      badge.textContent        = unlockedCount + ' analys' + (unlockedCount === 1 ? 'is' : 'es') + ' on file';
+
+      // Update overview card count
+      const overviewCard = document.querySelector('.card[onclick*="panel-spectrograms"] .card-count');
+      if (overviewCard) overviewCard.textContent = unlockedCount + ' items';
+    }
+
+    /* Build on page load and whenever panel opens */
+    buildSpectogramPanel();
+    // Re-check every 15s so it unlocks without requiring a page reload
+    setInterval(buildSpectogramPanel, 15000);
+
   </script>
   <script src="faction-events.js"></script>
 </body>
