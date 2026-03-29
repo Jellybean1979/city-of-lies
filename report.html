@@ -604,6 +604,8 @@
                 <option value="elara-voss">Elara Voss</option>
                 <option value="isabelle-crane">Isabelle Crane</option>
                 <option value="patrick-lorne">Patrick Lorne</option>
+                <option value="deko-brannigan">Deko Brannigan</option>
+                <option value="gerald-tench">Gerald Tench</option>
                 <option value="unknown">Unknown — insufficient evidence</option>
               </select>
             </div>
@@ -619,6 +621,10 @@
                 <option value="elara-voss">Elara Voss</option>
                 <option value="isabelle-crane">Isabelle Crane</option>
                 <option value="patrick-lorne">Patrick Lorne</option>
+                <option value="deko-brannigan">Deko Brannigan</option>
+                <option value="gerald-tench">Gerald Tench</option>
+                <option value="priya-nair">Priya Nair</option>
+                <option value="agnes-whittle">Agnes Whittle</option>
                 <option value="none">No accomplices</option>
               </select>
             </div>
@@ -684,6 +690,8 @@
                 <option value="kessler-wharf">Kessler Warehouse District</option>
                 <option value="harbour-bay7">City Harbour — Bay 7</option>
                 <option value="marre-office">Marre Import Co. Office</option>
+                <option value="velvet-anchor">The Velvet Anchor — Back Office</option>
+                <option value="whitmore-estate">Whitmore Estate — Study</option>
                 <option value="unknown">Location unclear</option>
               </select>
             </div>
@@ -751,19 +759,26 @@
 
   <script>
     /* ════════════════════════════════════════════════
-       CORRECT ANSWERS
-       Set these to match your actual story solution.
-       Change them whenever the story solution changes.
+       STORY ARC SYSTEM
+    ════════════════════════════════════════════════ */
+    const ARC_DATA = {
+      A: { label:'The Weight of Debt', perpetrator:'raymond-cross', accomplices:['gerald-tench'], motive:'silencing', method:'poisoning', timeline:'after-2230', location:'velvet-anchor', keyEvidence:['COL-001-A-E02','COL-001-A-E05','COL-001-A-FARC-A01'] },
+      B: { label:'Old Money, New Sins', perpetrator:'bowen-ashford', accomplices:['priya-nair'], motive:'financial', method:'direct', timeline:'21-2130', location:'whitmore-estate', keyEvidence:['COL-001-A-E06','COL-001-A-E03','COL-001-A-FARC-B01'] },
+      C: { label:"The Fixer's Bill", perpetrator:'deko-brannigan', accomplices:['agnes-whittle','priya-nair'], motive:'hired', method:'direct', timeline:'mar05-early', location:'harlow-alley', keyEvidence:['COL-001-A-E04','COL-001-A-E01','COL-001-A-FARC-C01'] },
+    };
+    const _activeArc = ARC_DATA[localStorage.getItem('col_arc') || 'A'] || ARC_DATA['A'];
+
+    /* ════════════════════════════════════════════════
+       CORRECT ANSWERS — derived from active arc
     ════════════════════════════════════════════════ */
     const SOLUTION = {
-      perpetrator: 'victor-marre',
-      accomplices: ['bowen-ashford'],
-      motive:      'silencing',
-      method:      'hired',
-      timeline:    '2130-22',
-      location:    'harlow-alley',
-      // Evidence items that directly support the case
-      keyEvidence: ['COL-001-A-E01','COL-001-A-E05','COL-001-A-E06'],
+      perpetrator: _activeArc.perpetrator,
+      accomplices: _activeArc.accomplices,
+      motive:      _activeArc.motive,
+      method:      _activeArc.method,
+      timeline:    _activeArc.timeline,
+      location:    _activeArc.location,
+      keyEvidence: _activeArc.keyEvidence,
     };
 
     /* ════════════════════════════════════════════════
@@ -1162,15 +1177,57 @@
       panel.classList.add('show');
 
       // Score the individual fields
+      // Arc-specific feedback text
+      const ARC_FEEDBACK = {
+        A: {
+          perpetratorCorrect:   'Correct. Alderman Raymond Cross arranged the poisoning of Elias Voss through Gerald Tench, using the Velvet Anchor as the delivery point.',
+          perpetratorWrong:     'Incorrect. The coded ledger entries and the monogrammed flask point toward a political figure, not a criminal network. Review the financial trail.',
+          accomplicesCorrect:   'Correct. Gerald Tench facilitated access to the Velvet Anchor back office and sourced the strychnine, acting on Cross\'s instructions.',
+          motiveCorrect:        'Correct. The victim was in possession of financial records that would have exposed Cross\'s bribery arrangement with Marre Import Co.',
+          motiveWrong:          'Incorrect. The motive is tied to suppression of information — specifically, documents that threatened a political career.',
+          methodCorrect:        'Correct. Strychnine was introduced into a drink at The Velvet Anchor. Cross used Tench as an intermediary to ensure deniability.',
+          methodWrong:          'Incorrect. No weapon was used in a physical struggle. The post-mortem findings point to a chemical cause of death.',
+          timelineCorrect:      'Correct. The incident occurred after 22:30, consistent with the Velvet Anchor\'s last-orders window and the flask evidence.',
+          timelineWrong:        'Incorrect. The estimated time of death places the incident later in the evening than the Harlow Street CCTV footage window.',
+          locationCorrect:      'Correct. The Velvet Anchor back office was the primary scene — the victim was moved to Harlow Street Alley post-mortem.',
+          locationWrong:        'Incorrect. Review the toxicological findings and consider where a drink would have been served unobserved.',
+        },
+        B: {
+          perpetratorCorrect:   'Correct. Bowen Ashford carried out the attack at Whitmore Estate, driven by financial desperation and a promise of payment.',
+          perpetratorWrong:     'Incorrect. The paperweight residue, the CCTV credential abuse, and the $4,000 deposit all point toward a specific individual connected to Bay 7.',
+          accomplicesCorrect:   'Correct. Priya Nair altered the Harbour Authority appointment log to create Ashford\'s false alibi, in exchange for a financial arrangement.',
+          motiveCorrect:        'Correct. Ashford was offered a significant sum to eliminate the victim — enough to clear his family\'s medical debts.',
+          motiveWrong:          'Incorrect. The motive here is financial, not ideological. Follow the money in the bank records.',
+          methodCorrect:        'Correct. Ashford used the brass paperweight from the Whitmore Estate study, then attempted to destroy it in the fireplace.',
+          methodWrong:          'Incorrect. The cause of death was blunt force trauma. Review the post-mortem report and the recovered weapon evidence.',
+          timelineCorrect:      'Correct. The attack occurred between 21:00 and 21:30, before Ashford could return to Bay 7 and cover the footage gap.',
+          timelineWrong:        'Incorrect. The footage gap and Ashford\'s return to Bay 7 help anchor the timeline. Work backwards from when he reappears.',
+          locationCorrect:      'Correct. Whitmore Estate study was the primary scene. The body was transported to Harlow Street Alley afterwards.',
+          locationWrong:        'Incorrect. The brass particulate in the wound and the fireplace disposal tell you where the attack took place.',
+        },
+        C: {
+          perpetratorCorrect:   'Correct. Deko Brannigan carried out the strangulation using piano wire in Harlow Street Alley, acting as a hired contractor.',
+          perpetratorWrong:     'Incorrect. The ligature evidence and the boot print gait profile point to someone with a physical and professional connection to the Kessler area.',
+          accomplicesCorrect:   'Correct. Agnes Whittle provided the vehicle and waited at the alley entrance; Priya Nair planted the cigarette case to frame Victor Marre.',
+          motiveCorrect:        'Correct. Brannigan was hired — this was a contract execution with multiple parties coordinating logistics.',
+          motiveWrong:          'Incorrect. Brannigan had no personal motive. He was a professional contractor. Consider who stood to benefit from the victim\'s death.',
+          methodCorrect:        'Correct. The ligature furrow and absence of defensive wounds confirm piano wire strangulation. The spool recovered from the storm drain is the critical physical link.',
+          methodWrong:          'Incorrect. The cause of death is asphyxiation by ligature. Review the post-mortem report — no blunt force or poison was involved.',
+          timelineCorrect:      'Correct. The attack occurred in the early hours of Mar 05, after midnight, consistent with the body temperature and lividity evidence.',
+          timelineWrong:        'Incorrect. Time of death was later than the Harlow Street CCTV footage window suggests. Review the post-mortem time-of-death estimate.',
+          locationCorrect:      'Correct. Harlow Street Alley was the primary scene — the Kessler soil on the boot print establishes the killer\'s approach route.',
+          locationWrong:        'Incorrect. The physical evidence at scene and the boot print soil composition confirm the alley as the primary location.',
+        },
+      };
+      const _fb = ARC_FEEDBACK[localStorage.getItem('col_arc') || 'A'] || ARC_FEEDBACK['A'];
+
       const fields = [
         {
           label:   'Perpetrator',
           answer:  labelFor('perpetrator', answers.perpetrator),
           correct: answers.perpetrator === SOLUTION.perpetrator,
           partial: false,
-          feedback: answers.perpetrator === SOLUTION.perpetrator
-            ? 'Correct. Victor Marre orchestrated the murder of Elias Voss through a hired contact.'
-            : 'Incorrect. The evidence trail leads elsewhere — review the cigarette case, ledger, and CCTV footage.',
+          feedback: answers.perpetrator === SOLUTION.perpetrator ? _fb.perpetratorCorrect : _fb.perpetratorWrong,
         },
         {
           label:   'Accomplices',
@@ -1178,44 +1235,36 @@
           correct: SOLUTION.accomplices.every(a => answers.accomplices.includes(a)),
           partial: answers.accomplices.some(a => SOLUTION.accomplices.includes(a)),
           feedback: SOLUTION.accomplices.every(a => answers.accomplices.includes(a))
-            ? 'Correct. Bowen Ashford accepted payment to look the other way.'
-            : 'Partially correct or incorrect. At least one key accomplice was not identified.',
+            ? _fb.accomplicesCorrect
+            : 'Partially correct or incorrect. At least one key accomplice was not identified. Check who had means, access, and motive to assist.',
         },
         {
           label:   'Motive',
           answer:  labelFor('motive', answers.motive),
           correct: answers.motive === SOLUTION.motive,
           partial: false,
-          feedback: answers.motive === SOLUTION.motive
-            ? 'Correct. The victim was about to expose information that would have destroyed Marre.'
-            : 'Incorrect. Consider what the victim knew and who would have been most threatened by it.',
+          feedback: answers.motive === SOLUTION.motive ? _fb.motiveCorrect : _fb.motiveWrong,
         },
         {
           label:   'Method',
           answer:  labelFor('method', answers.method),
           correct: answers.method === SOLUTION.method,
           partial: false,
-          feedback: answers.method === SOLUTION.method
-            ? 'Correct. Marre contracted the act through an intermediary — the envelope delivery was the trigger.'
-            : 'Incorrect. Review the burner phone data and the delivery testimony.',
+          feedback: answers.method === SOLUTION.method ? _fb.methodCorrect : _fb.methodWrong,
         },
         {
           label:   'Timeline',
           answer:  labelFor('timeline', answers.timeline),
           correct: answers.timeline === SOLUTION.timeline,
           partial: false,
-          feedback: answers.timeline === SOLUTION.timeline
-            ? 'Correct. The incident occurred between 21:30 and 22:00, consistent with CCTV and cell tower data.'
-            : 'Incorrect. Cross-reference the CCTV timestamp with Cass Delray\'s testimony.',
+          feedback: answers.timeline === SOLUTION.timeline ? _fb.timelineCorrect : _fb.timelineWrong,
         },
         {
           label:   'Crime Location',
           answer:  labelFor('location', answers.location),
           correct: answers.location === SOLUTION.location,
           partial: false,
-          feedback: answers.location === SOLUTION.location
-            ? 'Correct. Harlow Street Alley was the primary scene.'
-            : 'Incorrect. The primary scene is confirmed by physical evidence and witness testimony.',
+          feedback: answers.location === SOLUTION.location ? _fb.locationCorrect : _fb.locationWrong,
         },
         {
           label:   'Supporting Evidence',
@@ -1352,19 +1401,22 @@
           'victor-marre':'Victor Marre','bowen-ashford':'Bowen Ashford',
           'raymond-cross':'Alderman Raymond Cross','diana-whitmore':'Diana Whitmore',
           'elara-voss':'Elara Voss','isabelle-crane':'Isabelle Crane',
-          'patrick-lorne':'Patrick Lorne','unknown':'Unknown'
+          'patrick-lorne':'Patrick Lorne','deko-brannigan':'Deko Brannigan',
+          'gerald-tench':'Gerald Tench','unknown':'Unknown'
         },
         accomplices: {
           'victor-marre':'Victor Marre','bowen-ashford':'Bowen Ashford',
           'raymond-cross':'Alderman Raymond Cross','diana-whitmore':'Diana Whitmore',
           'elara-voss':'Elara Voss','isabelle-crane':'Isabelle Crane',
-          'patrick-lorne':'Patrick Lorne','none':'None'
+          'patrick-lorne':'Patrick Lorne','deko-brannigan':'Deko Brannigan',
+          'gerald-tench':'Gerald Tench','priya-nair':'Priya Nair',
+          'agnes-whittle':'Agnes Whittle','none':'None'
         },
         motive: {
           'financial':'Financial gain','silencing':'Silencing the victim',
           'revenge':'Personal revenge','power':'Power and control',
           'cover-up':'Cover up of prior crime','coercion':'Acting under coercion',
-          'unknown':'Unclear'
+          'hired':'Contract killing','unknown':'Unclear'
         },
         method: {
           'direct':'Direct physical act','hired':'Hired third party',
@@ -1381,6 +1433,8 @@
           'harlow-alley':'Harlow Street Alley','blue-meridian':'The Blue Meridian',
           'creston-apt':'14B Creston Apartments','kessler-wharf':'Kessler Warehouse District',
           'harbour-bay7':'City Harbour — Bay 7','marre-office':'Marre Import Co.',
+          'velvet-anchor':'The Velvet Anchor — Back Office',
+          'whitmore-estate':'Whitmore Estate — Study',
           'unknown':'Unclear'
         },
       };
