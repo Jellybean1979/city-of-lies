@@ -3182,29 +3182,65 @@
     const CORONER_ARRIVAL_KEY = 'col_coroner_arrival';
     const CORONER_READY_KEY   = 'col_coroner_ready';
 
-    const CORONER_REPORT = {
-      id:       'COR-COL-001-A-001',
-      name:     'Post-Mortem Examination Report — Elias Voss',
-      lab:      'Merrehope City Mortuary',
-      division: 'Office of the Medical Examiner',
-      analyst:  'Dr. Constance Fairweather, M.D.',
-      exhibit:  'Deceased — Elias Voss, DOB 14 Mar 1979',
-      reportId: 'PME-COL-001-A-001',
-      analystTitle: 'Chief Medical Examiner',
-      reviewedBy:   'Deputy Medical Examiner T. Obi',
-      methodology: `Full external and internal post-mortem examination conducted under standard protocol at the Merrehope City Mortuary, Case Suite 3. Examination commenced at 08:30 on Mar 05 2026, approximately 9–11 hours post-mortem. Toxicological samples collected and forwarded to Forensic Toxicology Laboratory under separate submission. Histological sections prepared and retained. Full photographic record maintained under case reference PME-COL-001-A-001.`,
-      findings: [
-        'Deceased: Elias Voss, male, 47 years of age. Identified by accompanying documentation and confirmed via fingerprint comparison against national register.',
-        'Time of death estimated at 21:30–22:15 on Mar 04 2026, based on body temperature, rigor progression, and lividity pattern.',
-        'Cause of death: blunt force trauma to the posterior cranium — a single, forceful impact consistent with a smooth, heavy object. No weapon recovered at scene.',
-        'Secondary findings: contusions to the right forearm and left hand consistent with a defensive posture prior to the fatal blow. A struggle preceded the fatal impact.',
-        'Trace evidence: foreign fibres recovered from the left shoulder of the deceased\'s jacket — charcoal wool/cashmere blend consistent with high-end automotive interior trim (cross-reference: TRC-COL-001-A-002).',
-        'Toxicology: preliminary screen negative for alcohol and common narcotics. Full panel results pending — zopiclone specifically requested following cross-reference with evidence E07.',
-        'Perimortem abrasion noted on right wrist — consistent with a ligature or restraint. Not sustained during the fatal event; estimated 4–8 hours prior.',
-        'The deceased was otherwise in good general health with no underlying pathologies of note.',
-      ],
-      conclusion: `Death was caused by a single blunt force impact to the posterior skull, consistent with a deliberate strike from behind. The defensive injuries and perimortem restraint abrasion indicate the deceased was aware of and resisted the threat prior to the fatal blow. The attack was targeted, not opportunistic. The presence of matching trace fibres (see TRC-COL-001-A-002) and the perimortem restraint evidence significantly narrow the circumstances of the incident. Ruling: Homicide. This office recommends the toxicology full panel be treated as priority given the zopiclone finding in associated evidence — if the compound is detected in the deceased\'s system, the circumstances of the restraint and incapacitation require urgent reassessment.`,
+    /* ── Arc-driven coroner report ── */
+    const CORONER_REPORTS_BY_ARC = {
+      A: {
+        id:'COR-COL-001-A-001', name:'Post-Mortem Examination Report — Elias Voss',
+        lab:'Merrehope City Mortuary', division:'Office of the Medical Examiner',
+        analyst:'Dr. Constance Fairweather, M.D.', exhibit:'Deceased — Elias Voss, DOB 14 Mar 1979',
+        reportId:'PME-COL-001-A-001', analystTitle:'Chief Medical Examiner', reviewedBy:'Deputy Medical Examiner T. Obi',
+        methodology:'Full external and internal post-mortem examination conducted at the Merrehope City Mortuary, Case Suite 3. Examination commenced at 08:30 on Mar 05 2026, approximately 10–12 hours post-mortem. Toxicological samples forwarded to the Forensic Toxicology Laboratory under separate submission. Histological sections prepared and retained.',
+        findings:[
+          'Deceased: Elias Voss, male, 47 years of age. Identified via fingerprint comparison against national register.',
+          'Time of death estimated at 23:30–00:15 based on body temperature, rigor progression, and lividity pattern.',
+          'Cause of death: strychnine toxicity — confirmed by toxicological analysis of gastric contents and liver tissue.',
+          'External findings: opisthotonus posture (rigid arching of the spine) consistent with tetanic convulsions. Perioral foam residue consistent with strychnine poisoning.',
+          'No blunt force trauma, ligature marks, or penetrating injuries were identified.',
+          'Trace evidence: residue on the victim\'s right hand is consistent with a glass or flask rim.',
+          'Toxicology: strychnine confirmed at a lethal concentration of 12.4 mg/L in liver tissue. Blood alcohol 0.04% — insufficient to impair response.',
+          'Onset to death estimated at 30–60 minutes from ingestion based on compound concentration and physiological profile.',
+        ],
+        conclusion:'Death was caused by acute strychnine toxicity, consistent with a lethal dose delivered in a liquid medium — most likely an alcoholic drink. The opisthotonus posture and perioral foam are pathognomonic of strychnine poisoning. The victim was conscious and aware during the onset of symptoms. No defensive injuries were found, consistent with the victim not anticipating the threat. Recovery of the delivery vessel is a priority forensic action. Ruling: Homicide.',
+      },
+      B: {
+        id:'COR-COL-001-A-001', name:'Post-Mortem Examination Report — Elias Voss',
+        lab:'Merrehope City Mortuary', division:'Office of the Medical Examiner',
+        analyst:'Dr. Constance Fairweather, M.D.', exhibit:'Deceased — Elias Voss, DOB 14 Mar 1979',
+        reportId:'PME-COL-001-A-001', analystTitle:'Chief Medical Examiner', reviewedBy:'Deputy Medical Examiner T. Obi',
+        methodology:'Full external and internal post-mortem examination conducted at the Merrehope City Mortuary, Case Suite 3. Examination commenced at 08:30 on Mar 05 2026, approximately 9–11 hours post-mortem. Toxicological samples forwarded to the Forensic Toxicology Laboratory under separate submission. Histological sections prepared and retained.',
+        findings:[
+          'Deceased: Elias Voss, male, 47 years of age. Identified via fingerprint comparison against national register.',
+          'Time of death estimated at 21:15–21:45 based on body temperature, rigor progression, and lividity pattern.',
+          'Cause of death: blunt force trauma to the posterior cranium — a single forceful impact consistent with a smooth, heavy object.',
+          'Impact site: a depressed skull fracture measuring 6.2 cm × 4.8 cm at the occipital bone, with radiating fracture lines.',
+          'Secondary findings: contusions to the right forearm and left hand consistent with a defensive posture immediately prior to the fatal blow.',
+          'No ligature marks or signs of poisoning were identified.',
+          'Trace evidence: fine metallic particulate consistent with brass alloy recovered from the wound margins.',
+          'The deceased was otherwise in good general health.',
+        ],
+        conclusion:'Death was caused by a single blunt force impact to the posterior skull delivered from behind, consistent with a deliberate attack. Defensive injuries confirm the victim was aware of the threat immediately before the fatal blow. The brass particulate in the wound margins provides a direct material link to the weapon. Recovery and examination of a brass implement is a priority forensic action. Ruling: Homicide.',
+      },
+      C: {
+        id:'COR-COL-001-A-001', name:'Post-Mortem Examination Report — Elias Voss',
+        lab:'Merrehope City Mortuary', division:'Office of the Medical Examiner',
+        analyst:'Dr. Constance Fairweather, M.D.', exhibit:'Deceased — Elias Voss, DOB 14 Mar 1979',
+        reportId:'PME-COL-001-A-001', analystTitle:'Chief Medical Examiner', reviewedBy:'Deputy Medical Examiner T. Obi',
+        methodology:'Full external and internal post-mortem examination conducted at the Merrehope City Mortuary, Case Suite 3. Examination commenced at 08:30 on Mar 05 2026, approximately 8–9 hours post-mortem. Toxicological samples forwarded to the Forensic Toxicology Laboratory under separate submission.',
+        findings:[
+          'Deceased: Elias Voss, male, 47 years of age. Identified via fingerprint comparison against national register.',
+          'Time of death estimated at 00:00–00:30 on Mar 05 based on body temperature, rigor progression, and lividity pattern.',
+          'Cause of death: asphyxiation by ligature strangulation.',
+          'Ligature mark: a deep horizontal furrow 4–6 mm wide encircling the neck at thyroid cartilage level — consistent with thin wire or cable, not rope or cord.',
+          'Petechial haemorrhaging identified bilaterally in the conjunctivae and on the facial skin — consistent with asphyxial death under venous obstruction.',
+          'Hyoid bone fracture confirmed — consistent with forceful neck compression.',
+          'No defensive wounds were identified on the hands or forearms.',
+          'Perimortem abrasion on both wrists consistent with temporary restraint prior to the fatal event.',
+        ],
+        conclusion:'Death was caused by asphyxiation via ligature strangulation. The narrow furrow pattern is consistent with piano wire or similar cable. The absence of defensive injuries and perimortem wrist abrasions indicate the victim was briefly restrained before the ligature was applied. The attack required physical strength and planning — it was not opportunistic. Recovery of the ligature instrument is a priority forensic action. Ruling: Homicide.',
+      },
     };
+
+    const CORONER_REPORT = CORONER_REPORTS_BY_ARC[localStorage.getItem('col_arc') || 'A'] || CORONER_REPORTS_BY_ARC['A'];
 
     /* Initialise coroner timer on first game visit */
     function initCoronerTimer() {
