@@ -1635,7 +1635,7 @@
               <span class="card-desc">Visual frequency analysis of audio evidence from the lab.</span>
             </div>
             <div class="card" onclick="showPanel('panel-transcripts','Investigation Files / Transcripts',null)">
-              <span class="card-count">0 items</span>
+              <span class="card-count" id="transcript-overview-count">0 items</span>
               <span class="card-icon">📄</span>
               <span class="card-title">Interrogation Transcripts</span>
               <span class="card-desc">Full typed transcripts of all conducted interrogation sessions.</span>
@@ -1776,20 +1776,35 @@
           </div>
         </div>
         <div class="panel" id="panel-transcripts">
-          <div class="panel-head"><div><span class="panel-title">Interrogation Transcripts</span><span class="panel-sub">Session records · Case COL-001-A</span></div><span class="wip-badge">2 sessions on file</span></div>
+          <div class="panel-head">
+            <div><span class="panel-title">Interrogation Transcripts</span><span class="panel-sub">Session records · Case COL-001-A</span></div>
+            <span class="wip-badge" id="transcript-badge">0 sessions on file</span>
+          </div>
           <div class="panel-rule"></div>
-          <div class="card-grid">
-            <div class="card" onclick="goTo('transcript.html?t=witness-cass')">
-              <span class="card-count">Witness</span>
-              <span class="card-icon">📄</span>
-              <span class="card-title">Cass Delray</span>
-              <span class="card-desc">Bartender at The Blue Meridian. Present on the night of Mar 04. Heard voices in the alley.</span>
-            </div>
-            <div class="card" onclick="goTo('transcript.html?t=suspect-bowen')">
-              <span class="card-count">Suspect</span>
-              <span class="card-icon">📄</span>
-              <span class="card-title">Bowen Ashford</span>
-              <span class="card-desc">Night security, Bay 7. Incident log contradicts CCTV footage. $4,000 cash deposit unexplained.</span>
+          <!-- Empty state -->
+          <div class="evidence-empty" id="transcript-empty">
+            <span class="evidence-empty-icon">📄</span>
+            <span class="evidence-empty-text">No sessions conducted yet — open a character dossier in Character Portraits and conduct an interview or interrogation</span>
+          </div>
+          <!-- Transcript cards — populated from localStorage col_transcripts -->
+          <div class="card-grid" id="transcript-grid"></div>
+          <!-- Transcript detail viewer -->
+          <div id="transcript-viewer-overlay" onclick="handleTranscriptOverlay(event)" style="
+            position:fixed;inset:0;z-index:60;
+            background:rgba(4,2,0,.88);backdrop-filter:blur(6px);
+            display:flex;align-items:flex-start;justify-content:center;
+            padding:clamp(12px,3vw,40px);overflow-y:auto;
+            opacity:0;pointer-events:none;transition:opacity .25s;">
+            <div id="transcript-viewer-doc" style="
+              width:100%;max-width:640px;margin:auto;
+              background:#ede0c0;position:relative;
+              box-shadow:4px 8px 40px rgba(0,0,0,.85);
+              transform:translateY(16px) scale(.97);
+              transition:transform .3s cubic-bezier(.34,1.1,.64,1);
+              background-image:repeating-linear-gradient(to bottom,transparent 0px,transparent 27px,rgba(58,40,8,.07) 27px,rgba(58,40,8,.07) 28px);">
+              <div style="position:absolute;top:0;bottom:0;left:clamp(44px,7vw,60px);width:1px;background:rgba(196,48,48,.2);pointer-events:none;"></div>
+              <button onclick="closeTranscriptViewer()" style="position:absolute;top:14px;right:16px;font-family:'Courier Prime',monospace;font-size:9px;letter-spacing:.3em;text-transform:uppercase;color:rgba(58,40,8,.45);background:none;border:none;cursor:pointer;" onmouseover="this.style.color='#3a2808'" onmouseout="this.style.color='rgba(58,40,8,.45)'">✕ Close</button>
+              <div id="transcript-viewer-inner" style="padding:clamp(24px,4vw,44px) clamp(24px,4vw,44px) clamp(24px,4vw,44px) clamp(56px,9vw,76px);"></div>
             </div>
           </div>
         </div>
@@ -2334,6 +2349,11 @@
       // Refresh spectrograms panel
       if (id === 'panel-spectrograms') {
         buildSpectogramPanel();
+      }
+
+      // Refresh transcripts panel
+      if (id === 'panel-transcripts') {
+        buildTranscriptPanel();
       }
 
       // Close sidebar on mobile after selecting
@@ -3216,10 +3236,12 @@
         analystTitle:'Senior Latent Print Examiner', reviewedBy:'Lt. Forensic Services M. Osei' },
 
       'COL-001-A-E15': { lab:'Digital & Multimedia Laboratory', division:'Mobile Device Forensics Unit', analyst:'Analyst T. Vasquez', exhibit:'COL-001-A-E03 — Burner Mobile Phone', reportId:'DML-COL-001-A-001', name:'Recovered Photo Fragment — Burner Phone',
-        methodology:'The device was imaged using Cellebrite UFED Physical Analyzer following a JTAG extraction method. Internal memory (16GB eMMC) was subjected to file carving using Autopsy 4.19 with PhotoRec plugin. Recovered JPEG fragments were processed using Adobe Photoshop Neural Filters. EXIF metadata extracted using ExifTool 12.4.',
+        methodology:'The device was imaged using Cellebrite UFED Physical Analyzer following a JTAG extraction method. Internal memory (16GB eMMC) was subjected to file carving using Autopsy 4.19 with PhotoRec plugin. Recovered JPEG fragments were processed using Adobe Photoshop Neural Filters for enhancement. EXIF metadata extracted using ExifTool 12.4.',
         findings:['One partial JPEG image file recovered from unallocated storage space — approximately 62% of original file intact.','Recovered image depicts a multi-storey building exterior, consistent with architecture in the Harlow Street / Canal District area.','EXIF metadata partially intact — timestamp reads 21:12:04, March 04 2026.','GPS data absent from metadata — coordinates were disabled or stripped.','Visual analysis suggests the photo was taken from street level, approximately 15–20 metres from the subject building.'],
         conclusion:'The recovered image places the device — and by inference its user — in the vicinity of the Harlow Street area at 21:12 on the night of the incident, approximately 36 minutes before the estimated time of the primary event.',
-        analystTitle:'Digital Forensics Analyst', reviewedBy:'Dr. K. Ellison, Unit Supervisor' },
+        analystTitle:'Digital Forensics Analyst', reviewedBy:'Dr. K. Ellison, Unit Supervisor',
+        forensicPhoto: 'Assets/JPG/digitalartifactcasefile_0362.jpeg',
+        forensicPhotoCaption: 'EXHIBIT DML-COL-001-A-001 — Reconstructed partial image recovered from device unallocated storage. Enhancement: 4x AI upscaling (Amped FIVE). Original file 62% intact. Timestamp embedded: 2026:03:04 21:12:04.' },
 
       'COL-001-A-E16': { lab:'Metallurgy Laboratory', division:'Material Provenance & Manufacturing Analysis Unit', analyst:'Examiner R. Tran', exhibit:'COL-001-A-E03 — Burner Mobile Phone', reportId:'MET-COL-001-A-001', name:'IMEI Batch Trace — Burner Phone',
         methodology:'Device IMEI was extracted via direct board-level access following chip-off. IMEI cross-referenced against GSMA Device Registry and OFCOM import declarations. Retail distribution records obtained through liquidator\'s inventory files (Canal Street Electronics, liquidated 18 months prior).',
@@ -3724,6 +3746,183 @@
         v.play().catch(() => {});
       });
     }
+
+
+    /* ════════════════════════════════════════════════
+       TRANSCRIPT PANEL SYSTEM
+       Reads col_transcripts from localStorage (saved
+       by portraits.html when an interview is completed)
+       and renders transcript cards + a viewer modal.
+    ════════════════════════════════════════════════ */
+
+    const TRANSCRIPT_ROLE_LABELS = {
+      suspect:'Suspect', witness:'Witness',
+      poi:'Person of Interest', informant:'Informant',
+    };
+
+    const TRANSCRIPT_COND_COLORS = {
+      'cond-cooperative':'#3a9a5a', 'cond-forthcoming':'#3a9a5a',
+      'cond-cautious':'#c47c1a',    'cond-guarded':'#c47c1a',
+      'cond-cracked':'#c47c1a',     'cond-engaged':'#4080c0',
+      'cond-hostile':'#c43030',     'cond-stonewalling':'#c43030',
+      'cond-silent':'#c43030',      'cond-dismissive':'#c43030',
+    };
+
+    let activeTranscript = null;
+
+    function buildTranscriptPanel() {
+      const grid  = document.getElementById('transcript-grid');
+      const empty = document.getElementById('transcript-empty');
+      const badge = document.getElementById('transcript-badge');
+      const overviewCount = document.getElementById('transcript-overview-count');
+      if (!grid) return;
+
+      const saved = (() => {
+        try { return JSON.parse(localStorage.getItem('col_transcripts') || '[]'); }
+        catch { return []; }
+      })();
+
+      grid.innerHTML = '';
+      const count = saved.length;
+
+      if (badge)         badge.textContent = count + ' session' + (count !== 1 ? 's' : '') + ' on file';
+      if (overviewCount) overviewCount.textContent = count + ' item' + (count !== 1 ? 's' : '');
+
+      if (count === 0) {
+        empty.style.display = '';
+        grid.style.display  = 'none';
+        return;
+      }
+
+      empty.style.display = 'none';
+      grid.style.display  = '';
+
+      saved.forEach((t, i) => {
+        const roleLabel = TRANSCRIPT_ROLE_LABELS[t.charRole] || t.charRole || 'Person of Interest';
+        const condColor = TRANSCRIPT_COND_COLORS[t.conditionClass] || 'var(--amber)';
+        const card = document.createElement('div');
+        card.className = 'card';
+        card.style.cursor = 'pointer';
+        card.onclick = () => openTranscriptViewer(t);
+        card.innerHTML = `
+          <span class="card-count">${roleLabel}</span>
+          <span class="card-icon">📄</span>
+          <span class="card-title">${t.charName}</span>
+          <span class="card-desc" style="margin-bottom:6px;">${t.sessionLabel} · ${t.date}</span>
+          <span style="font-size:clamp(6px,.75vw,8px);letter-spacing:.2em;text-transform:uppercase;
+            color:${condColor};display:block;">${t.condition}</span>
+        `;
+        grid.appendChild(card);
+      });
+    }
+
+    function openTranscriptViewer(t) {
+      activeTranscript = t;
+      const roleLabel  = TRANSCRIPT_ROLE_LABELS[t.charRole] || 'Person of Interest';
+      const condColor  = TRANSCRIPT_COND_COLORS[t.conditionClass] || '#c47c1a';
+
+      const linesHtml = t.lines.map((line, i) => `
+        <div style="display:grid;grid-template-columns:clamp(90px,15vw,130px) 1fr;gap:clamp(8px,1.5vw,14px);
+          margin-bottom:clamp(10px,1.8vh,16px);align-items:baseline;
+          ${line.flagged ? 'border-left:2px solid rgba(168,100,10,.4);padding-left:8px;' : ''}
+          animation:blrIn .25s ease ${(i*0.04)}s both;">
+          <span style="font-size:clamp(7px,.85vw,9px);letter-spacing:.2em;text-transform:uppercase;
+            font-weight:700;color:${line.cls==='detective'?'#2a1400':'#7a1a1a'};
+            line-height:1.6;padding-top:1px;">${line.speaker}</span>
+          <div style="font-size:clamp(10px,1.3vw,13px);color:#2a1400;line-height:1.75;">
+            ${line.stage ? `<span style="font-size:clamp(8px,.95vw,10px);color:rgba(42,20,0,.4);font-style:italic;display:block;margin-bottom:2px;">[${line.stage}]</span>` : ''}
+            ${line.text}
+          </div>
+        </div>
+      `).join('');
+
+      document.getElementById('transcript-viewer-inner').innerHTML = `
+        <style>@keyframes blrIn{from{opacity:0;transform:translateX(-4px)}to{opacity:1;transform:none}}</style>
+        <!-- Letterhead -->
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px;
+          padding-bottom:clamp(12px,2vh,18px);margin-bottom:clamp(12px,2vh,18px);
+          border-bottom:2px solid rgba(58,40,8,.5);">
+          <div style="font-size:clamp(28px,5vw,44px);line-height:1;flex-shrink:0;">📄</div>
+          <div style="flex:1;">
+            <span style="font-size:clamp(9px,1.2vw,12px);font-weight:700;letter-spacing:.08em;
+              color:#1a0c00;display:block;text-transform:uppercase;margin-bottom:1px;">
+              Merrehope Police Department
+            </span>
+            <span style="font-size:clamp(7px,.85vw,9px);letter-spacing:.25em;
+              color:rgba(58,40,8,.55);display:block;text-transform:uppercase;">
+              ${t.sessionLabel}
+            </span>
+          </div>
+          <div style="text-align:right;flex-shrink:0;">
+            <span style="font-size:clamp(8px,1vw,10px);font-weight:700;letter-spacing:.15em;
+              color:#1a0c00;display:block;text-transform:uppercase;">COL-001-A</span>
+            <span style="font-size:clamp(6px,.75vw,8px);letter-spacing:.25em;text-transform:uppercase;
+              padding:2px 8px;border:1px solid rgba(196,48,48,.45);color:rgba(122,26,26,.7);
+              display:inline-block;margin-top:4px;">Restricted</span>
+          </div>
+        </div>
+        <!-- Meta -->
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));
+          gap:clamp(6px,1vw,10px);margin-bottom:clamp(16px,2.8vh,24px);
+          padding:clamp(8px,1.5vw,12px);background:rgba(58,40,8,.06);border:1px solid rgba(58,40,8,.15);">
+          <div><span style="font-size:clamp(6px,.75vw,8px);letter-spacing:.3em;text-transform:uppercase;color:rgba(58,40,8,.4);display:block;margin-bottom:2px;">Subject</span>
+               <span style="font-size:clamp(9px,1.1vw,11px);color:#2a1400;">${t.charName}</span></div>
+          <div><span style="font-size:clamp(6px,.75vw,8px);letter-spacing:.3em;text-transform:uppercase;color:rgba(58,40,8,.4);display:block;margin-bottom:2px;">Classification</span>
+               <span style="font-size:clamp(9px,1.1vw,11px);color:#2a1400;">${roleLabel}</span></div>
+          <div><span style="font-size:clamp(6px,.75vw,8px);letter-spacing:.3em;text-transform:uppercase;color:rgba(58,40,8,.4);display:block;margin-bottom:2px;">Date</span>
+               <span style="font-size:clamp(9px,1.1vw,11px);color:#2a1400;">${t.date}</span></div>
+          <div><span style="font-size:clamp(6px,.75vw,8px);letter-spacing:.3em;text-transform:uppercase;color:rgba(58,40,8,.4);display:block;margin-bottom:2px;">Condition</span>
+               <span style="font-size:clamp(9px,1.1vw,11px);color:${condColor};">${t.condition}</span></div>
+          <div><span style="font-size:clamp(6px,.75vw,8px);letter-spacing:.3em;text-transform:uppercase;color:rgba(58,40,8,.4);display:block;margin-bottom:2px;">Influence</span>
+               <span style="font-size:clamp(9px,1.1vw,11px);color:#c43030;">${t.influence}</span></div>
+          <div><span style="font-size:clamp(6px,.75vw,8px);letter-spacing:.3em;text-transform:uppercase;color:rgba(58,40,8,.4);display:block;margin-bottom:2px;">City Corrupt.</span>
+               <span style="font-size:clamp(9px,1.1vw,11px);color:#4080c0;">${t.cityCorrupt}</span></div>
+        </div>
+        <!-- Transcript -->
+        <span style="font-size:clamp(7px,.85vw,9px);letter-spacing:.4em;text-transform:uppercase;
+          color:rgba(168,100,10,.8);display:block;margin-bottom:clamp(12px,2vh,16px);
+          padding-bottom:3px;border-bottom:1px solid rgba(168,100,10,.2);">Transcript of Proceedings</span>
+        ${linesHtml}
+        <!-- Signature block -->
+        <div style="margin-top:clamp(16px,3vh,28px);padding-top:clamp(12px,2vh,18px);
+          border-top:1px solid rgba(58,40,8,.2);display:grid;grid-template-columns:1fr 1fr;gap:clamp(10px,2vw,20px);">
+          <div>
+            <span style="font-size:clamp(6px,.75vw,8px);letter-spacing:.3em;text-transform:uppercase;color:rgba(58,40,8,.4);display:block;margin-bottom:20px;">Interviewing Officer</span>
+            <div style="border-bottom:1px solid rgba(58,40,8,.35);margin-bottom:4px;"></div>
+            <span style="font-size:clamp(9px,1.1vw,11px);color:rgba(58,40,8,.6);display:block;">Det. Gary Langley</span>
+            <span style="font-size:clamp(7px,.85vw,9px);letter-spacing:.15em;color:rgba(58,40,8,.35);display:block;font-style:italic;">Investigating Officer, COL-001-A</span>
+          </div>
+          <div>
+            <span style="font-size:clamp(6px,.75vw,8px);letter-spacing:.3em;text-transform:uppercase;color:rgba(58,40,8,.4);display:block;margin-bottom:20px;">Supervising Officer</span>
+            <div style="border-bottom:1px solid rgba(58,40,8,.35);margin-bottom:4px;"></div>
+            <span style="font-size:clamp(9px,1.1vw,11px);color:rgba(58,40,8,.6);display:block;">— Pending Review —</span>
+          </div>
+        </div>
+      `;
+
+      const overlay = document.getElementById('transcript-viewer-overlay');
+      const doc     = document.getElementById('transcript-viewer-doc');
+      overlay.style.opacity      = '1';
+      overlay.style.pointerEvents = 'all';
+      doc.style.transform        = 'translateY(0) scale(1)';
+      overlay.scrollTop          = 0;
+    }
+
+    function closeTranscriptViewer() {
+      const overlay = document.getElementById('transcript-viewer-overlay');
+      const doc     = document.getElementById('transcript-viewer-doc');
+      overlay.style.opacity       = '0';
+      overlay.style.pointerEvents = 'none';
+      doc.style.transform         = 'translateY(16px) scale(.97)';
+      activeTranscript = null;
+    }
+
+    function handleTranscriptOverlay(e) {
+      if (e.target === document.getElementById('transcript-viewer-overlay')) closeTranscriptViewer();
+    }
+
+    // Build immediately and when panel opens
+    buildTranscriptPanel();
 
     async function updateCommitHash() {
       try {
