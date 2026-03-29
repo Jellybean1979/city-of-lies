@@ -455,6 +455,8 @@
                 <option value="elara-voss">Elara Voss</option>
                 <option value="isabelle-crane">Isabelle Crane</option>
                 <option value="patrick-lorne">Patrick Lorne</option>
+                <option value="deko-brannigan">Deko Brannigan</option>
+                <option value="gerald-tench">Gerald Tench</option>
                 <option value="unknown">Still unsure</option>
               </select>
             </div>
@@ -510,6 +512,8 @@
                 <option value="kessler-wharf">Kessler Warehouse District</option>
                 <option value="harbour-bay7">City Harbour — Bay 7</option>
                 <option value="marre-office">Marre Import Co.</option>
+                <option value="velvet-anchor">The Velvet Anchor — Back Office</option>
+                <option value="whitmore-estate">Whitmore Estate — Study</option>
                 <option value="unknown">Unclear</option>
               </select>
             </div>
@@ -563,16 +567,24 @@
 
   <script>
     /* ════════════════════════════════════════════════
-       SOLUTION — matches report.html
-       Update these when you finalise the story answer.
+       STORY ARC SYSTEM — see arc data below
     ════════════════════════════════════════════════ */
+    const ARC_DATA = {
+      A: { label:'The Weight of Debt', perpetrator:'raymond-cross', accomplices:['gerald-tench'], motive:'silencing', method:'poisoning', timeline:'after-2230', location:'velvet-anchor', keyEvidence:['COL-001-A-E02','COL-001-A-E05','COL-001-A-FARC-A01'] },
+      B: { label:'Old Money, New Sins', perpetrator:'bowen-ashford', accomplices:['priya-nair'], motive:'financial', method:'direct', timeline:'21-2130', location:'whitmore-estate', keyEvidence:['COL-001-A-E06','COL-001-A-E03','COL-001-A-FARC-B01'] },
+      C: { label:"The Fixer's Bill", perpetrator:'deko-brannigan', accomplices:['agnes-whittle','priya-nair'], motive:'hired', method:'direct', timeline:'mar05-early', location:'harlow-alley', keyEvidence:['COL-001-A-E04','COL-001-A-E01','COL-001-A-FARC-C01'] },
+    };
+    function getActiveArc() { return ARC_DATA[localStorage.getItem('col_arc') || 'A'] || ARC_DATA['A']; }
+
+    /* SOLUTION reads from the active arc */
+    const _arc = getActiveArc();
     const SOLUTION = {
-      suspect:    'victor-marre',
-      motive:     'silencing',
-      method:     'hired',
-      timeline:   '2130-22',
-      location:   'harlow-alley',
-      keyEvidence:['COL-001-A-E01','COL-001-A-E05','COL-001-A-E06'],
+      suspect:    _arc.perpetrator,
+      motive:     _arc.motive,
+      method:     _arc.method,
+      timeline:   _arc.timeline,
+      location:   _arc.location,
+      keyEvidence:_arc.keyEvidence,
     };
 
     /* ════════════════════════════════════════════════
@@ -783,7 +795,9 @@
       'victor-marre':'Victor Marre','bowen-ashford':'Bowen Ashford',
       'raymond-cross':'Alderman Raymond Cross','diana-whitmore':'Diana Whitmore',
       'elara-voss':'Elara Voss','isabelle-crane':'Isabelle Crane',
-      'patrick-lorne':'Patrick Lorne','unknown':'Unknown / Still investigating',
+      'patrick-lorne':'Patrick Lorne','deko-brannigan':'Deko Brannigan',
+      'gerald-tench':'Gerald Tench','priya-nair':'Priya Nair',
+      'agnes-whittle':'Agnes Whittle','unknown':'Unknown / Still investigating',
     };
 
     /* ════════════════════════════════════════════════
