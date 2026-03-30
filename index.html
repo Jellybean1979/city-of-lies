@@ -120,13 +120,15 @@
       z-index: 10;
       text-align: center;
       opacity: 0;
-      animation: studioReveal 3s ease 0.8s forwards;
+      /* delay: 2s so it starts at the 2-second mark of the video;
+         duration: 2s so it is fully gone by the 4-second mark */
+      animation: studioReveal 2s ease 2s forwards;
       pointer-events: none;
     }
     @keyframes studioReveal {
       0%   { opacity: 0; letter-spacing: 0.8em; }
-      30%  { opacity: 1; }
-      70%  { opacity: 1; letter-spacing: 0.5em; }
+      25%  { opacity: 1; letter-spacing: 0.5em; }
+      75%  { opacity: 1; letter-spacing: 0.5em; }
       100% { opacity: 0; letter-spacing: 0.5em; }
     }
     #studio-text span {
