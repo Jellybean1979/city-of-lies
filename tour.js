@@ -444,11 +444,12 @@
     const step = STEPS[n];
     if (!step) { endTour(); return; }
 
-    // Cross-page navigation
+    // Cross-page navigation — set a flag so maybeResume knows WE drove this
     const pg = currentPage();
     if (pg !== step.page) {
       localStorage.setItem(LS_ACTIVE, '1');
       localStorage.setItem(LS_STEP, n);
+      localStorage.setItem('col_tour_nav', '1');   // tour-driven, not player-driven
       window.location.href = step.page;
       return;
     }
@@ -544,7 +545,32 @@
   ══════════════════════════════════════════════════════════════ */
   function maybeResume() {
     if (localStorage.getItem(LS_ACTIVE) !== '1') return;
+
+    // Only auto-resume if the tour itself triggered this page load.
+    // If the player navigated here manually (menu, back button, etc.)
+    // we must NOT redirect them — consume the flag and stop.
+    const tourDriven = localStorage.getItem('col_tour_nav') === '1';
+    localStorage.removeItem('col_tour_nav');   // always consume immediately
+
+    if (!tourDriven) {
+      // Player navigated manually while a tour was in progress.
+      // Clear tour state so we don't keep redirecting them.
+      localStorage.removeItem(LS_ACTIVE);
+      localStorage.removeItem(LS_STEP);
+      return;
+    }
+
     const n = parseInt(localStorage.getItem(LS_STEP) || '0', 10);
+    // Safety: if the saved step doesn't belong to this page, abort
+    const step = STEPS[n];
+    if (!step || step.page !== currentPage()) {
+      localStorage.removeItem(LS_ACTIVE);
+      localStorage.removeItem(LS_STEP);
+      return;
+    }
+    // Clear any stale nav flag that might have survived
+    localStorage.removeItem('col_tour_nav');
+
     startTour(n);
   }
 
