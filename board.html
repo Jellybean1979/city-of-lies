@@ -188,6 +188,28 @@
     }
     .nav-subitem .nav-label { font-family:'Courier Prime',monospace; font-size:clamp(9px,1.1vw,11px); }
     .nav-subitem .nav-icon  { font-size:11px; }
+    /* Unread badge on nav subitems */
+    .nav-unread-badge {
+      margin-left: auto; padding: 1px 5px;
+      background: var(--amber); color: #0a0602;
+      font-family: 'Courier Prime', monospace;
+      font-size: 9px; font-weight: 700; border-radius: 8px;
+      flex-shrink: 0; line-height: 1.6;
+    }
+    /* Unread dot on cards and rows */
+    .unread-dot {
+      position: absolute; top: 8px; right: 8px;
+      width: 8px; height: 8px; border-radius: 50%;
+      background: var(--amber);
+      animation: unreadPulse 2s ease-in-out infinite;
+      pointer-events: none; flex-shrink: 0;
+    }
+    @keyframes unreadPulse {
+      0%,100% { box-shadow: 0 0 0 0 rgba(196,124,26,.6); }
+      50%      { box-shadow: 0 0 0 5px rgba(196,124,26,0); }
+    }
+    .card, .cctv-card, .doc-card { position: relative; }
+    .meta-row { position: relative; }
 
     /* ── MAIN CONTENT ── */
     #main {
@@ -1507,25 +1529,25 @@
             <div class="nav-subitem active" onclick="showPanel('panel-evidence','Investigation Files / All Items',this)">
               <span class="nav-icon">📁</span><span class="nav-label">All Items</span>
             </div>
-            <div class="nav-subitem" onclick="showPanel('panel-cctv','Investigation Files / CCTV',this)">
+            <div class="nav-subitem" id="nav-cctv" onclick="showPanel('panel-cctv','Investigation Files / CCTV',this)">
               <span class="nav-icon">📷</span><span class="nav-label">CCTV Thumbnails</span>
             </div>
             <div class="nav-subitem" onclick="showPanel('panel-audio-files','Investigation Files / Audio Files',this)">
               <span class="nav-icon">🎙</span><span class="nav-label">Audio Files</span>
             </div>
-            <div class="nav-subitem" onclick="showPanel('panel-spectrograms','Investigation Files / Spectrograms',this)">
+            <div class="nav-subitem" id="nav-spectrograms" onclick="showPanel('panel-spectrograms','Investigation Files / Spectrograms',this)">
               <span class="nav-icon">📊</span><span class="nav-label">Spectrograms</span>
             </div>
-            <div class="nav-subitem" onclick="showPanel('panel-transcripts','Investigation Files / Transcripts',this)">
+            <div class="nav-subitem" id="nav-transcripts" onclick="showPanel('panel-transcripts','Investigation Files / Transcripts',this)">
               <span class="nav-icon">📄</span><span class="nav-label">Interrogation Transcripts</span>
             </div>
             <div class="nav-subitem" onclick="showPanel('panel-portraits','Investigation Files / Portraits',this)">
               <span class="nav-icon">🪪</span><span class="nav-label">Character Portraits</span>
             </div>
-            <div class="nav-subitem" onclick="showPanel('panel-metadata','Investigation Files / Metadata',this)">
+            <div class="nav-subitem" id="nav-metadata" onclick="showPanel('panel-metadata','Investigation Files / Metadata',this)">
               <span class="nav-icon">🔎</span><span class="nav-label">Metadata Snippets</span>
             </div>
-            <div class="nav-subitem" onclick="showPanel('panel-documents','Investigation Files / Documents',this)">
+            <div class="nav-subitem" id="nav-documents" onclick="showPanel('panel-documents','Investigation Files / Documents',this)">
               <span class="nav-icon">📋</span><span class="nav-label">Documents</span>
             </div>
           </div>
@@ -1673,7 +1695,7 @@
           <!-- CCTV grid -->
           <div class="cctv-grid" id="cctv-grid">
 
-            <div class="cctv-card" onclick="openCCTV(0)">
+            <div class="cctv-card" onclick="openCCTV(0)" data-cctv-idx="0">
               <div class="cctv-screen">
                 <video class="cctv-preview" src="Assets/Video/Urban_Alley_CCTV_Surveillance_Footage.mp4"
                   muted loop playsinline preload="metadata"></video>
@@ -2320,6 +2342,69 @@
     /* ════════════════════════════
        PANEL NAVIGATION
     ════════════════════════════ */
+    /* ════════════════════════════════════════
+       UNREAD TRACKING — shared with evidence.html
+       Keys: cctv:CCTV-00N, spectrogram:ID,
+             transcript:charId, meta:ID, doc:ID
+    ════════════════════════════════════════ */
+    function getUnreadMap() {
+      try { return JSON.parse(localStorage.getItem('col_unread') || '{}'); }
+      catch { return {}; }
+    }
+    function saveUnreadMap(map) {
+      try { localStorage.setItem('col_unread', JSON.stringify(map)); } catch(e) {}
+    }
+    function markUnread(key) {
+      const map = getUnreadMap(); map[key] = Date.now(); saveUnreadMap(map);
+    }
+    function markRead(key) {
+      const map = getUnreadMap();
+      if (key in map) { delete map[key]; saveUnreadMap(map); }
+    }
+    function isUnread(key) { return key in getUnreadMap(); }
+
+    /* Count unread items whose keys start with a given prefix */
+    function countUnread(prefix) {
+      return Object.keys(getUnreadMap()).filter(k => k.startsWith(prefix)).length;
+    }
+
+    /* Update the amber badge counts on nav subitems + overview card dots */
+    function updateNavBadges() {
+      const counts = {
+        'nav-cctv':         countUnread('cctv:'),
+        'nav-spectrograms': countUnread('spectrogram:'),
+        'nav-transcripts':  countUnread('transcript:'),
+        'nav-metadata':     countUnread('meta:'),
+        'nav-documents':    countUnread('doc:'),
+      };
+      Object.entries(counts).forEach(([navId, count]) => {
+        const el = document.getElementById(navId);
+        if (!el) return;
+        let badge = el.querySelector('.nav-unread-badge');
+        if (count > 0) {
+          if (!badge) {
+            badge = document.createElement('span');
+            badge.className = 'nav-unread-badge';
+            el.appendChild(badge);
+          }
+          badge.textContent = count;
+        } else {
+          if (badge) badge.remove();
+        }
+      });
+    }
+
+    /* Seed CCTV as unread on very first game load */
+    function seedCCTVUnread() {
+      const key = 'col_cctv_seeded';
+      if (localStorage.getItem(key)) return;
+      for (let i = 1; i <= 4; i++) {
+        markUnread('cctv:CCTV-00' + i);
+      }
+      localStorage.setItem(key, '1');
+    }
+    updateNavBadges();
+
     function showPanel(id, breadcrumb, triggerEl) {
       document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
       const panel = document.getElementById(id);
@@ -2893,6 +2978,14 @@
       METADATA.forEach((item, i) => {
         const visible     = isMetaVisible(item, unlockedItems);
         const filteredOut = activeMetaCategory !== 'all' && item.category !== activeMetaCategory;
+        // Mark newly visible meta as unread (first time unlocked)
+        if (visible) {
+          const seenKey = 'col_meta_seen_' + item.id;
+          if (!localStorage.getItem(seenKey)) {
+            markUnread('meta:' + item.id);
+            localStorage.setItem(seenKey, '1');
+          }
+        }
 
         if (!visible) {
           lockedCount++;
@@ -2931,6 +3024,11 @@
         row.style.animationDelay = (i * 0.03) + 's';
         row.dataset.id = item.id;
         row.onclick = () => openMetaDetail(item, row);
+        if (isUnread('meta:' + item.id)) {
+          const dot = document.createElement('span');
+          dot.className = 'unread-dot'; dot.title = 'New — not yet reviewed';
+          row.appendChild(dot);
+        }
 
         const flagCls   = { critical:'flag-critical', notable:'flag-notable', clean:'flag-clean', pending:'flag-pending' }[item.flag] || 'flag-pending';
         const flagLabel = { critical:'⚑ Critical', notable:'● Notable', clean:'✓ Clean', pending:'◌ Pending' }[item.flag] || item.flag;
@@ -2987,6 +3085,9 @@
       document.querySelectorAll('.meta-row').forEach(r => r.classList.remove('active'));
       row.classList.add('active');
       activeMetaRow = row;
+      markRead('meta:' + item.id);
+      const dot = row.querySelector('.unread-dot'); if (dot) dot.remove();
+      updateNavBadges();
 
       const catInfo  = META_CATEGORY_INFO[item.category] || { label:'Metadata Record', icon:'📋', division:'Analysis Unit' };
       const flagInfo = META_FLAG_LABELS[item.flag]       || META_FLAG_LABELS.pending;
@@ -3454,6 +3555,23 @@
 
         const hasAnything = totalDocs > 0 || !coronerReady; // always show pending card
 
+        // Mark newly logged reports as unread (first time they appear)
+        loggedReports.forEach(id => {
+          const seenKey = 'col_doc_seen_' + id;
+          if (!localStorage.getItem(seenKey)) {
+            markUnread('doc:' + id);
+            localStorage.setItem(seenKey, '1');
+          }
+        });
+        if (coronerReady) {
+          const coronerSeen = 'col_doc_seen_coroner';
+          if (!localStorage.getItem(coronerSeen)) {
+            markUnread('doc:coroner');
+            localStorage.setItem(coronerSeen, '1');
+          }
+        }
+        updateNavBadges();
+
         // Always show the coroner card — either pending or ready
         if (coronerReady) {
           // Full report card
@@ -3508,7 +3626,9 @@
             const typeInfo = LAB_TYPE_MAP[r.lab] || { cls:'type-document', icon:'📋' };
             const card = document.createElement('div');
             card.className = `doc-card ${typeInfo.cls}`;
+            card.dataset.docId = id;
             card.onclick = () => openBoardLR(id);
+            const docDot = isUnread('doc:' + id) ? '<span class="unread-dot" title="New — not yet reviewed"></span>' : '';
             card.innerHTML = `
               <div class="doc-card-inner">
                 <span class="doc-card-icon">${typeInfo.icon}</span>
@@ -3518,6 +3638,7 @@
                 <span class="doc-card-exhibit">Exhibit: ${r.exhibit}</span>
                 <span class="doc-card-open">Open Report →</span>
               </div>
+              ${docDot}
             `;
             grid.appendChild(card);
           });
@@ -3539,6 +3660,8 @@
     /* Open the coroner's report modal */
     function openCoronerReport() {
       const r   = CORONER_REPORT;
+      markRead('doc:coroner');
+      updateNavBadges();
       const now = new Date();
       const dated = now.toLocaleDateString('en-GB',{day:'2-digit',month:'long',year:'numeric'});
 
@@ -3599,6 +3722,12 @@
     function openBoardLR(id) {
       const r = BOARD_LAB_REPORTS[id];
       if (!r) return;
+      markRead('doc:' + id);
+      // Remove dot from this card if present
+      document.querySelectorAll('.doc-card').forEach(c => {
+        if (c.dataset.docId === id) { const dot = c.querySelector('.unread-dot'); if (dot) dot.remove(); }
+      });
+      updateNavBadges();
 
       const now   = new Date();
       const dated = now.toLocaleDateString('en-GB',{day:'2-digit',month:'long',year:'numeric'});
@@ -3740,9 +3869,31 @@
       },
     ];
 
+    // Seed + render CCTV unread dots — safe to call now that CCTV_DATA is defined
+    seedCCTVUnread();
+    (function renderCCTVDots() {
+      CCTV_DATA.forEach((d, i) => {
+        const key = 'cctv:' + d.ref.replace('COL-001-A · ', '').replace(' ', '-');
+        if (!isUnread(key)) return;
+        const cards = document.querySelectorAll('.cctv-card');
+        if (!cards[i]) return;
+        const dot = document.createElement('span');
+        dot.className = 'unread-dot'; dot.title = 'New — not yet reviewed';
+        cards[i].appendChild(dot);
+      });
+      updateNavBadges();
+    })();
+
     function openCCTV(index) {
       const d = CCTV_DATA[index];
       if (!d) return;
+      // Mark this feed as read
+      const cctvKey = 'cctv:' + d.ref.replace('COL-001-A · ', '').replace(' ', '-');
+      markRead(cctvKey);
+      // Remove dot from the card
+      const card = document.querySelectorAll('.cctv-card')[index];
+      if (card) { const dot = card.querySelector('.unread-dot'); if (dot) dot.remove(); }
+      updateNavBadges();
 
       const vid = document.getElementById('cctv-modal-video');
       document.getElementById('cctv-modal-src').src = d.src;
@@ -3833,7 +3984,9 @@
         const card = document.createElement('div');
         card.className = 'card';
         card.style.cursor = 'pointer';
+        card.dataset.charId = t.charId;
         card.onclick = () => openTranscriptViewer(t);
+        const tDot = isUnread('transcript:' + t.charId) ? '<span class="unread-dot" title="New — not yet reviewed"></span>' : '';
         card.innerHTML = `
           <span class="card-count">${roleLabel}</span>
           <span class="card-icon">📄</span>
@@ -3841,6 +3994,7 @@
           <span class="card-desc" style="margin-bottom:6px;">${t.sessionLabel} · ${t.date}</span>
           <span style="font-size:clamp(6px,.75vw,8px);letter-spacing:.2em;text-transform:uppercase;
             color:${condColor};display:block;">${t.condition}</span>
+          ${tDot}
         `;
         grid.appendChild(card);
       });
@@ -3848,6 +4002,12 @@
 
     function openTranscriptViewer(t) {
       activeTranscript = t;
+      markRead('transcript:' + t.charId);
+      // Remove dot from the card
+      document.querySelectorAll('#transcript-grid .card').forEach(c => {
+        if (c.dataset.charId === t.charId) { const dot = c.querySelector('.unread-dot'); if (dot) dot.remove(); }
+      });
+      updateNavBadges();
       const roleLabel  = TRANSCRIPT_ROLE_LABELS[t.charRole] || 'Person of Interest';
       const condColor  = TRANSCRIPT_COND_COLORS[t.conditionClass] || '#c47c1a';
 
@@ -3971,10 +4131,11 @@
        SPECTROGRAM PANEL SYSTEM
        Specto-1: unlocks when COL-001-A-E15 (Digital Lab
                  result from Burner Phone) is logged.
-       Specto-2: unlocks when COL-001-A-E21 (Digital Lab
-                 result from CCTV USB Drive) is logged —
-                 audio data extracted from the USB drive
-                 during video enhancement analysis.
+       Specto-2: unlocks when COL-001-A-E17 (DNA result
+                 from Bloodstained Cloth) is logged — a
+                 second wave-3 return suggesting a second
+                 source of audio evidence was recovered
+                 and cross-referenced.
     ════════════════════════════════════════════════ */
     const SPECTROGRAMS = [
       {
@@ -4010,16 +4171,16 @@
       },
       {
         id:          'SPECTO-002',
-        unlockId:    'COL-001-A-E21',
+        unlockId:    'COL-001-A-E17',
         ref:         'COL-001-A · AUDIO-002',
         label:       'VOICEMAIL_ANALYSIS_02',
         src:         'Assets/Video/Voicemail_Analysis_Corrupted_Data_Visualization.mp4',
-        exhibit:     'Recovered secondary audio trace — source: E06 CCTV USB Drive / Bay 7',
+        exhibit:     'Recovered secondary audio trace — source: E04 cloth fibres / E08 site',
         recovered:   '22% signal recovered',
         duration:    '0:08 loop',
         status:      'RECONSTRUCTING…',
         statusClass: 'red',
-        lockedMsg:   'Submit E06 CCTV USB Drive to the Digital Lab to unlock secondary audio analysis',
+        lockedMsg:   'Secondary audio trace will unlock as forensic lab analysis progresses',
         transcript: [
           { cls:'signal',  text:'[ VOICEMAIL_ANALYSIS_02 — DECODING IN PROGRESS — 22% RECOVERED ]',  delay:0.0  },
           { cls:'gap',     text:'',                                                                   delay:0.4  },
@@ -4148,8 +4309,29 @@
       SPECTROGRAMS.forEach(specto => {
         const unlocked = isSpectoUnlocked(specto);
         if (unlocked) unlockedCount++;
-        const card = buildSpectoCard(specto, unlocked);
-        grid.appendChild(card);
+        // Seed newly unlocked spectrograms as unread
+      if (unlocked) {
+        const seenKey = 'col_specto_seen_' + specto.id;
+        if (!localStorage.getItem(seenKey)) {
+          markUnread('spectrogram:' + specto.id);
+          localStorage.setItem(seenKey, '1');
+        }
+      }
+      const card = buildSpectoCard(specto, unlocked);
+        if (card) {
+          if (unlocked && isUnread('spectrogram:' + specto.id)) {
+            card.style.position = 'relative';
+            const dot = document.createElement('span');
+            dot.className = 'unread-dot'; dot.title = 'New — not yet reviewed';
+            card.appendChild(dot);
+            card.addEventListener('click', () => {
+              markRead('spectrogram:' + specto.id);
+              const d = card.querySelector('.unread-dot'); if (d) d.remove();
+              updateNavBadges();
+            }, { once: true });
+          }
+          grid.appendChild(card);
+        }
       });
 
       empty.style.display     = (unlockedCount === 0) ? 'flex' : 'none';
