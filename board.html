@@ -3971,11 +3971,10 @@
        SPECTROGRAM PANEL SYSTEM
        Specto-1: unlocks when COL-001-A-E15 (Digital Lab
                  result from Burner Phone) is logged.
-       Specto-2: unlocks when COL-001-A-E17 (DNA result
-                 from Bloodstained Cloth) is logged — a
-                 second wave-3 return suggesting a second
-                 source of audio evidence was recovered
-                 and cross-referenced.
+       Specto-2: unlocks when COL-001-A-E21 (Digital Lab
+                 result from CCTV USB Drive) is logged —
+                 audio data extracted from the USB drive
+                 during video enhancement analysis.
     ════════════════════════════════════════════════ */
     const SPECTROGRAMS = [
       {
@@ -4011,16 +4010,16 @@
       },
       {
         id:          'SPECTO-002',
-        unlockId:    'COL-001-A-E17',
+        unlockId:    'COL-001-A-E21',
         ref:         'COL-001-A · AUDIO-002',
         label:       'VOICEMAIL_ANALYSIS_02',
         src:         'Assets/Video/Voicemail_Analysis_Corrupted_Data_Visualization.mp4',
-        exhibit:     'Recovered secondary audio trace — source: E04 cloth fibres / E08 site',
+        exhibit:     'Recovered secondary audio trace — source: E06 CCTV USB Drive / Bay 7',
         recovered:   '22% signal recovered',
         duration:    '0:08 loop',
         status:      'RECONSTRUCTING…',
         statusClass: 'red',
-        lockedMsg:   'Secondary audio trace will unlock as forensic lab analysis progresses',
+        lockedMsg:   'Submit E06 CCTV USB Drive to the Digital Lab to unlock secondary audio analysis',
         transcript: [
           { cls:'signal',  text:'[ VOICEMAIL_ANALYSIS_02 — DECODING IN PROGRESS — 22% RECOVERED ]',  delay:0.0  },
           { cls:'gap',     text:'',                                                                   delay:0.4  },
