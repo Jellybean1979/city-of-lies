@@ -181,7 +181,11 @@
         /* ── Tooltip card ── */
         #col-tour-card {
           position: fixed; z-index: 9010;
-          width: clamp(270px, 28vw, 390px);
+          /* width is capped further by positionCard's maxWidth override */
+          width: clamp(260px, 28vw, 390px);
+          max-width: calc(100vw - 28px);
+          max-height: calc(100vh - 28px);
+          overflow-y: auto;
           background: #0d0904;
           border: 1px solid rgba(168,131,46,.38);
           box-shadow: 0 0 0 1px rgba(168,131,46,.07),
@@ -190,9 +194,16 @@
           display: flex; flex-direction: column;
           opacity: 1; pointer-events: all;
           transition: opacity .22s ease, transform .22s ease;
+          /* Never start off-screen before positionCard runs */
+          top: 50%; left: 50%;
+          transform: translate(-50%, -50%);
         }
         #col-tour-card.col-fade {
-          opacity: 0; transform: translateY(7px);
+          opacity: 0;
+        }
+        /* Override the centering transform once positionCard sets top/left */
+        #col-tour-card.col-placed {
+          transform: none;
         }
 
         /* Card header */
@@ -366,54 +377,84 @@
 
   /* ══════════════════════════════════════════════════════════════
      CARD POSITIONING
+     Always positions the card fully within the viewport.
+     Reads dimensions AFTER layout so we never get 0.
   ══════════════════════════════════════════════════════════════ */
+  function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
+
   function positionCard(rect, pref) {
     const card = document.getElementById('col-tour-card');
     const W    = window.innerWidth;
     const H    = window.innerHeight;
-    const cw   = card.offsetWidth  || 340;
-    const ch   = card.offsetHeight || 220;
-    const GAP  = 18;
+    const EDGE = 14;   // minimum distance from every viewport edge
+    const GAP  = 16;   // gap between spotlight and card
+
+    // Cap card width to viewport so it never overflows horizontally
+    const maxCW = W - EDGE * 2;
+    card.style.maxWidth = maxCW + 'px';
+
+    // Read actual rendered dimensions (layout must have happened)
+    const cw = card.offsetWidth  || Math.min(340, maxCW);
+    const ch = card.offsetHeight || 240;
+
     let top, left;
 
     if (!rect || pref === 'center') {
-      top  = (H - ch) / 2;
+      // Centred in viewport
       left = (W - cw) / 2;
+      top  = (H - ch) / 2;
     } else {
-      // Try preferred, fall back intelligently
-      const fits = {
-        right:  rect.right  + GAP + cw <= W,
-        left:   rect.left   - GAP - cw >= 0,
-        top:    rect.top    - GAP - ch >= 0,
-        bottom: rect.bottom + GAP + ch <= H,
-      };
-      const dir = fits[pref] ? pref
-        : fits.right ? 'right' : fits.left ? 'left'
-        : fits.bottom ? 'bottom' : 'top';
+      // Space available on each side of the spotlight (including padding)
+      const spaceRight  = W - rect.right  - GAP;
+      const spaceLeft   = rect.left       - GAP;
+      const spaceBottom = H - rect.bottom - GAP;
+      const spaceTop    = rect.top        - GAP;
+
+      // Resolve preferred direction, fall back to the side with most room
+      const sides = ['right','left','bottom','top'];
+      const space  = { right: spaceRight, left: spaceLeft, bottom: spaceBottom, top: spaceTop };
+      const fits   = { right: spaceRight >= cw, left: spaceLeft >= cw,
+                       bottom: spaceBottom >= ch, top: spaceTop >= ch };
+
+      let dir = fits[pref] ? pref : null;
+      if (!dir) {
+        // Pick whichever side has most room; prefer horizontal first
+        dir = sides.reduce((best, s) => space[s] > space[best] ? s : best, 'right');
+      }
+      // If even the best side doesn't fully fit, centre instead
+      if (!fits[dir] && !fits[dir]) {
+        left = (W - cw) / 2;
+        top  = (H - ch) / 2;
+        left = clamp(left, EDGE, W - cw - EDGE);
+        top  = clamp(top,  EDGE, H - ch - EDGE);
+        card.style.top  = Math.round(top)  + 'px';
+        card.style.left = Math.round(left) + 'px';
+        return;
+      }
 
       if (dir === 'right') {
         left = rect.right + GAP;
-        top  = clamp(rect.top + (rect.height - ch) / 2, GAP, H - ch - GAP);
+        top  = rect.top + (rect.height - ch) / 2;
       } else if (dir === 'left') {
         left = rect.left - GAP - cw;
-        top  = clamp(rect.top + (rect.height - ch) / 2, GAP, H - ch - GAP);
+        top  = rect.top + (rect.height - ch) / 2;
       } else if (dir === 'top') {
         top  = rect.top - GAP - ch;
-        left = clamp(rect.left + (rect.width - cw) / 2, GAP, W - cw - GAP);
-      } else {
+        left = rect.left + (rect.width - cw) / 2;
+      } else { // bottom
         top  = rect.bottom + GAP;
-        left = clamp(rect.left + (rect.width - cw) / 2, GAP, W - cw - GAP);
+        left = rect.left + (rect.width - cw) / 2;
       }
-      // Final safety clamp
-      top  = clamp(top,  GAP, H - ch - GAP);
-      left = clamp(left, GAP, W - cw - GAP);
+
+      // Hard clamp to viewport — this is the critical guarantee
+      left = clamp(left, EDGE, W - cw - EDGE);
+      top  = clamp(top,  EDGE, H - ch - EDGE);
     }
 
+    card.classList.add('col-placed');
     card.style.top  = Math.round(top)  + 'px';
     card.style.left = Math.round(left) + 'px';
   }
-
-  function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
 
 
   /* ══════════════════════════════════════════════════════════════
@@ -466,6 +507,7 @@
 
     // Fade card out briefly
     card.classList.add('col-fade');
+    card.classList.remove('col-placed');
 
     setTimeout(() => {
       counter.textContent   = `Step ${n + 1} of ${STEPS.length}`;
@@ -487,14 +529,19 @@
         const el = document.querySelector(step.selector);
         if (el) {
           el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-          // Wait for scroll + transition
+          // Wait for scroll to settle, then show card
           setTimeout(() => {
             const rect = el.getBoundingClientRect();
             setSpotlight(rect);
             card.classList.remove('col-fade');
-            positionCard(rect, step.position);
-            typewrite(bodyEl, step.text);
-          }, 380);
+            // One rAF so the browser has laid out the now-visible card
+            requestAnimationFrame(() => {
+              requestAnimationFrame(() => {
+                positionCard(rect, step.position);
+                typewrite(bodyEl, step.text);
+              });
+            });
+          }, 420);
           return;
         }
       }
@@ -502,8 +549,12 @@
       // No selector — full dim + centred card
       setSpotlight(null);
       card.classList.remove('col-fade');
-      positionCard(null, 'center');
-      typewrite(bodyEl, step.text);
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          positionCard(null, 'center');
+          typewrite(bodyEl, step.text);
+        });
+      });
 
     }, 210);
   }
