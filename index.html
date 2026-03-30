@@ -641,6 +641,14 @@
           <span class="btn-sub">The people behind the case</span>
         </div>
 
+        <div class="menu-item">
+          <button class="menu-btn" onclick="handleMenu('tour')">
+            <span class="btn-num">06</span>
+            <span class="btn-text">Virtual Tour</span>
+          </button>
+          <span class="btn-sub">Learn the investigation from the inside</span>
+        </div>
+
       </div>
     </div>
   </div>
@@ -856,8 +864,14 @@
         continue: 'game.html?continue=1',
         codex:    'codex.html',
         settings: 'settings.html',
-        credits:  'credits.html'
+        credits:  'credits.html',
       };
+      // Virtual Tour — starts the spotlight tour from index.html step 0
+      if (action === 'tour') {
+        saveMusicState();
+        startTour(0);
+        return;
+      }
       if (routes[action]) {
         saveMusicState();
         window.location.href = routes[action];
@@ -977,5 +991,6 @@
     </div>
   </div>
 
+  <script src="tour.js"></script>
 </body>
 </html>
