@@ -212,9 +212,73 @@
       font-size: 9px; letter-spacing: 0.2em;
       color: #2a1c08; text-transform: uppercase;
     }
+
+    /* ── PRODUCTION INTRO OVERLAY ── */
+    #prod-overlay {
+      position: fixed; inset: 0; z-index: 500;
+      background: #000;
+      display: flex; align-items: center; justify-content: center;
+      pointer-events: none;
+      animation: prodOverlayFade 2s ease 2.8s forwards;
+    }
+    @keyframes prodOverlayFade {
+      0%   { opacity: 1; }
+      100% { opacity: 0; }
+    }
+
+    .prod-letterbox {
+      position: absolute; left: 0; right: 0;
+      height: clamp(36px, 5.5vw, 72px);
+      background: #000; z-index: 5; pointer-events: none;
+    }
+    .prod-letterbox.top    { top: 0; }
+    .prod-letterbox.bottom { bottom: 0; }
+
+    #prod-text {
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 10; text-align: center;
+      opacity: 0;
+      animation: prodTextReveal 2.8s ease 0.4s forwards;
+      pointer-events: none;
+      white-space: nowrap;
+    }
+    @keyframes prodTextReveal {
+      0%   { opacity: 0; letter-spacing: 0.9em; }
+      25%  { opacity: 1; }
+      70%  { opacity: 1; letter-spacing: 0.5em; }
+      100% { opacity: 0; letter-spacing: 0.5em; }
+    }
+    #prod-text span {
+      font-family: 'Courier Prime', monospace;
+      font-size: clamp(10px, 1.5vw, 14px);
+      letter-spacing: 0.5em;
+      text-transform: uppercase;
+      color: var(--sepia-pale);
+    }
+
+    /* Stage starts hidden, fades in after overlay clears */
+    #stage {
+      opacity: 0;
+      animation: stageFadeIn 1.2s ease 3s forwards;
+    }
+    @keyframes stageFadeIn {
+      from { opacity: 0; }
+      to   { opacity: 1; }
+    }
   </style>
 </head>
 <body>
+
+  <!-- ── PRODUCTION INTRO OVERLAY ── -->
+  <div id="prod-overlay">
+    <div class="prod-letterbox top"></div>
+    <div class="prod-letterbox bottom"></div>
+    <div id="prod-text">
+      <span>A Jellybean1979 Production</span>
+    </div>
+  </div>
 
   <div id="board-bg"></div>
   <div id="bg-tint"></div>
@@ -291,6 +355,15 @@
       saveMusicState();
       window.location.href = 'index.html';
     }
+
+    /* ── Remove production overlay after fade-out ── */
+    (function initProdOverlay() {
+      const overlay = document.getElementById('prod-overlay');
+      if (!overlay) return;
+      overlay.addEventListener('animationend', () => {
+        overlay.style.display = 'none';
+      });
+    })();
 
     /* ── Version tag ── */
     async function updateCommitHash() {
