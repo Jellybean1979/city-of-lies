@@ -1089,7 +1089,8 @@
 
     function navigate(page) {
       saveMusicState();
-      if (READY_PAGES.includes(page)) {
+      const basePage = page.split('?')[0]; // strip query params for the ready-check
+      if (READY_PAGES.includes(basePage)) {
         window.location.href = page;
       } else {
         console.log('[City of Lies] → Page not yet built:', page);
