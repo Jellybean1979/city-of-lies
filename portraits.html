@@ -746,6 +746,129 @@
       border-color: rgba(58,40,8,.5);
       color: #1a0c00;
     }
+    /* Interview button — already conducted state */
+    .interview-btn.done {
+      opacity: 0.45; cursor: not-allowed;
+      border-color: rgba(140,30,30,.35);
+      color: rgba(140,30,30,.7);
+    }
+    .interview-btn.done:hover {
+      background: rgba(58,40,8,.08);
+      border-color: rgba(140,30,30,.5);
+      color: rgba(140,30,30,.85);
+    }
+
+    /* ── STATUTE WARNING MODAL ── */
+    #statute-overlay {
+      position: fixed; inset: 0; z-index: 2200;
+      background: rgba(4,2,1,.82); backdrop-filter: blur(6px);
+      display: flex; align-items: center; justify-content: center;
+      opacity: 0; pointer-events: none;
+      transition: opacity .25s ease;
+    }
+    #statute-overlay.open { opacity: 1; pointer-events: all; }
+    #statute-modal {
+      background: #f5eedf;
+      border: 2px solid #8a7040;
+      max-width: 580px; width: 90vw;
+      padding: 28px 32px 22px;
+      box-shadow: 0 20px 60px rgba(0,0,0,.6);
+      display: flex; flex-direction: column; gap: 14px;
+      font-family: 'Courier Prime', monospace;
+      transform: scale(0.94); transition: transform .25s ease;
+    }
+    #statute-overlay.open #statute-modal { transform: scale(1); }
+    #statute-topbar {
+      text-align: center; border-bottom: 1px solid #8a7040; padding-bottom: 12px;
+    }
+    #statute-seal { font-size: 22px; display: block; margin-bottom: 4px; }
+    #statute-heading {
+      display: block; font-size: 11px; letter-spacing: .25em;
+      text-transform: uppercase; color: #3a2000; font-weight: 700;
+    }
+    #statute-subheading {
+      display: block; font-size: 9px; letter-spacing: .12em;
+      color: #6a5030; margin-top: 2px;
+    }
+    #statute-ref {
+      font-size: 9px; letter-spacing: .12em; color: #6a5030;
+      text-transform: uppercase; margin: 0;
+    }
+    #statute-title {
+      font-size: 11px; letter-spacing: .18em; text-transform: uppercase;
+      color: #3a2000; font-weight: 700; margin: 0;
+      border-bottom: 1px solid rgba(138,112,64,.4); padding-bottom: 8px;
+    }
+    #statute-text { font-size: 11px; color: #2a1800; line-height: 1.7; margin: 0; }
+    #statute-list {
+      font-size: 11px; color: #2a1800; line-height: 1.8; margin: 0;
+      padding-left: 20px;
+    }
+    #statute-warn {
+      font-size: 10.5px; color: #7a1010; line-height: 1.6; margin: 0;
+      border-left: 3px solid #c43030; padding-left: 10px;
+    }
+    #statute-footer {
+      font-size: 9px; color: #8a7040; text-align: right; margin: 0;
+      letter-spacing: .08em;
+    }
+    #statute-actions {
+      display: flex; gap: 12px; justify-content: flex-end;
+      border-top: 1px solid #8a7040; padding-top: 14px;
+    }
+    #statute-cancel {
+      font-family: 'Courier Prime', monospace; font-size: 10px;
+      letter-spacing: .18em; text-transform: uppercase;
+      background: none; border: 1px solid #8a7040; color: #5a4020;
+      padding: 8px 18px; cursor: pointer; transition: all .2s;
+    }
+    #statute-cancel:hover { background: rgba(138,112,64,.12); color: #3a2000; }
+    #statute-proceed {
+      font-family: 'Courier Prime', monospace; font-size: 10px;
+      letter-spacing: .18em; text-transform: uppercase;
+      background: #3a2000; border: 1px solid #3a2000; color: #f5eedf;
+      padding: 8px 18px; cursor: pointer; transition: all .2s;
+    }
+    #statute-proceed:hover { background: #5a3010; border-color: #5a3010; }
+
+    /* ── ALREADY INTERVIEWED MODAL ── */
+    #already-interviewed-overlay {
+      position: fixed; inset: 0; z-index: 2200;
+      background: rgba(4,2,1,.82); backdrop-filter: blur(6px);
+      display: flex; align-items: center; justify-content: center;
+      opacity: 0; pointer-events: none;
+      transition: opacity .25s ease;
+    }
+    #already-interviewed-overlay.open { opacity: 1; pointer-events: all; }
+    #already-interviewed-modal {
+      background: #1a0808; border: 1px solid rgba(196,48,48,.4);
+      max-width: 480px; width: 88vw;
+      padding: 26px 28px 20px;
+      box-shadow: 0 20px 60px rgba(0,0,0,.7), 0 0 40px rgba(196,48,48,.08);
+      display: flex; flex-direction: column; gap: 12px;
+      font-family: 'Courier Prime', monospace;
+      transform: scale(0.94); transition: transform .25s ease;
+    }
+    #already-interviewed-overlay.open #already-interviewed-modal { transform: scale(1); }
+    #ai-topbar { display: flex; align-items: center; gap: 10px;
+      border-bottom: 1px solid rgba(196,48,48,.3); padding-bottom: 10px; }
+    #ai-seal { font-size: 18px; }
+    #ai-heading {
+      font-size: 11px; letter-spacing: .25em; text-transform: uppercase;
+      color: #c43030; font-weight: 700;
+    }
+    #ai-ref { font-size: 9px; letter-spacing: .1em; color: rgba(168,131,46,.6);
+      text-transform: uppercase; margin: 0; }
+    #ai-text { font-size: 11px; color: rgba(240,225,195,.8); line-height: 1.7; margin: 0; }
+    #ai-sub  { font-size: 10px; color: rgba(168,131,46,.6); margin: 0; font-style: italic; }
+    #ai-close {
+      align-self: center; margin-top: 4px;
+      font-family: 'Courier Prime', monospace; font-size: 10px;
+      letter-spacing: .2em; text-transform: uppercase;
+      background: none; border: 1px solid rgba(196,48,48,.4); color: rgba(196,48,48,.8);
+      padding: 8px 22px; cursor: pointer; transition: all .2s;
+    }
+    #ai-close:hover { background: rgba(196,48,48,.1); border-color: rgba(196,48,48,.7); color: #c43030; }
   </style>
 </head>
 <body>
@@ -876,6 +999,55 @@
       </div>
     </div><!-- /dossier -->
     <span class="overlay-hint">Tap outside to close</span>
+  </div>
+
+  <!-- ── STATUTE WARNING MODAL (shown before first interview proceeds) ── -->
+  <div id="statute-overlay">
+    <div id="statute-modal">
+      <div id="statute-topbar">
+        <span id="statute-seal">⚖</span>
+        <span id="statute-heading">MERREHOPE POLICE DEPARTMENT</span>
+        <span id="statute-subheading">Office of Professional Standards &amp; Legal Compliance</span>
+      </div>
+      <div id="statute-body">
+        <p id="statute-ref">Merrehope Municipal Code · Chapter 14 · § 207(b)</p>
+        <h3 id="statute-title">NOTICE OF NON-RECURRENCE — FORMAL INTERVIEW / INTERROGATION</h3>
+        <p id="statute-text">
+          Pursuant to <strong>Merrehope Municipal Code § 14-207(b)</strong> (<em>Single-Contact Rule — Formal Witness &amp; Suspect Statement</em>), as amended by <strong>City Ordinance No. 2019-44, Section 9(c)</strong>, any person formally interviewed or interrogated by a sworn officer of the Merrehope Police Department in connection with a designated criminal investigation shall not be compelled, requested, or permitted to submit to a second formal interview regarding the same matter without:
+        </p>
+        <ol id="statute-list">
+          <li>The written consent of the interviewee or their appointed legal counsel;</li>
+          <li>Express written authorisation from the Merrehope Office of Professional Standards (Form MPD-OPS/14); and</li>
+          <li>Countersignature by the supervising Detective Chief Inspector of the assigned case division.</li>
+        </ol>
+        <p id="statute-warn">
+          <strong>By proceeding, you acknowledge</strong> that this constitutes the sole permissible formal contact under § 14-207(b) and that no subsequent interview of this individual will be authorised under this case number without the above clearances.
+        </p>
+        <p id="statute-footer">MPD Legal Ref: OPS/FORM-14/COL-001-A · City of Merrehope, Meridian County</p>
+      </div>
+      <div id="statute-actions">
+        <button id="statute-cancel" onclick="closeStatuteWarning()">Cancel — Do Not Proceed</button>
+        <button id="statute-proceed" onclick="proceedWithInterview()">Understood — Proceed</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── ALREADY INTERVIEWED MODAL ── -->
+  <div id="already-interviewed-overlay" onclick="closeAlreadyInterviewed()">
+    <div id="already-interviewed-modal" onclick="event.stopPropagation()">
+      <div id="ai-topbar">
+        <span id="ai-seal">🚫</span>
+        <span id="ai-heading">INTERVIEW REQUEST DENIED</span>
+      </div>
+      <div id="ai-body">
+        <p id="ai-ref">Merrehope Municipal Code · § 14-207(b) — Non-Recurrence Notice</p>
+        <p id="ai-text">
+          A formal <span id="ai-session-type">interview</span> with this individual has already been conducted and logged under case <strong>COL-001-A</strong>. Pursuant to <strong>§ 14-207(b)</strong> of the Merrehope Municipal Code and <strong>City Ordinance No. 2019-44, Section 9(c)</strong>, no further formal contact is permitted without prior authorisation from the Office of Professional Standards.
+        </p>
+        <p id="ai-sub">Review the existing transcript in the Investigation Board — Interview Records.</p>
+      </div>
+      <button id="ai-close" onclick="closeAlreadyInterviewed()">Acknowledged</button>
+    </div>
   </div>
 
   <!-- INTERVIEW MODAL -->
@@ -1323,14 +1495,21 @@
       showInteraction(activeRole);
       document.getElementById('classify-saved-indicator').classList.remove('show');
 
-      // Interview button label
-      const isSuspect = ['suspect'].includes(char.role) || activeRole === 'suspect';
-      // Interview button — show locked state if evidence gate not met
+      // Interview button — show locked, done, or available state
       const iBtn      = document.getElementById('interview-btn');
       const iBtnLabel = document.getElementById('interview-btn-label');
       const unlocked  = isInterviewUnlocked(char.id);
+      const alreadyDone = isInterviewDone(char.id);
       const gateLabel = interviewGateSummary(char.id);
-      if (unlocked) {
+      iBtn.classList.remove('done');
+      if (alreadyDone) {
+        iBtn.disabled = false;           // clickable so they see the statute notice
+        iBtn.style.opacity = '';
+        iBtn.style.cursor  = '';
+        iBtn.classList.add('done');
+        iBtnLabel.textContent = (activeRole === 'suspect') ? '🚫 Interrogation Conducted' : '🚫 Interview Conducted';
+        iBtn.title = 'This interview has already been conducted — § 14-207(b) applies';
+      } else if (unlocked) {
         iBtn.disabled = false;
         iBtn.style.opacity = '';
         iBtn.style.cursor  = '';
@@ -1368,8 +1547,17 @@
 
       // Update interview button label (re-check gate since role may have changed)
       const _unlocked2 = isInterviewUnlocked(currentCharId);
-      const iBtnEl = document.getElementById('interview-btn');
-      if (_unlocked2) {
+      const _done2     = isInterviewDone(currentCharId);
+      const iBtnEl     = document.getElementById('interview-btn');
+      iBtnEl.classList.remove('done');
+      if (_done2) {
+        iBtnEl.disabled = false;
+        iBtnEl.style.opacity = '';
+        iBtnEl.style.cursor  = '';
+        iBtnEl.classList.add('done');
+        document.getElementById('interview-btn-label').textContent =
+          (role === 'suspect') ? '🚫 Interrogation Conducted' : '🚫 Interview Conducted';
+      } else if (_unlocked2) {
         iBtnEl.disabled = false;
         iBtnEl.style.opacity = '';
         iBtnEl.style.cursor  = '';
@@ -1507,6 +1695,29 @@
         'COL-001-A-E21': 'Enhanced CCTV Still (E21)',
       };
       return gates.map(id => labels[id] || id).join(', ');
+    }
+
+    /* ════════════════════════════════════════════════
+       INTERVIEW ONE-TIME ENFORCEMENT
+       Tracks which characters have already been
+       interviewed. Key: 'col_interview_done'
+       Value: array of charIds.
+    ════════════════════════════════════════════════ */
+    function isInterviewDone(charId) {
+      try {
+        const done = JSON.parse(localStorage.getItem('col_interview_done') || '[]');
+        return done.includes(charId);
+      } catch { return false; }
+    }
+
+    function markInterviewDone(charId) {
+      try {
+        const done = JSON.parse(localStorage.getItem('col_interview_done') || '[]');
+        if (!done.includes(charId)) {
+          done.push(charId);
+          localStorage.setItem('col_interview_done', JSON.stringify(done));
+        }
+      } catch(e) { console.error('markInterviewDone:', e); }
     }
 
     const D = 'Det. Langley'; // shorthand
@@ -2140,10 +2351,20 @@
       return entry.variants[entry.variants.length - 1]; // default last
     }
 
-    /* ── Open interview modal ── */
+    /* ── Open interview — route through statute warning or already-done modal ── */
     function openInterview() {
       if (!currentChar) return;
-      // Re-check evidence gate (button may have been visible before evidence came in)
+
+      // If already conducted, show the "denied" modal instead
+      if (isInterviewDone(currentCharId)) {
+        const activeRole = defaultRole(currentChar);
+        document.getElementById('ai-session-type').textContent =
+          (activeRole === 'suspect') ? 'interrogation' : 'interview';
+        document.getElementById('already-interviewed-overlay').classList.add('open');
+        return;
+      }
+
+      // Evidence gate check
       if (!isInterviewUnlocked(currentCharId)) return;
 
       const entry = INTERVIEW_DATA[currentCharId];
@@ -2151,7 +2372,24 @@
         alert('No interview record available for this person yet.');
         return;
       }
-      const m = getMeters();
+
+      // Show statute warning first — proceedWithInterview() fires when acknowledged
+      document.getElementById('statute-overlay').classList.add('open');
+    }
+
+    /* ── Statute warning: cancel ── */
+    function closeStatuteWarning() {
+      document.getElementById('statute-overlay').classList.remove('open');
+    }
+
+    /* ── Statute warning: player accepted, now run the actual interview ── */
+    function proceedWithInterview() {
+      closeStatuteWarning();
+      if (!currentChar || !currentCharId) return;
+
+      const entry = INTERVIEW_DATA[currentCharId];
+      if (!entry) return;
+      const m       = getMeters();
       const variant = pickVariant(currentCharId);
       if (!variant) return;
 
@@ -2183,8 +2421,28 @@
       document.getElementById('interview-overlay').classList.add('open');
       document.getElementById('interview-doc').scrollTop = 0;
 
+      // Mark as done — no second interview permitted
+      markInterviewDone(currentCharId);
+
+      // Update button in background to reflect done state
+      const iBtn  = document.getElementById('interview-btn');
+      const iLbl  = document.getElementById('interview-btn-label');
+      const activeRole = defaultRole(currentChar);
+      iBtn.classList.add('done');
+      iLbl.textContent = (activeRole === 'suspect') ? '🚫 Interrogation Conducted' : '🚫 Interview Conducted';
+      iBtn.title = 'This interview has already been conducted — § 14-207(b) applies';
+
+      // Update portrait card in grid
+      const card = document.querySelector(`.portrait-card[data-id="${currentCharId}"]`);
+      if (card) card.dataset.interviewed = 'true';
+
       // ── Save completed transcript to localStorage for board.html ──
       saveCompletedTranscript(currentChar, entry, variant, m);
+    }
+
+    /* ── Already interviewed modal: close ── */
+    function closeAlreadyInterviewed() {
+      document.getElementById('already-interviewed-overlay').classList.remove('open');
     }
 
     function saveCompletedTranscript(char, entry, variant, meters) {
@@ -2226,7 +2484,9 @@
     // Close on Escape key
     document.addEventListener('keydown', e => {
       if (e.key === 'Escape') {
-        if (document.getElementById('interview-overlay').classList.contains('open')) closeInterview();
+        if (document.getElementById('statute-overlay').classList.contains('open'))          closeStatuteWarning();
+        else if (document.getElementById('already-interviewed-overlay').classList.contains('open')) closeAlreadyInterviewed();
+        else if (document.getElementById('interview-overlay').classList.contains('open'))   closeInterview();
         else closeDossier();
       }
     });
