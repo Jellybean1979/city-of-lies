@@ -2150,7 +2150,9 @@
 
     /* ── 60% chance to unlock new evidence on lab return ── */
     function tryUnlockNewEvidence(itemId, labKey) {
-      if (Math.random() > 0.6) return;                          // 40% — nothing new
+      // All secondary evidence is guaranteed when the correct lab is used.
+      // The wave system already provides time gating — a random fail roll
+      // only creates invisible dead ends for the player.
 
       const itemEntries = LAB_NEW_EVIDENCE[itemId];
       if (!itemEntries) return;                                  // no results defined for this item
