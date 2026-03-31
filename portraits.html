@@ -870,6 +870,160 @@
       border-color: rgba(58,40,8,.5);
       color: #1a0c00;
     }
+
+    /* ── WARRANT SYSTEM ── */
+    /* Suspect button — warrant-required state */
+    .classify-btn.warrant-required {
+      border-color: rgba(168,131,46,.35) !important;
+      color: rgba(168,131,46,.6) !important;
+      background: rgba(168,131,46,.05) !important;
+      cursor: pointer !important;
+      opacity: 1 !important;
+    }
+    .classify-btn.warrant-required::after {
+      content: ' ⚖';
+      font-size: 10px;
+    }
+    .classify-btn.warrant-granted {
+      border-color: rgba(122,26,26,.5) !important;
+      background: rgba(122,26,26,.12) !important;
+      color: rgba(196,48,48,.85) !important;
+    }
+
+    /* Warrant modal */
+    #warrant-overlay {
+      position: fixed; inset: 0; z-index: 2300;
+      background: rgba(4,2,1,.85); backdrop-filter: blur(8px);
+      display: flex; align-items: center; justify-content: center;
+      opacity: 0; pointer-events: none; transition: opacity .25s ease;
+    }
+    #warrant-overlay.open { opacity: 1; pointer-events: all; }
+    #warrant-modal {
+      background: #f5eedf; border: 2px solid #8a7040;
+      max-width: 600px; width: 92vw; max-height: 90vh; overflow-y: auto;
+      padding: 0; box-shadow: 0 24px 70px rgba(0,0,0,.7);
+      display: flex; flex-direction: column;
+      transform: scale(.94); transition: transform .25s ease;
+    }
+    #warrant-overlay.open #warrant-modal { transform: scale(1); }
+    #warrant-modal-header {
+      background: #3a2000; padding: 16px 22px;
+      display: flex; align-items: center; gap: 12px;
+    }
+    #warrant-header-seal { font-size: 24px; }
+    #warrant-header-text { flex: 1; }
+    #warrant-header-title {
+      display: block; font-family: 'Courier Prime', monospace;
+      font-size: 11px; letter-spacing: .25em; text-transform: uppercase;
+      color: #f5eedf; font-weight: 700;
+    }
+    #warrant-header-sub {
+      display: block; font-family: 'Courier Prime', monospace;
+      font-size: 9px; letter-spacing: .15em; color: rgba(245,238,223,.5);
+      margin-top: 2px;
+    }
+    #warrant-modal-body { padding: 20px 24px; display: flex; flex-direction: column; gap: 14px; }
+    #warrant-subject-line {
+      font-family: 'Courier Prime', monospace;
+      font-size: 11px; letter-spacing: .12em; color: #3a2000;
+      padding: 10px 12px;
+      background: rgba(58,32,0,.06); border: 1px solid rgba(138,112,64,.3);
+    }
+    #warrant-subject-label {
+      font-size: 8px; letter-spacing: .3em; text-transform: uppercase;
+      color: #8a7040; display: block; margin-bottom: 4px;
+    }
+    #warrant-subject-name { font-weight: 700; color: #1a0800; }
+    .warrant-field-label {
+      font-family: 'Courier Prime', monospace;
+      font-size: 9px; letter-spacing: .25em; text-transform: uppercase;
+      color: #6a5030; display: block; margin-bottom: 5px;
+    }
+    #warrant-reason {
+      font-family: 'Courier Prime', monospace; font-size: 11px;
+      line-height: 1.65; color: #2a1800; width: 100%;
+      background: rgba(255,255,240,.6); border: 1px solid #8a7040;
+      padding: 10px 12px; resize: vertical; min-height: 90px;
+    }
+    #warrant-reason:focus { outline: none; border-color: #3a2000; }
+    #warrant-evidence-select {
+      font-family: 'Courier Prime', monospace; font-size: 10px;
+      background: rgba(255,255,240,.6); border: 1px solid #8a7040;
+      color: #2a1800; padding: 6px 10px; width: 100%; height: 110px;
+    }
+    #warrant-evidence-select:focus { outline: none; border-color: #3a2000; }
+    #warrant-validation-msg {
+      font-family: 'Courier Prime', monospace; font-size: 10px;
+      color: #7a1010; letter-spacing: .08em; min-height: 16px;
+    }
+    #warrant-legal-note {
+      font-family: 'Courier Prime', monospace; font-size: 9px;
+      line-height: 1.65; color: #6a5030;
+      border-left: 3px solid rgba(138,112,64,.4); padding-left: 10px;
+    }
+    #warrant-modal-footer {
+      padding: 14px 22px; border-top: 1px solid #8a7040;
+      display: flex; gap: 10px; justify-content: flex-end; flex-wrap: wrap;
+      background: rgba(58,32,0,.04);
+    }
+    #warrant-cancel-btn {
+      font-family: 'Courier Prime', monospace; font-size: 9px;
+      letter-spacing: .2em; text-transform: uppercase;
+      background: none; border: 1px solid #8a7040; color: #5a4020;
+      padding: 8px 16px; cursor: pointer; transition: all .2s;
+    }
+    #warrant-cancel-btn:hover { background: rgba(138,112,64,.12); }
+    #warrant-submit-btn {
+      font-family: 'Courier Prime', monospace; font-size: 9px;
+      letter-spacing: .2em; text-transform: uppercase;
+      background: #3a2000; border: 1px solid #3a2000; color: #f5eedf;
+      padding: 8px 18px; cursor: pointer; transition: all .2s;
+    }
+    #warrant-submit-btn:hover { background: #5a3010; }
+    #warrant-submit-btn:disabled { opacity: .4; cursor: not-allowed; }
+
+    /* Warrant granted notification */
+    #warrant-granted-overlay {
+      position: fixed; inset: 0; z-index: 2400;
+      background: rgba(4,2,1,.88); backdrop-filter: blur(8px);
+      display: flex; align-items: center; justify-content: center;
+      opacity: 0; pointer-events: none; transition: opacity .25s ease;
+    }
+    #warrant-granted-overlay.open { opacity: 1; pointer-events: all; }
+    #warrant-granted-modal {
+      background: #0a1a0a; border: 1px solid rgba(58,154,90,.4);
+      max-width: 440px; width: 88vw; padding: 28px 28px 22px;
+      display: flex; flex-direction: column; gap: 12px;
+      box-shadow: 0 0 60px rgba(58,154,90,.08);
+      transform: scale(.94); transition: transform .25s ease; text-align: center;
+    }
+    #warrant-granted-overlay.open #warrant-granted-modal { transform: scale(1); }
+    #wg-stamp {
+      font-size: 36px; display: block; margin-bottom: 4px;
+    }
+    #wg-title {
+      font-family: 'Courier Prime', monospace;
+      font-size: 12px; letter-spacing: .3em; text-transform: uppercase;
+      color: #3a9a5a; display: block; font-weight: 700;
+    }
+    #wg-ref {
+      font-family: 'Courier Prime', monospace;
+      font-size: 9px; letter-spacing: .2em; text-transform: uppercase;
+      color: rgba(58,154,90,.5); display: block;
+    }
+    #wg-body {
+      font-family: 'Courier Prime', monospace;
+      font-size: 10px; line-height: 1.7; color: rgba(200,230,210,.7);
+    }
+    #wg-close {
+      align-self: center; margin-top: 4px;
+      font-family: 'Courier Prime', monospace; font-size: 9px;
+      letter-spacing: .2em; text-transform: uppercase;
+      background: none; border: 1px solid rgba(58,154,90,.35);
+      color: rgba(58,154,90,.7); padding: 8px 22px;
+      cursor: pointer; transition: all .2s;
+    }
+    #wg-close:hover { background: rgba(58,154,90,.1); border-color: rgba(58,154,90,.6); }
   </style>
 </head>
 <body>
@@ -1000,6 +1154,52 @@
       </div>
     </div><!-- /dossier -->
     <span class="overlay-hint">Tap outside to close</span>
+  </div>
+
+  <!-- ── WARRANT APPLICATION MODAL ── -->
+  <div id="warrant-overlay">
+    <div id="warrant-modal">
+      <div id="warrant-modal-header">
+        <span id="warrant-header-seal">⚖</span>
+        <div id="warrant-header-text">
+          <span id="warrant-header-title">Merrehope Magistrates Court</span>
+          <span id="warrant-header-sub">Application for Arrest Warrant — Case COL-001-A</span>
+        </div>
+      </div>
+      <div id="warrant-modal-body">
+        <div id="warrant-subject-line">
+          <span id="warrant-subject-label">Subject of Application</span>
+          <span id="warrant-subject-name"></span>
+        </div>
+        <div>
+          <label class="warrant-field-label" for="warrant-reason">Grounds for Application — State your reasons for suspicion</label>
+          <textarea id="warrant-reason" placeholder="Describe the evidence and reasoning that leads you to suspect this individual of involvement in the death of Elias Voss..."></textarea>
+        </div>
+        <div>
+          <label class="warrant-field-label" for="warrant-evidence-select">Supporting Evidence — Select at least one logged item (hold Ctrl/Cmd for multiple)</label>
+          <select id="warrant-evidence-select" multiple></select>
+        </div>
+        <div id="warrant-validation-msg"></div>
+        <p id="warrant-legal-note">
+          Under <strong>Merrehope Criminal Procedure Act § 8(2)</strong>, an arrest warrant may only be issued where the applicant officer demonstrates reasonable grounds for suspicion, supported by at least one item of physical or forensic evidence. Warrants are reviewed by a duty magistrate and are non-revocable once issued. Misuse of the warrant process constitutes a disciplinary offence under <strong>MPD Regulation 44(c)</strong>.
+        </p>
+      </div>
+      <div id="warrant-modal-footer">
+        <button id="warrant-cancel-btn" onclick="closeWarrantModal()">Cancel Application</button>
+        <button id="warrant-submit-btn" onclick="submitWarrantApplication()">Submit to Magistrate →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── WARRANT GRANTED NOTIFICATION ── -->
+  <div id="warrant-granted-overlay">
+    <div id="warrant-granted-modal">
+      <span id="wg-stamp">🔏</span>
+      <span id="wg-title">Warrant Granted</span>
+      <span id="wg-ref" id="wg-ref-text"></span>
+      <p id="wg-body"></p>
+      <button id="wg-close" onclick="closeWarrantGranted()">Acknowledged</button>
+    </div>
   </div>
 
   <!-- ── STATUTE WARNING MODAL ── -->
@@ -1242,8 +1442,8 @@
         occupation: 'Night Maintenance — Kessler Warehouse District',
         gender: 'Male', age: '41', status: 'Cooperative',
         seen: 'Mar 07 2026',
-        role: 'witness',
-        stamp: 'WITNESS',
+        role: 'suspect',
+        stamp: 'SUSPECT',
         bio: 'Deko has worked the night shift in the warehouse district for six years. He is quiet, reliable, and keeps to himself. He found the bloodstained cloth fragment snagged on the chain-link fence during his morning walk-through on Mar 06 and immediately called it in.',
         connection: 'First person to report the cloth fragment — now logged as evidence COL-001-A-E04. Deko also reported seeing a vehicle consistent with Agnes Whittle\'s sketch in the area on the night of Mar 04, parked briefly before departing.',
         associates: ['Agnes Whittle (independently)']
@@ -1466,11 +1666,22 @@
 
       // Classification buttons — show allowed, grey out disallowed
       const allowed = TYPE_ALLOWED[char.role] || ['poi'];
+      const charHasWarrant = hasWarrant(char.id);
       document.querySelectorAll('.classify-btn').forEach(btn => {
         const btnRole = btn.dataset.role;
-        btn.classList.remove('selected','sel-suspect','sel-witness','sel-poi','sel-informant','not-allowed');
+        btn.classList.remove('selected','sel-suspect','sel-witness','sel-poi','sel-informant','not-allowed','warrant-required','warrant-granted');
+        btn.title = '';
         if (!allowed.includes(btnRole)) {
           btn.classList.add('not-allowed');
+        } else if (btnRole === 'suspect') {
+          if (charHasWarrant) {
+            btn.classList.add('warrant-granted');
+            const w = getWarrants()[char.id];
+            btn.title = 'Warrant granted — ' + (w ? w.ref : '');
+          } else {
+            btn.classList.add('warrant-required');
+            btn.title = 'Click to apply for an arrest warrant — required before designating as Suspect';
+          }
         }
         if (btnRole === activeRole) {
           btn.classList.add('selected', `sel-${activeRole}`);
@@ -1530,6 +1741,15 @@
       if (!currentCharId || !currentChar) return;
       const allowed = TYPE_ALLOWED[currentChar.role] || ['poi'];
       if (!allowed.includes(role)) return; // blocked
+
+      // Suspect classification requires a warrant
+      if (role === 'suspect') {
+        if (!hasWarrant(currentCharId)) {
+          openWarrantModal(currentCharId, currentChar.name);
+          return;
+        }
+        // Warrant already granted — fall through to apply classification
+      }
 
       localStorage.setItem(`col_classify_${currentCharId}`, role);
 
@@ -2491,12 +2711,182 @@
     // Close on Escape key
     document.addEventListener('keydown', e => {
       if (e.key === 'Escape') {
-        if (document.getElementById('statute-overlay').classList.contains('open'))               closeStatuteWarning();
+        if (document.getElementById('warrant-granted-overlay').classList.contains('open'))       closeWarrantGranted();
+        else if (document.getElementById('warrant-overlay').classList.contains('open'))          closeWarrantModal();
+        else if (document.getElementById('statute-overlay').classList.contains('open'))          closeStatuteWarning();
         else if (document.getElementById('already-interviewed-overlay').classList.contains('open')) closeAlreadyInterviewed();
         else if (document.getElementById('interview-overlay').classList.contains('open'))        closeInterview();
         else closeDossier();
       }
     });
+
+    /* ════════════════════════════════════════════════
+       WARRANT SYSTEM
+       col_warrants: { [charId]: { reason, evidenceIds, ref, grantedAt } }
+       A warrant must be granted before classifying anyone as Suspect.
+    ════════════════════════════════════════════════ */
+
+    function getWarrants() {
+      try { return JSON.parse(localStorage.getItem('col_warrants') || '{}'); }
+      catch { return {}; }
+    }
+    function hasWarrant(charId) { return !!getWarrants()[charId]; }
+
+    function openWarrantModal(charId, charName) {
+      // Populate subject name
+      document.getElementById('warrant-subject-name').textContent = charName + ' — COL-001-A';
+
+      // Populate evidence dropdown with all logged items
+      const sel = document.getElementById('warrant-evidence-select');
+      sel.innerHTML = '';
+      const status    = (() => { try { return JSON.parse(localStorage.getItem('col_evidence_status') || '{}'); } catch { return {}; } })();
+      const extraItems = (() => { try { return JSON.parse(localStorage.getItem('col_evidence_extra') || '[]'); } catch { return []; } })();
+
+      const EVIDENCE_LABELS = {
+        'COL-001-A-E01':'E01 — Monogrammed Cigarette Case',
+        'COL-001-A-E02':'E02 — Unsigned Threatening Letter',
+        'COL-001-A-E03':'E03 — Burner Mobile Phone',
+        'COL-001-A-E04':'E04 — Bloodstained Cloth Fragment',
+        'COL-001-A-E05':'E05 — Ledger (Handwritten Accounts)',
+        'COL-001-A-E06':'E06 — CCTV USB Drive',
+        'COL-001-A-E07':'E07 — Prescription Medicine Bottle',
+        'COL-001-A-E08':'E08 — Partial Boot Print Cast',
+        'COL-001-A-E09':'E09 — Partial Fingerprint (Cigarette Case)',
+        'COL-001-A-E10':'E10 — Saliva Trace (Cigarette Case)',
+        'COL-001-A-E11':'E11 — Tobacco Blend ID',
+        'COL-001-A-E12':'E12 — Typewriter Font Analysis',
+        'COL-001-A-E13':'E13 — Saliva Trace (Envelope)',
+        'COL-001-A-E14':'E14 — Partial Print (Letter)',
+        'COL-001-A-E15':'E15 — Recovered Photo Fragment',
+        'COL-001-A-E16':'E16 — IMEI Batch Trace',
+        'COL-001-A-E17':'E17 — Secondary Blood Profile (Cloth)',
+        'COL-001-A-E18':'E18 — Vehicle Fibre Sample',
+        'COL-001-A-E19':'E19 — Ink Dating Report (Ledger)',
+        'COL-001-A-E20':'E20 — Multi-Author Fingerprint Set',
+        'COL-001-A-E21':'E21 — Enhanced CCTV Still (Bay 7)',
+        'COL-001-A-E22':'E22 — USB Manufacture Trace',
+        'COL-001-A-E23':'E23 — DNA Profile (Medicine Bottle)',
+        'COL-001-A-E24':'E24 — Zopiclone Residue Analysis',
+        'COL-001-A-E25':'E25 — Soil Composition (Boot Print)',
+        'COL-001-A-E26':'E26 — Gait Analysis Report',
+        'COL-001-A-E27':'E27 — Post-Mortem Biological Sample',
+        'COL-001-A-E28':'E28 — Toxicology Full Panel',
+        'COL-001-A-FARC-A01':'FARC-A01 — Bar Receipt (Velvet Anchor)',
+        'COL-001-A-FARC-A02':'FARC-A02 — Velvet Anchor Access Log',
+        'COL-001-A-FARC-B01':'FARC-B01 — Whitmore Estate Visitor Log',
+        'COL-001-A-FARC-B02':'FARC-B02 — Brass Particulate Analysis',
+        'COL-001-A-FARC-C01':'FARC-C01 — Anonymous Tip (Two Figures)',
+      };
+
+      // Add logged base items
+      Object.entries(status).forEach(([id, st]) => {
+        if (st !== 'logged') return;
+        const label = EVIDENCE_LABELS[id] || id;
+        const opt = document.createElement('option');
+        opt.value = id; opt.textContent = label;
+        sel.appendChild(opt);
+      });
+      // Add logged extra items
+      extraItems.forEach(item => {
+        const itemStatus = status[item.id] || item.status;
+        if (itemStatus !== 'logged') return;
+        if (sel.querySelector(`option[value="${item.id}"]`)) return; // already added
+        const label = EVIDENCE_LABELS[item.id] || item.name || item.id;
+        const opt = document.createElement('option');
+        opt.value = item.id; opt.textContent = label;
+        sel.appendChild(opt);
+      });
+
+      // Clear previous inputs
+      document.getElementById('warrant-reason').value = '';
+      document.getElementById('warrant-evidence-select').selectedIndex = -1;
+      document.getElementById('warrant-validation-msg').textContent = '';
+      document.getElementById('warrant-submit-btn').disabled = false;
+
+      // Store charId for submission
+      document.getElementById('warrant-modal').dataset.charId = charId;
+      document.getElementById('warrant-modal').dataset.charName = charName;
+
+      document.getElementById('warrant-overlay').classList.add('open');
+    }
+
+    function closeWarrantModal() {
+      document.getElementById('warrant-overlay').classList.remove('open');
+    }
+
+    function submitWarrantApplication() {
+      const charId   = document.getElementById('warrant-modal').dataset.charId;
+      const charName = document.getElementById('warrant-modal').dataset.charName;
+      const reason   = document.getElementById('warrant-reason').value.trim();
+      const selEv    = Array.from(document.getElementById('warrant-evidence-select').selectedOptions).map(o => o.value);
+      const msgEl    = document.getElementById('warrant-validation-msg');
+
+      if (!reason || reason.length < 20) {
+        msgEl.textContent = '⚠ Please provide a substantive reason for suspicion (minimum 20 characters).';
+        return;
+      }
+      if (selEv.length === 0) {
+        msgEl.textContent = '⚠ You must attach at least one piece of logged evidence.';
+        return;
+      }
+
+      msgEl.textContent = '';
+      document.getElementById('warrant-submit-btn').disabled = true;
+
+      // Brief processing delay for immersion
+      setTimeout(() => {
+        closeWarrantModal();
+
+        // Issue the warrant
+        const ref = 'WRT-COL-001-A-' + String(Object.keys(getWarrants()).length + 1).padStart(3,'0');
+        const warrants = getWarrants();
+        warrants[charId] = { charName, reason, evidenceIds: selEv, ref, grantedAt: Date.now() };
+        localStorage.setItem('col_warrants', JSON.stringify(warrants));
+
+        // Now apply the suspect classification
+        localStorage.setItem('col_classify_' + charId, 'suspect');
+
+        // Update the dossier UI if this character is currently open
+        if (currentCharId === charId) {
+          // Update badge, stamp, button
+          const rc = ROLE_CONFIG['suspect'];
+          document.getElementById('dossier-role-badge').textContent = rc.label;
+          document.getElementById('dossier-role-badge').className = 'dossier-role-badge ' + rc.cls;
+          document.getElementById('dossier-stamp').textContent = 'SUSPECT';
+          document.querySelectorAll('.classify-btn').forEach(btn => {
+            btn.classList.remove('selected','sel-suspect','sel-witness','sel-poi','sel-informant','warrant-required','warrant-granted');
+            if (btn.dataset.role === 'suspect') {
+              btn.classList.add('selected','sel-suspect','warrant-granted');
+              btn.title = 'Warrant granted — ' + ref;
+            }
+          });
+          // Update interview button label
+          const iBtnEl = document.getElementById('interview-btn');
+          const iLbl   = document.getElementById('interview-btn-label');
+          if (!isInterviewDone(charId) && isInterviewUnlocked(charId)) {
+            iLbl.textContent = 'Conduct Interrogation';
+          }
+          // Update card in grid
+          const card = document.querySelector('.portrait-card[data-id="' + charId + '"]');
+          if (card) {
+            card.dataset.role = 'suspect';
+            const tag = card.querySelector('.portrait-role');
+            if (tag) { tag.textContent = rc.label; tag.className = 'portrait-role ' + rc.cls; }
+          }
+          showInteraction('suspect');
+        }
+
+        // Show granted notification
+        document.getElementById('wg-ref-text').textContent = 'Warrant Reference: ' + ref;
+        document.getElementById('wg-body').textContent =
+          'The duty magistrate has reviewed your application and is satisfied that reasonable grounds for suspicion exist. Arrest warrant ' + ref + ' has been issued for ' + charName + '. This warrant is now on record under case COL-001-A. You may now formally designate this individual as a Suspect and proceed with interrogation.';
+        document.getElementById('warrant-granted-overlay').classList.add('open');
+      }, 1400);
+    }
+
+    function closeWarrantGranted() {
+      document.getElementById('warrant-granted-overlay').classList.remove('open');
+    }
 
     /* ════════════════════════════════════════════════
        MUSIC RESUME
