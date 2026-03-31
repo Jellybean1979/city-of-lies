@@ -613,6 +613,9 @@
             <div class="form-field">
               <label class="field-label" for="f-accomplices">Name Any Accomplices</label>
               <span class="field-hint">Select all who assisted — hold Ctrl/Cmd to select multiple</span>
+              <p id="perp-warrant-warn" style="display:none;font-family:'Courier Prime',monospace;font-size:10px;letter-spacing:.08em;color:#c43030;margin:4px 0 0;line-height:1.5;">
+                ⚠ No arrest warrant on file for this individual. Return to Character Portraits and submit a warrant application before filing this report.
+              </p>
               <select class="field-select" id="f-accomplices" multiple style="height:90px;padding-right:8px;" onchange="updateCompletion()">
                 <option value="victor-marre">Victor Marre</option>
                 <option value="bowen-ashford">Bowen Ashford</option>
@@ -891,22 +894,42 @@
       { id:'evidence',      label:'Evidence' },
     ];
 
+    function getWarrants() {
+      try { return JSON.parse(localStorage.getItem('col_warrants') || '{}'); }
+      catch { return {}; }
+    }
+
     function updateCompletion() {
       let filled = 0;
       const dots = document.getElementById('completion-dots');
       dots.innerHTML = '';
+      const warrants = getWarrants();
 
       REQUIRED_FIELDS.forEach(f => {
         let done;
         if (f.id === 'evidence') {
           done = selectedEvidence.size > 0;
+        } else if (f.id === 'f-perpetrator') {
+          const val = document.getElementById(f.id)?.value;
+          // Perpetrator field requires a warrant to have been issued for that character
+          const warrantOk = val && warrants[val];
+          done = !!val && !!warrantOk;
+          // Show warning if selected but no warrant
+          const warnEl = document.getElementById('perp-warrant-warn');
+          if (warnEl) {
+            if (val && !warrantOk) {
+              warnEl.style.display = 'block';
+            } else {
+              warnEl.style.display = 'none';
+            }
+          }
         } else {
           done = !!document.getElementById(f.id)?.value;
         }
         if (done) filled++;
         const dot = document.createElement('div');
         dot.className = `cf-dot ${done ? 'done' : 'empty'}`;
-        dot.title = f.label;
+        dot.title = f.label + (f.id === 'f-perpetrator' && !done ? ' (warrant required)' : '');
         dots.appendChild(dot);
       });
 
