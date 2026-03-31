@@ -570,8 +570,8 @@
        STORY ARC SYSTEM — see arc data below
     ════════════════════════════════════════════════ */
     const ARC_DATA = {
-      A: { label:'The Weight of Debt', perpetrator:'raymond-cross', accomplices:['gerald-tench'], motive:'silencing', method:'poisoning', timeline:'after-2230', location:'velvet-anchor', keyEvidence:['COL-001-A-E02','COL-001-A-E05','COL-001-A-FARC-A01'] },
-      B: { label:'Old Money, New Sins', perpetrator:'bowen-ashford', accomplices:['priya-nair'], motive:'financial', method:'direct', timeline:'21-2130', location:'whitmore-estate', keyEvidence:['COL-001-A-E06','COL-001-A-E03','COL-001-A-FARC-B01'] },
+      A: { label:'The Weight of Debt', perpetrator:'raymond-cross', accomplices:['gerald-tench'], motive:'silencing', method:'poisoning', timeline:'after-2230', location:'velvet-anchor', keyEvidence:['COL-001-A-E02','COL-001-A-E05','COL-001-A-FARC-A01','COL-001-A-FARC-A02'] },
+      B: { label:'Old Money, New Sins', perpetrator:'bowen-ashford', accomplices:['priya-nair'], motive:'financial', method:'direct', timeline:'21-2130', location:'whitmore-estate', keyEvidence:['COL-001-A-E06','COL-001-A-E03','COL-001-A-FARC-B01','COL-001-A-FARC-B02'] },
       C: { label:"The Fixer's Bill", perpetrator:'deko-brannigan', accomplices:['agnes-whittle','priya-nair'], motive:'hired', method:'direct', timeline:'mar05-early', location:'harlow-alley', keyEvidence:['COL-001-A-E04','COL-001-A-E01','COL-001-A-FARC-C01'] },
     };
     function getActiveArc() { return ARC_DATA[localStorage.getItem('col_arc') || 'A'] || ARC_DATA['A']; }
@@ -1093,7 +1093,7 @@
         { label:'Motive',          score:scores.motiveScore,    hint:scores.motiveScore===100?'Correct':'Consider what the victim knew' },
         { label:'Method',          score:scores.methodScore,    hint:scores.methodScore===100?'Correct':'Review the delivery testimony and burner phone data' },
         { label:'Timeline',        score:scores.timelineScore,  hint:scores.timelineScore===100?'Correct':'Cross-reference CCTV timestamps with witness accounts' },
-        { label:'Location',        score:scores.locationScore,  hint:scores.locationScore===100?'Correct':'Physical evidence points to a specific scene' },
+        { label:'Location',        score:scores.locationScore,  hint:scores.locationScore===100?'Correct':'Check evidence for location clues — bar receipts, visitor logs, and witness testimony' },
         { label:'Evidence',        score:scores.evScore,        hint:`${scores.evScore}% of key evidence attached` },
         { label:'Case Readiness',  score:scores.readinessScore, hint:'Based on form completion, evidence logged, and items attached' },
       ];
