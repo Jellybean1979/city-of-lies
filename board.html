@@ -1812,6 +1812,64 @@
     }
     .pn-annotation textarea:focus { outline: none; border-color: rgba(168,131,46,.35); }
 
+
+    /* ════════════════════════════════════
+       CHEAT CODE RESPONSE PANEL
+    ════════════════════════════════════ */
+    #cheat-response {
+      margin-top: clamp(14px,2.5vh,22px);
+      border: 1px solid rgba(168,131,46,.35);
+      background: rgba(168,131,46,.05);
+      padding: clamp(12px,2vw,18px);
+      position: relative;
+      animation: cheatIn .3s ease;
+    }
+    @keyframes cheatIn {
+      from { opacity:0; transform:translateY(6px); }
+      to   { opacity:1; transform:none; }
+    }
+    #cheat-response-inner {
+      font-family: 'Courier Prime', monospace;
+      font-size: clamp(9px,1.1vw,11px);
+      line-height: 1.8;
+      color: rgba(200,175,130,.8);
+    }
+    #cheat-response-inner .cr-heading {
+      font-size: clamp(7px,.85vw,9px); letter-spacing: .35em;
+      text-transform: uppercase; color: rgba(168,131,46,.6);
+      display: block; margin-bottom: 8px;
+      border-bottom: 1px solid rgba(168,131,46,.15);
+      padding-bottom: 5px;
+    }
+    #cheat-response-inner .cr-label {
+      color: rgba(168,131,46,.55);
+      font-size: clamp(7px,.82vw,9px); letter-spacing: .25em;
+      text-transform: uppercase; min-width: 120px; display: inline-block;
+    }
+    #cheat-response-inner .cr-value {
+      color: var(--paper);
+    }
+    #cheat-response-inner .cr-value.cr-red    { color: #c43030; }
+    #cheat-response-inner .cr-value.cr-green  { color: #3a9a5a; }
+    #cheat-response-inner .cr-value.cr-amber  { color: #c47c1a; }
+    #cheat-response-inner .cr-value.cr-blue   { color: #4080c0; }
+    #cheat-response-inner .cr-row {
+      display: flex; gap: 10px; margin-bottom: 4px; flex-wrap: wrap;
+    }
+    #cheat-response-inner .cr-meter-confirm {
+      font-size: clamp(9px,1.1vw,11px); color: #3a9a5a;
+      border-left: 2px solid #3a9a5a; padding-left: 8px;
+      margin-top: 4px; display: block;
+    }
+    #cheat-dismiss {
+      position: absolute; top: 10px; right: 12px;
+      font-family: 'Courier Prime', monospace;
+      font-size: 9px; letter-spacing: .2em; text-transform: uppercase;
+      background: none; border: 1px solid rgba(168,131,46,.2);
+      color: rgba(168,131,46,.45); padding: 3px 8px;
+      cursor: pointer; transition: all .2s;
+    }
+    #cheat-dismiss:hover { border-color: rgba(168,131,46,.5); color: var(--amber); }
   </style>
 </head>
 <body>
@@ -2455,6 +2513,12 @@
               </div>
             </div>
           </div>
+
+          <!-- Cheat code response panel — hidden until triggered -->
+          <div id="cheat-response" style="display:none;">
+            <div id="cheat-response-inner"></div>
+            <button id="cheat-dismiss" onclick="dismissCheat()">✕ Dismiss</button>
+          </div>
         </div>
 
       </div><!-- /main -->
@@ -2746,6 +2810,224 @@
         saved.classList.add('show');
         setTimeout(() => saved.classList.remove('show'), 2000);
       }, 800);
+      // Check for cheat codes on every input
+      checkCheatCodes(area.value);
+    }
+
+    /* ════════════════════════════════════════════════
+       CHEAT CODES
+       Detected in real-time as player types in notes.
+       All comparisons are case-insensitive.
+       Arc data is read from col_arc localStorage key.
+    ════════════════════════════════════════════════ */
+
+    // Full arc definitions mirrored from journal.html
+    const CHEAT_ARC_DATA = {
+      A: {
+        label:       'The Weight of Debt',
+        perpetrator: 'Alderman Raymond Cross',
+        accomplices: ['Gerald Tench'],
+        motive:      'Silencing a witness — Elias Voss had evidence of the ledger payments',
+        method:      'Poisoning — zopiclone administered covertly, blunt force applied while incapacitated',
+        timeline:    'After 22:30 on Mar 04 2026',
+        location:    'The Velvet Anchor — private booth',
+        keyEvidence: ['COL-001-A-E02 — Threatening Letter', 'COL-001-A-E05 — Ledger', 'COL-001-A-E24 — Zopiclone Residue', 'COL-001-A-E28 — Toxicology Full Panel'],
+      },
+      B: {
+        label:       'Old Money, New Sins',
+        perpetrator: 'Officer Bowen Ashford',
+        accomplices: ['Priya Nair'],
+        motive:      'Financial gain — Voss had uncovered Ashford\'s embezzlement scheme',
+        method:      'Direct physical act — blunt force in the alley following confrontation',
+        timeline:    '21:00–21:30 on Mar 04 2026',
+        location:    'Harlow Street Alley — rear of The Blue Meridian',
+        keyEvidence: ['COL-001-A-E06 — CCTV USB Drive', 'COL-001-A-E03 — Burner Phone', 'COL-001-A-E21 — Enhanced CCTV Still'],
+      },
+      C: {
+        label:       "The Fixer\'s Bill",
+        perpetrator: 'Deko Brannigan',
+        accomplices: ['Agnes Whittle', 'Priya Nair'],
+        motive:      'Hired contract — Brannigan was engaged to ensure Voss could not testify',
+        method:      'Hired third party — victim sedated first, then struck by Brannigan on instruction',
+        timeline:    'Early hours of Mar 05 2026',
+        location:    'Harlow Street Alley',
+        keyEvidence: ['COL-001-A-E04 — Bloodstained Cloth', 'COL-001-A-E01 — Cigarette Case', 'COL-001-A-E28 — Toxicology Full Panel'],
+      },
+    };
+
+    function getCheatArc() {
+      return CHEAT_ARC_DATA[localStorage.getItem('col_arc') || 'A'] || CHEAT_ARC_DATA['A'];
+    }
+
+    function getCheatSave() {
+      try { return JSON.parse(localStorage.getItem('col_save') || '{}'); }
+      catch { return {}; }
+    }
+
+    function setMeter(key, value) {
+      const save = getCheatSave();
+      save[key] = value;
+      localStorage.setItem('col_save', JSON.stringify(save));
+    }
+
+    function row(label, value, cls) {
+      return `<div class="cr-row"><span class="cr-label">${label}</span><span class="cr-value ${cls||''}">${value}</span></div>`;
+    }
+
+    function showCheat(heading, html) {
+      const panel = document.getElementById('cheat-response');
+      const inner = document.getElementById('cheat-response-inner');
+      inner.innerHTML = `<span class="cr-heading">${heading}</span>${html}`;
+      panel.style.display = 'block';
+      // Scroll panel into view
+      panel.scrollIntoView({ behavior:'smooth', block:'nearest' });
+    }
+
+    function dismissCheat() {
+      document.getElementById('cheat-response').style.display = 'none';
+    }
+
+    let _lastCheatCode = '';
+
+    function checkCheatCodes(text) {
+      const t = text.toLowerCase().trim();
+      // Only fire once per unique code — don't spam on every keystroke
+      if (t === _lastCheatCode) return;
+
+      const arc = getCheatArc();
+
+      // ── "story arc" — reveal arc name ──
+      if (t === 'story arc') {
+        _lastCheatCode = t;
+        showCheat('Active Story Arc',
+          row('Arc', localStorage.getItem('col_arc') || 'A', 'cr-amber') +
+          row('Title', arc.label, 'cr-amber')
+        );
+        return;
+      }
+
+      // ── "i give up" — reveal everything ──
+      if (t === 'i give up') {
+        _lastCheatCode = t;
+        showCheat('Full Solution — Case COL-001-A',
+          row('Perpetrator',  arc.perpetrator, 'cr-red') +
+          row('Accomplices',  arc.accomplices.join(', '), 'cr-red') +
+          row('Motive',       arc.motive, 'cr-amber') +
+          row('Method',       arc.method, 'cr-amber') +
+          row('Time Window',  arc.timeline, 'cr-blue') +
+          row('Location',     arc.location, 'cr-blue') +
+          row('Key Evidence', arc.keyEvidence.join(' · '), 'cr-green')
+        );
+        return;
+      }
+
+      // ── "i don't know who it is" — reveal suspect ──
+      if (t === "i don't know who it is" || t === "i dont know who it is") {
+        _lastCheatCode = t;
+        showCheat('Suspect Revealed',
+          row('Primary Suspect', arc.perpetrator, 'cr-red')
+        );
+        return;
+      }
+
+      // ── "i don't know when" — reveal time window ──
+      if (t === "i don't know when" || t === "i dont know when") {
+        _lastCheatCode = t;
+        showCheat('Time Window Revealed',
+          row('Estimated Window', arc.timeline, 'cr-blue')
+        );
+        return;
+      }
+
+      // ── "show me the evidence" — reveal key evidence ──
+      if (t === 'show me the evidence') {
+        _lastCheatCode = t;
+        showCheat('Key Evidence Revealed',
+          arc.keyEvidence.map(e => row('Evidence', e, 'cr-green')).join('')
+        );
+        return;
+      }
+
+      // ── "who are my friends" — reveal accomplices ──
+      if (t === 'who are my friends') {
+        _lastCheatCode = t;
+        showCheat('Accomplices Revealed',
+          arc.accomplices.map(a => row('Accomplice', a, 'cr-red')).join('')
+        );
+        return;
+      }
+
+      // ── Meter cheats ──────────────────────────────
+
+      // "big boss" — influence 100
+      if (t === 'big boss') {
+        _lastCheatCode = t;
+        setMeter('influence', 100);
+        showCheat('Meter Override',
+          row('Influence', '100 — Beyond Redemption', 'cr-red') +
+          '<span class="cr-meter-confirm">✓ Influence set to 100. Changes take effect on next interview.</span>'
+        );
+        return;
+      }
+
+      // "little dick" — influence 0
+      if (t === 'little dick') {
+        _lastCheatCode = t;
+        setMeter('influence', 0);
+        showCheat('Meter Override',
+          row('Influence', '0 — Untested', 'cr-green') +
+          '<span class="cr-meter-confirm">✓ Influence set to 0. Changes take effect on next interview.</span>'
+        );
+        return;
+      }
+
+      // "corrupt" — city corruption 100
+      if (t === 'corrupt') {
+        _lastCheatCode = t;
+        setMeter('cityCorrupt', 100);
+        showCheat('Meter Override',
+          row('City Corruption', '100 — Collapsed', 'cr-red') +
+          '<span class="cr-meter-confirm">✓ City Corruption set to 100. Changes take effect on next interview.</span>'
+        );
+        return;
+      }
+
+      // "batman" — city corruption 0
+      if (t === 'batman') {
+        _lastCheatCode = t;
+        setMeter('cityCorrupt', 0);
+        showCheat('Meter Override',
+          row('City Corruption', '0 — Fragile Peace', 'cr-green') +
+          '<span class="cr-meter-confirm">✓ City Corruption set to 0. Changes take effect on next interview.</span>'
+        );
+        return;
+      }
+
+      // "kingpin" — street credibility 100
+      // streetCred is stored as (100 - cityCorrupt), so set cityCorrupt to 0
+      if (t === 'kingpin') {
+        _lastCheatCode = t;
+        setMeter('streetCred', 100);
+        showCheat('Meter Override',
+          row('Street Credibility', '100 — Legend', 'cr-red') +
+          '<span class="cr-meter-confirm">✓ Street Credibility set to 100. Changes take effect on next interview.</span>'
+        );
+        return;
+      }
+
+      // "delany" — street credibility 0
+      if (t === 'delany') {
+        _lastCheatCode = t;
+        setMeter('streetCred', 0);
+        showCheat('Meter Override',
+          row('Street Credibility', '0 — Ghost', '') +
+          '<span class="cr-meter-confirm">✓ Street Credibility set to 0. Changes take effect on next interview.</span>'
+        );
+        return;
+      }
+
+      // No match — reset tracker so same code can re-trigger after dismiss
+      _lastCheatCode = '';
     }
 
     function updateCharCount(n) {
