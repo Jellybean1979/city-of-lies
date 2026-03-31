@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -1232,8 +1231,32 @@
     }
     .sum-item::before { content:'·'; color:var(--amber); flex-shrink:0; margin-top:1px; }
     .sum-item.open-q::before { content:'?'; color:var(--red-lit); }
-    .sum-item.lead-done::before { content:'✓'; color:var(--green-lit); }
-    .sum-item.lead-open::before { content:'◦'; color:var(--paper-dim); }
+    .sum-item.open-q::before      { content:'?'; color:var(--amber); font-weight:700; }
+    .sum-item.resolved-q::before  { content:'✓'; color:var(--green-lit); }
+    .sum-item.resolved-q { opacity:.5; }
+    .sum-item.lead-done::before   { content:'✓'; color:var(--green-lit); }
+    .sum-item.lead-open::before   { content:'◦'; color:var(--paper-dim); }
+    .oq-action {
+      font-family: 'Courier Prime', monospace;
+      font-size: clamp(7px,.82vw,9px); letter-spacing:.18em;
+      text-transform: uppercase; color: rgba(168,131,46,.55);
+      display: block; margin: 2px 0 8px clamp(14px,2vw,20px);
+      border-left: 1px solid rgba(168,131,46,.2); padding-left: 7px;
+    }
+    .oq-next-up {
+      border: 1px solid rgba(168,131,46,.3);
+      background: rgba(168,131,46,.04);
+      padding: clamp(8px,1.4vw,12px); margin-bottom: clamp(10px,1.8vh,14px);
+    }
+    .oq-next-up .sum-item { font-weight: 600; color: var(--paper); }
+    .oq-next-label {
+      font-family: 'Courier Prime', monospace;
+      font-size: clamp(6px,.75vw,8px); letter-spacing:.35em;
+      text-transform: uppercase; color: var(--amber);
+      display: block; margin-bottom: 5px;
+    }
+    .sum-item.lead-locked::before { content:'⊘'; color:rgba(168,131,46,.25); }
+    .sum-item.lead-locked { opacity:.45; font-style:italic; }
 
     /* Progress bar */
     .progress-wrap {
@@ -2462,27 +2485,17 @@
               <div class="sum-item">Burner phone recovered from canal drain</div>
               <div class="sum-item">Prescription bottle belongs to Elara Voss</div>
             </div>
-            <div class="summary-block">
-              <span class="sum-block-title">Open Questions</span>
-              <div class="sum-item open-q">Who sent the threatening letter?</div>
-              <div class="sum-item open-q">What is on the burner phone?</div>
-              <div class="sum-item open-q">What is Elara Voss's connection to the victim?</div>
-              <div class="sum-item open-q">What does the ledger's coded entries refer to?</div>
-              <div class="sum-item open-q">Who is the figure on the CCTV footage?</div>
+            <div class="summary-block" id="sum-open-questions-block" style="grid-column:1/-1;">
+              <span class="sum-block-title">Active Investigation — Open Questions</span>
+              <div id="sum-open-questions"></div>
             </div>
-            <div class="summary-block">
+            <div class="summary-block" id="sum-leads-followed-block">
               <span class="sum-block-title">Leads Followed</span>
-              <div class="sum-item lead-done">Crime scene processed — 8 items logged</div>
-              <div class="sum-item lead-done">Victor Marre's office searched</div>
-              <div class="sum-item lead-done">Canal drain sweep completed</div>
+              <div id="sum-leads-followed"></div>
             </div>
-            <div class="summary-block">
+            <div class="summary-block" id="sum-leads-remaining-block">
               <span class="sum-block-title">Leads Remaining</span>
-              <div class="sum-item lead-open">Analyse burner phone memory</div>
-              <div class="sum-item lead-open">Interview Elara Voss</div>
-              <div class="sum-item lead-open">Decode ledger entries</div>
-              <div class="sum-item lead-open">Enhance CCTV footage from Harbour Authority</div>
-              <div class="sum-item lead-open">Typewriter font analysis on threatening letter</div>
+              <div id="sum-leads-remaining"></div>
             </div>
           </div>
         </div>
@@ -2719,6 +2732,9 @@
       }
 
       // Build new panels on open
+      if (id === 'panel-summary') {
+        buildCaseSummary();
+      }
       if (id === 'panel-timeline') {
         buildTimeline();
       }
@@ -2787,6 +2803,536 @@
     /* ════════════════════════════
        THEORY BUILDER
     ════════════════════════════ */
+    /* ════════════════════════════════════════════════
+       CASE SUMMARY — Dynamic Leads
+       Reads all available localStorage state and sorts
+       every defined lead into Followed or Remaining.
+    ════════════════════════════════════════════════ */
+
+    const ALL_LEADS = [
+      // ── Evidence collection ──────────────────────────────────────────
+      {
+        id:    'ev-E01-logged',
+        label: 'Monogrammed Cigarette Case (E01) — submit to a forensic lab',
+        check: s => s.status['COL-001-A-E01'] === 'logged' || s.hasExtra('COL-001-A-E09') || s.hasExtra('COL-001-A-E10') || s.hasExtra('COL-001-A-E11'),
+        doneLabel: 'Cigarette Case (E01) — lab analysis complete',
+      },
+      {
+        id:    'ev-E02-logged',
+        label: 'Threatening Letter (E02) — submit to a forensic lab',
+        check: s => s.status['COL-001-A-E02'] === 'logged' || s.hasExtra('COL-001-A-E12') || s.hasExtra('COL-001-A-E13') || s.hasExtra('COL-001-A-E14'),
+        doneLabel: 'Threatening Letter (E02) — lab analysis complete',
+      },
+      {
+        id:    'ev-E03-lab',
+        label: 'Burner Phone (E03) — submit to Digital & Multimedia Lab',
+        check: s => s.hasExtra('COL-001-A-E15') || s.hasExtra('COL-001-A-E16'),
+        doneLabel: 'Burner Phone (E03) — digital analysis complete',
+      },
+      {
+        id:    'ev-E04-lab',
+        label: 'Bloodstained Cloth (E04) — submit to DNA & Trace labs',
+        check: s => s.hasExtra('COL-001-A-E17') || s.hasExtra('COL-001-A-E18'),
+        doneLabel: 'Bloodstained Cloth (E04) — DNA & fibre analysis complete',
+      },
+      {
+        id:    'ev-E05-lab',
+        label: 'Ledger (E05) — submit to Document Analysis & Latent Print labs',
+        check: s => s.hasExtra('COL-001-A-E19') || s.hasExtra('COL-001-A-E20'),
+        doneLabel: 'Ledger (E05) — document & fingerprint analysis complete',
+      },
+      {
+        id:    'ev-E06-lab',
+        label: 'CCTV USB Drive (E06) — submit to Digital & Multimedia Lab',
+        check: s => s.hasExtra('COL-001-A-E21') || s.hasExtra('COL-001-A-E22'),
+        doneLabel: 'CCTV USB Drive (E06) — video enhancement & USB trace complete',
+      },
+      {
+        id:    'ev-E07-lab',
+        label: 'Prescription Bottle (E07) — submit to DNA & Toxicology labs',
+        check: s => s.hasExtra('COL-001-A-E23') || s.hasExtra('COL-001-A-E24'),
+        doneLabel: 'Prescription Bottle (E07) — DNA profile & zopiclone residue confirmed',
+      },
+      {
+        id:    'ev-E08-lab',
+        label: 'Boot Print Cast (E08) — submit to Trace & Anthropology labs',
+        check: s => s.hasExtra('COL-001-A-E25') || s.hasExtra('COL-001-A-E26'),
+        doneLabel: 'Boot Print Cast (E08) — soil composition & gait analysis complete',
+      },
+      // ── Post-mortem tox panel ────────────────────────────────────────
+      {
+        id:    'ev-E27-available',
+        label: 'Post-Mortem Sample (E27) — check Evidence Locker when available',
+        check: s => s.status['COL-001-A-E27'] !== undefined,
+        doneLabel: 'Post-Mortem Biological Sample (E27) — collected from mortuary',
+        hidden: s => s.status['COL-001-A-E27'] !== undefined, // hide from remaining once available
+      },
+      {
+        id:    'ev-E28-lab',
+        label: 'Post-Mortem Sample (E27) — submit to Forensic Toxicology Lab for full panel',
+        check: s => s.hasExtra('COL-001-A-E28') || s.status['COL-001-A-E28'] === 'logged',
+        doneLabel: 'Toxicology Full Panel (E28) — victim tox results confirmed',
+        prereq: s => s.status['COL-001-A-E27'] !== undefined,
+      },
+      // ── Coroner report ───────────────────────────────────────────────
+      {
+        id:    'coroner-ready',
+        label: 'Coroner\'s Report — awaiting post-mortem examination',
+        check: s => s.coronerReady,
+        doneLabel: 'Coroner\'s Report (PME-COL-001-A-001) — post-mortem filed',
+      },
+      // ── CCTV review ──────────────────────────────────────────────────
+      {
+        id:    'cctv-reviewed',
+        label: 'CCTV footage — review all four surveillance recordings',
+        check: s => s.cctvAllViewed,
+        doneLabel: 'CCTV footage — all four recordings reviewed',
+      },
+      // ── Interviews ──────────────────────────────────────────────────
+      {
+        id:    'int-city-councilman',
+        label: 'Alderman Raymond Cross — obtain evidence E05 (Ledger) then conduct interrogation',
+        check: s => s.interviewed('city-councilman'),
+        doneLabel: 'Alderman Raymond Cross — interrogation on record',
+        prereq: s => s.status['COL-001-A-E05'] === 'logged',
+      },
+      {
+        id:    'int-security-guard',
+        label: 'Officer Bowen Ashford — obtain evidence E06 (CCTV USB) then conduct interrogation',
+        check: s => s.interviewed('security-guard'),
+        doneLabel: 'Officer Bowen Ashford — interrogation on record',
+        prereq: s => s.status['COL-001-A-E06'] === 'logged',
+      },
+      {
+        id:    'int-female-undercover-detective',
+        label: 'Det. Sylvia Okafor (Internal Affairs) — obtain E21 (Enhanced CCTV Still) then interview',
+        check: s => s.interviewed('female-undercover-detective'),
+        doneLabel: 'Det. Sylvia Okafor — interview on record',
+        prereq: s => s.hasExtra('COL-001-A-E21'),
+      },
+      {
+        id:    'int-er-doctor',
+        label: 'Dr. Lena Hale — interview regarding suppressed incident report',
+        check: s => s.interviewed('er-doctor'),
+        doneLabel: 'Dr. Lena Hale — interview on record',
+      },
+      {
+        id:    'int-it-specialist',
+        label: 'Felix Rourke (IT) — obtain E06 (CCTV USB) then interview regarding access anomalies',
+        check: s => s.interviewed('it-specialist'),
+        doneLabel: 'Felix Rourke — interview on record',
+        prereq: s => s.status['COL-001-A-E06'] === 'logged',
+      },
+      {
+        id:    'int-female-corporate-executive',
+        label: 'Diana Whitmore — obtain E05 (Ledger) then interview regarding wire transfers',
+        check: s => s.interviewed('female-corporate-executive'),
+        doneLabel: 'Diana Whitmore — interview on record',
+        prereq: s => s.status['COL-001-A-E05'] === 'logged',
+      },
+      {
+        id:    'int-maintenance-worker',
+        label: 'Hector Crane — obtain E07 (Prescription Bottle) then interview',
+        check: s => s.interviewed('maintenance-worker'),
+        doneLabel: 'Hector Crane — interview on record',
+        prereq: s => s.status['COL-001-A-E07'] === 'logged',
+      },
+      {
+        id:    'int-maintenance-worker-2',
+        label: 'Deko Brannigan — obtain E04 (Bloodstained Cloth) then interview',
+        check: s => s.interviewed('maintenance-worker-2'),
+        doneLabel: 'Deko Brannigan — interview on record',
+        prereq: s => s.status['COL-001-A-E04'] === 'logged',
+      },
+      {
+        id:    'int-female-bar-worker',
+        label: 'Cass Delany — interview regarding events at The Blue Meridian',
+        check: s => s.interviewed('female-bar-worker'),
+        doneLabel: 'Cass Delany — interview on record',
+      },
+      {
+        id:    'int-female-elderly-woman',
+        label: 'Dorothy Marne — interview regarding the victim',
+        check: s => s.interviewed('female-elderly-woman'),
+        doneLabel: 'Dorothy Marne — interview on record',
+      },
+      {
+        id:    'int-female-elderly-woman-2',
+        label: 'Agnes Whittle — interview regarding the vehicle sighting',
+        check: s => s.interviewed('female-elderly-woman-2'),
+        doneLabel: 'Agnes Whittle — interview on record',
+      },
+      {
+        id:    'int-female-social-worker',
+        label: 'Tomoe Nakashima — interview regarding the victim\'s case history',
+        check: s => s.interviewed('female-social-worker'),
+        doneLabel: 'Tomoe Nakashima — interview on record',
+      },
+      {
+        id:    'int-office-worker',
+        label: 'Patrick Dunn — obtain E05 (Ledger) then interview',
+        check: s => s.interviewed('office-worker'),
+        doneLabel: 'Patrick Dunn — interview on record',
+        prereq: s => s.status['COL-001-A-E05'] === 'logged',
+      },
+      {
+        id:    'int-offixe-worker-2',
+        label: 'Gerald Tench — obtain E05 (Ledger) then interview regarding financial irregularities',
+        check: s => s.interviewed('offixe-worker-2'),
+        doneLabel: 'Gerald Tench — interview on record',
+        prereq: s => s.status['COL-001-A-E05'] === 'logged',
+      },
+      {
+        id:    'int-female-data-analyst',
+        label: 'Priya Nair — interview regarding the USB data anomaly',
+        check: s => s.interviewed('female-data-analyst'),
+        doneLabel: 'Priya Nair — interview on record',
+      },
+      {
+        id:    'int-graffiti-artist',
+        label: 'Reno — interview regarding the night of Mar 04',
+        check: s => s.interviewed('graffiti-artist'),
+        doneLabel: 'Reno — interview on record',
+      },
+      {
+        id:    'int-street-level-informant',
+        label: 'Patch — interview regarding the vehicle and street activity',
+        check: s => s.interviewed('street-level-informant'),
+        doneLabel: 'Patch — interview on record',
+      },
+      {
+        id:    'int-street-level-informant-2',
+        label: 'Two-Stop — obtain E03 (Burner Phone) then interview',
+        check: s => s.interviewed('street-level-informant-2'),
+        doneLabel: 'Two-Stop — interview on record',
+        prereq: s => s.status['COL-001-A-E03'] === 'logged',
+      },
+      {
+        id:    'int-female-socialite',
+        label: 'Isabelle Fontaine — obtain E05 (Ledger) then interview regarding Marre connection',
+        check: s => s.interviewed('female-socialite'),
+        doneLabel: 'Isabelle Fontaine — interview on record',
+        prereq: s => s.status['COL-001-A-E05'] === 'logged',
+      },
+      // ── Final report ─────────────────────────────────────────────────
+      {
+        id:    'report-filed',
+        label: 'File the Final Report — name the perpetrator and close the case',
+        check: s => s.reportFiled,
+        doneLabel: 'Final Report filed — case submitted for verdict',
+      },
+    ];
+
+    /* ════════════════════════════════════════════════
+       OPEN QUESTIONS — Arc-dependent progressive guide
+       Each question has:
+         arcs:         'all' | ['A','B','C'] subset
+         text:         question string
+         action:       one-line instruction for what to do next
+         prereq(s):    only surface when this state is true
+         resolved(s):  ticks off when this state is true
+         resolvedText: short confirmation shown when answered
+         priority:     lower = shown first
+    ════════════════════════════════════════════════ */
+    const OPEN_QUESTIONS = [
+
+      // ── UNIVERSAL — always present ──────────────────────────────────
+      {
+        id: 'oq-cause-of-death',
+        arcs: 'all', priority: 1,
+        text: 'How exactly did Elias Voss die — and was he incapacitated before the fatal blow?',
+        action: '→ Read the Coroner\'s Report in the Documents panel. Then check for the Post-Mortem Biological Sample in the Evidence Locker and submit it to the Toxicology Lab.',
+        prereq: s => true,
+        resolved: s => s.coronerReady && (s.hasExtra('COL-001-A-E28') || s.status['COL-001-A-E28'] === 'logged'),
+        resolvedText: 'Cause of death confirmed. Toxicology panel has established the full picture.',
+      },
+      {
+        id: 'oq-cctv-figure',
+        arcs: 'all', priority: 2,
+        text: 'Who is the unidentified figure in the Bay 7 CCTV footage at 21:48 — and why does their presence matter?',
+        action: '→ Submit the CCTV USB Drive (E06) to the Digital & Multimedia Lab. Once E21 returns, interview Det. Okafor in Character Portraits.',
+        prereq: s => s.status['COL-001-A-E06'] !== undefined,
+        resolved: s => s.hasExtra('COL-001-A-E21') && s.interviewed('female-undercover-detective'),
+        resolvedText: 'Bay 7 figure identified. Internal Affairs connection is now on record.',
+      },
+      {
+        id: 'oq-final',
+        arcs: 'all', priority: 10,
+        text: 'Who killed Elias Voss — and do you have enough evidence to prove it?',
+        action: '→ When your key evidence is logged and key interviews are complete, file the Final Report.',
+        prereq: s => s.interviewCount >= 4 || s.loggedCount >= 6,
+        resolved: s => s.reportFiled,
+        resolvedText: 'Final Report filed. The case has been submitted for verdict.',
+      },
+
+      // ── ARC A — The Weight of Debt ──────────────────────────────────
+      {
+        id: 'oq-a-ledger',
+        arcs: ['A'], priority: 3,
+        text: 'Who are the individuals behind the coded \'R.C./Fvr\' ledger entries — and what did they need Voss silenced for?',
+        action: '→ Submit the Ledger (E05) to the Document Analysis Lab and Latent Print Lab. Then interrogate Alderman Cross in Character Portraits.',
+        prereq: s => s.status['COL-001-A-E05'] !== undefined,
+        resolved: s => (s.hasExtra('COL-001-A-E19') || s.hasExtra('COL-001-A-E20')) && s.interviewed('city-councilman'),
+        resolvedText: 'Ledger recipients identified. Cross has been interrogated and his account is on record.',
+      },
+      {
+        id: 'oq-a-zopiclone',
+        arcs: ['A'], priority: 4,
+        text: 'Was the zopiclone in Elara Voss\'s prescription bottle used deliberately against the victim — and is there evidence of it in his system?',
+        action: '→ Submit E07 to the Toxicology Lab to confirm residue. Then submit the Post-Mortem Sample (E27) once it appears in the Evidence Locker.',
+        prereq: s => s.status['COL-001-A-E07'] !== undefined,
+        resolved: s => s.hasExtra('COL-001-A-E24') && (s.hasExtra('COL-001-A-E28') || s.status['COL-001-A-E28'] === 'logged'),
+        resolvedText: 'Zopiclone confirmed in victim\'s system. Method of incapacitation established.',
+      },
+      {
+        id: 'oq-a-tench',
+        arcs: ['A'], priority: 5,
+        text: 'What is Gerald Tench\'s financial role in the Whitmore–Marre arrangement — and how deep does his knowledge go?',
+        action: '→ Log the Ledger (E05) first, then interview Gerald Tench in Character Portraits.',
+        prereq: s => s.status['COL-001-A-E05'] !== undefined,
+        resolved: s => s.interviewed('offixe-worker-2'),
+        resolvedText: 'Tench\'s account of the financial irregularities is now on record.',
+      },
+      {
+        id: 'oq-a-letter',
+        arcs: ['A'], priority: 6,
+        text: 'Who typed the threatening letter — and what machine does the typeface analysis point to?',
+        action: '→ Submit the Threatening Letter (E02) to the Document Analysis Lab and DNA Lab.',
+        prereq: s => s.status['COL-001-A-E02'] !== undefined,
+        resolved: s => s.hasExtra('COL-001-A-E12') || s.hasExtra('COL-001-A-E13'),
+        resolvedText: 'Typewriter analysis returned. The machine signature has been identified.',
+      },
+
+      // ── ARC B — Old Money, New Sins ─────────────────────────────────
+      {
+        id: 'oq-b-ashford',
+        arcs: ['B'], priority: 3,
+        text: 'Why were Bowen Ashford\'s credentials used to delete three minutes of Bay 7 footage — and what was he concealing?',
+        action: '→ Submit the CCTV USB (E06) to the Digital Lab. Once results are back, interrogate Officer Ashford in Character Portraits.',
+        prereq: s => s.status['COL-001-A-E06'] !== undefined,
+        resolved: s => s.hasExtra('COL-001-A-E21') && s.interviewed('security-guard'),
+        resolvedText: 'Ashford has been interrogated. His account regarding the footage deletion is on record.',
+      },
+      {
+        id: 'oq-b-burner',
+        arcs: ['B'], priority: 4,
+        text: 'What was the burner phone doing near Harlow Street at 21:09 — forty minutes before the estimated incident window?',
+        action: '→ Submit the Burner Phone (E03) to the Digital & Multimedia Lab. Review the cell tower metadata on the board.',
+        prereq: s => s.status['COL-001-A-E03'] !== undefined,
+        resolved: s => s.hasExtra('COL-001-A-E15') || s.hasExtra('COL-001-A-E16'),
+        resolvedText: 'Digital analysis of the burner phone has returned. Early presence at the scene is confirmed.',
+      },
+      {
+        id: 'oq-b-motive',
+        arcs: ['B'], priority: 5,
+        text: 'What financial connection between Ashford and the victim provided the motive — and who else knew about it?',
+        action: '→ After interrogating Ashford, interview Priya Nair in Character Portraits.',
+        prereq: s => s.interviewed('security-guard'),
+        resolved: s => s.interviewed('female-data-analyst') && s.interviewed('security-guard'),
+        resolvedText: 'Financial motive established. Nair\'s supporting role is on record.',
+      },
+      {
+        id: 'oq-b-letter',
+        arcs: ['B'], priority: 6,
+        text: 'Who sent the threatening letter to Voss — and does the typeface or DNA connect it to the perpetrator?',
+        action: '→ Submit the Threatening Letter (E02) to the Document Analysis Lab and DNA Lab.',
+        prereq: s => s.status['COL-001-A-E02'] !== undefined,
+        resolved: s => s.hasExtra('COL-001-A-E12') && s.hasExtra('COL-001-A-E13'),
+        resolvedText: 'Document and DNA analysis complete. Letter origin has been established.',
+      },
+
+      // ── ARC C — The Fixer\'s Bill ────────────────────────────────────
+      {
+        id: 'oq-c-cloth',
+        arcs: ['C'], priority: 3,
+        text: 'What does the bloodstained cloth establish about who was physically present at the scene — and what vehicle were they in?',
+        action: '→ Submit the Bloodstained Cloth (E04) to the DNA Lab and Trace Evidence Lab. Interview Deko Brannigan once E04 is logged.',
+        prereq: s => s.status['COL-001-A-E04'] !== undefined,
+        resolved: s => (s.hasExtra('COL-001-A-E17') || s.hasExtra('COL-001-A-E18')) && s.interviewed('maintenance-worker-2'),
+        resolvedText: 'DNA and fibre analysis returned. Brannigan has been interviewed.',
+      },
+      {
+        id: 'oq-c-hired',
+        arcs: ['C'], priority: 4,
+        text: 'Who contracted the assailant — and what was their stake in ensuring Voss could not testify?',
+        action: '→ Interview Agnes Whittle and Deko Brannigan in Character Portraits. Review the vehicle metadata and boot print analysis.',
+        prereq: s => s.status['COL-001-A-E04'] !== undefined || s.status['COL-001-A-E08'] !== undefined,
+        resolved: s => s.interviewed('maintenance-worker-2') && s.interviewed('female-elderly-woman-2'),
+        resolvedText: 'The contract arrangement and its principals have been established through testimony.',
+      },
+      {
+        id: 'oq-c-sedation',
+        arcs: ['C'], priority: 5,
+        text: 'Was Voss sedated before the fatal blow — confirming this was a coordinated two-person operation rather than a single attacker?',
+        action: '→ Submit E07 to the Toxicology Lab to establish residue, then submit the Post-Mortem Sample (E27) once available.',
+        prereq: s => s.status['COL-001-A-E07'] !== undefined,
+        resolved: s => s.hasExtra('COL-001-A-E28') || s.status['COL-001-A-E28'] === 'logged',
+        resolvedText: 'Tox panel confirms deliberate sedation. Two-person operation is now evidentially supported.',
+      },
+      {
+        id: 'oq-c-bootprint',
+        arcs: ['C'], priority: 6,
+        text: 'Whose boot print was left in the muddy lot — and does the gait analysis eliminate or identify any known suspect?',
+        action: '→ Submit the Boot Print Cast (E08) to the Trace Evidence Lab and Forensic Anthropology Lab.',
+        prereq: s => s.status['COL-001-A-E08'] !== undefined,
+        resolved: s => s.hasExtra('COL-001-A-E25') || s.hasExtra('COL-001-A-E26'),
+        resolvedText: 'Gait and soil analysis returned. Physical profile of the attacker has been established.',
+      },
+    ];
+
+    function buildOpenQuestions() {
+      const el = document.getElementById('sum-open-questions');
+      if (!el) return;
+
+      const arc = localStorage.getItem('col_arc') || 'A';
+      const evStatus   = (() => { try { return JSON.parse(localStorage.getItem('col_evidence_status') || '{}'); } catch { return {}; } })();
+      const extraItems = (() => { try { return JSON.parse(localStorage.getItem('col_evidence_extra')  || '[]'); } catch { return []; } })();
+      const donelist   = (() => { try { return JSON.parse(localStorage.getItem('col_interview_done')  || '[]'); } catch { return []; } })();
+      const extraIds   = new Set(extraItems.map(e => e.id));
+
+      const state = {
+        status:       evStatus,
+        hasExtra:     id => extraIds.has(id) || evStatus[id] === 'logged',
+        interviewed:  id => donelist.includes(id),
+        interviewCount: donelist.length,
+        loggedCount:  Object.values(evStatus).filter(v => v === 'logged').length,
+        coronerReady: isCoronerReady(),
+        reportFiled:  !!localStorage.getItem('col_report_submitted'),
+      };
+
+      // Filter to questions relevant to this arc, with prereqs met
+      const relevant = OPEN_QUESTIONS.filter(q => {
+        if (q.arcs !== 'all' && !q.arcs.includes(arc)) return false;
+        return !q.prereq || q.prereq(state);
+      }).sort((a, b) => a.priority - b.priority);
+
+      const open     = relevant.filter(q => !q.resolved(state));
+      const resolved = relevant.filter(q =>  q.resolved(state));
+
+      el.innerHTML = '';
+
+      if (relevant.length === 0) {
+        el.innerHTML = '<div class="sum-item open-q">Gather more evidence to surface investigation priorities</div>';
+        return;
+      }
+
+      // ── Next recommended step — first open question with highest priority ──
+      if (open.length > 0) {
+        const next = open[0];
+        const wrap = document.createElement('div');
+        wrap.className = 'oq-next-up';
+        wrap.innerHTML = `
+          <span class="oq-next-label">▶ Recommended Next Step</span>
+          <div class="sum-item open-q">${next.text}</div>
+          <span class="oq-action">${next.action}</span>
+        `;
+        el.appendChild(wrap);
+      }
+
+      // ── Remaining open questions ──
+      open.slice(1).forEach(q => {
+        const d = document.createElement('div');
+        d.innerHTML = `<div class="sum-item open-q">${q.text}</div><span class="oq-action">${q.action}</span>`;
+        el.appendChild(d);
+      });
+
+      // ── Resolved questions ──
+      if (resolved.length > 0) {
+        const divider = document.createElement('div');
+        divider.style.cssText = 'margin:clamp(10px,1.8vh,16px) 0 clamp(6px,1.2vh,10px);border-top:1px solid rgba(168,131,46,.12);';
+        el.appendChild(divider);
+        const label = document.createElement('span');
+        label.style.cssText = 'font-family:"Courier Prime",monospace;font-size:clamp(6px,.75vw,8px);letter-spacing:.35em;text-transform:uppercase;color:rgba(168,131,46,.35);display:block;margin-bottom:6px;';
+        label.textContent = 'Answered';
+        el.appendChild(label);
+        resolved.forEach(q => {
+          const d = document.createElement('div');
+          d.className = 'sum-item resolved-q';
+          d.textContent = q.resolvedText || q.text;
+          el.appendChild(d);
+        });
+      }
+    }
+
+    function buildCaseSummary() {
+      const followedEl   = document.getElementById('sum-leads-followed');
+      const remainingEl  = document.getElementById('sum-leads-remaining');
+      if (!followedEl || !remainingEl) return;
+
+      // Gather all state into one object
+      const evStatus   = (() => { try { return JSON.parse(localStorage.getItem('col_evidence_status') || '{}'); } catch { return {}; } })();
+      const extraItems = (() => { try { return JSON.parse(localStorage.getItem('col_evidence_extra')  || '[]'); } catch { return []; } })();
+      const donelist   = (() => { try { return JSON.parse(localStorage.getItem('col_interview_done')  || '[]'); } catch { return []; } })();
+      const unread     = (() => { try { return JSON.parse(localStorage.getItem('col_unread')          || '{}'); } catch { return {}; } })();
+
+      const extraIds = new Set(extraItems.map(e => e.id));
+
+      // CCTV: all four viewed if none of the four keys remain in col_unread
+      const cctvAllViewed = !['CCTV-001','CCTV-002','CCTV-003','CCTV-004']
+        .some(k => ('cctv:' + k) in unread);
+
+      const state = {
+        status:      evStatus,
+        hasExtra:    id => extraIds.has(id) || evStatus[id] === 'logged',
+        interviewed: id => donelist.includes(id),
+        coronerReady: isCoronerReady(),
+        cctvAllViewed,
+        reportFiled: !!localStorage.getItem('col_report_submitted'),
+      };
+
+      const followed  = [];
+      const remaining = [];
+
+      ALL_LEADS.forEach(lead => {
+        const done = lead.check(state);
+        if (done) {
+          followed.push(lead.doneLabel || lead.label);
+          return;
+        }
+        // prereq not met — still show it but greyed
+        const prereqMet = !lead.prereq || lead.prereq(state);
+        remaining.push({ label: lead.label, prereqMet });
+      });
+
+      // Render Leads Followed
+      followedEl.innerHTML = '';
+      if (followed.length === 0) {
+        followedEl.innerHTML = '<div class="sum-item" style="opacity:.4;font-style:italic;">No leads completed yet</div>';
+      } else {
+        followed.forEach(label => {
+          const d = document.createElement('div');
+          d.className = 'sum-item lead-done';
+          d.textContent = label;
+          followedEl.appendChild(d);
+        });
+      }
+
+      // Render Leads Remaining
+      remainingEl.innerHTML = '';
+      if (remaining.length === 0) {
+        remainingEl.innerHTML = '<div class="sum-item lead-done">All leads resolved — file your Final Report</div>';
+      } else {
+        remaining.forEach(({ label, prereqMet }) => {
+          const d = document.createElement('div');
+          d.className = 'sum-item ' + (prereqMet ? 'lead-open' : 'lead-locked');
+          d.textContent = label;
+          remainingEl.appendChild(d);
+        });
+      }
+
+      // Rebuild open questions alongside
+      buildOpenQuestions();
+
+      // Also update the progress bar while we're here
+      const total    = ALL_LEADS.length;
+      const complete = total - remaining.length;
+      const pct      = Math.round((complete / total) * 100);
+      const pctEl    = document.getElementById('progress-pct');
+      const fillEl   = document.getElementById('progress-fill');
+      if (pctEl)  pctEl.textContent  = pct + '%';
+      if (fillEl) fillEl.style.width = pct + '%';
+    }
+
     /* ════════════════════════════
        DETECTIVE NOTES
     ════════════════════════════ */
@@ -5114,6 +5660,7 @@
     buildContradictions();
     buildPersonalityNotes();
     populateInterrSelects();
+    buildCaseSummary();
 
     async function updateCommitHash() {
       try {
