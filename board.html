@@ -1487,6 +1487,331 @@
     .specto-locked-icon { font-size: clamp(22px,3.5vw,32px); opacity: .3; }
     .specto-locked-title { font-family: "Courier Prime", monospace; font-size: clamp(9px,1.2vw,12px); letter-spacing: .25em; text-transform: uppercase; color: rgba(45,220,160,.35); }
     .specto-locked-sub { font-size: clamp(8px,1vw,10px); letter-spacing: .15em; color: rgba(100,140,100,.3); }
+
+    /* ════════════════════════════════════════════
+       TIMELINE PANEL
+    ════════════════════════════════════════════ */
+    #tl-annotation-bar {
+      display: flex; gap: 8px; align-items: center;
+      margin-bottom: clamp(14px,2.5vh,22px);
+      flex-wrap: wrap;
+    }
+    #tl-annotation-time {
+      font-family: 'Courier Prime', monospace;
+      font-size: clamp(9px,1.1vw,11px); letter-spacing: .12em;
+      background: rgba(168,131,46,.06); border: 1px solid rgba(168,131,46,.2);
+      color: var(--paper); padding: 6px 10px; width: 90px;
+    }
+    #tl-annotation-text {
+      font-family: 'Courier Prime', monospace;
+      font-size: clamp(9px,1.1vw,11px); letter-spacing: .06em;
+      background: rgba(168,131,46,.06); border: 1px solid rgba(168,131,46,.2);
+      color: var(--paper); padding: 6px 10px; flex: 1; min-width: 160px;
+    }
+    #tl-annotation-time:focus, #tl-annotation-text:focus {
+      outline: none; border-color: rgba(168,131,46,.5);
+    }
+    #tl-annotation-add {
+      font-family: 'Courier Prime', monospace;
+      font-size: clamp(8px,1vw,10px); letter-spacing: .18em; text-transform: uppercase;
+      background: rgba(168,131,46,.1); border: 1px solid rgba(168,131,46,.3);
+      color: var(--amber); padding: 6px 14px; cursor: pointer;
+      transition: background .2s, border-color .2s;
+    }
+    #tl-annotation-add:hover { background: rgba(168,131,46,.18); border-color: var(--amber); }
+
+    #tl-track {
+      position: relative;
+      padding-left: clamp(100px,14vw,150px);
+      display: flex; flex-direction: column; gap: 0;
+    }
+    #tl-axis-line {
+      position: absolute; left: clamp(86px,12vw,134px); top: 0; bottom: 0;
+      width: 1px; background: linear-gradient(to bottom, transparent, rgba(168,131,46,.35) 5%, rgba(168,131,46,.35) 95%, transparent);
+    }
+    .tl-event {
+      position: relative; display: flex; gap: 0;
+      margin-bottom: clamp(12px,2vh,18px);
+      animation: tlIn .3s ease both;
+    }
+    @keyframes tlIn { from { opacity:0; transform:translateX(-6px); } to { opacity:1; transform:none; } }
+    .tl-event-time {
+      position: absolute; right: calc(100% + clamp(10px,1.5vw,16px));
+      width: clamp(72px,10vw,112px); text-align: right;
+      font-family: 'Courier Prime', monospace;
+      font-size: clamp(8px,1vw,10px); letter-spacing: .2em; text-transform: uppercase;
+      color: rgba(168,131,46,.65); line-height: 1.4; top: 2px;
+    }
+    .tl-event-dot {
+      position: absolute; left: calc(-1 * clamp(100px,14vw,150px) + clamp(82px,11.5vw,128px));
+      top: 5px; width: 9px; height: 9px; border-radius: 50%;
+      border: 2px solid var(--amber); background: #0a0602;
+      transition: background .2s;
+      flex-shrink: 0; z-index: 2;
+    }
+    .tl-event.tl-flagged .tl-event-dot { background: #c43030; border-color: #c43030; }
+    .tl-event.tl-annotation .tl-event-dot { background: rgba(168,131,46,.35); border-color: rgba(168,131,46,.5); border-style: dashed; }
+    .tl-event-body {
+      flex: 1;
+    }
+    .tl-event-source {
+      font-family: 'Courier Prime', monospace;
+      font-size: clamp(7px,.85vw,9px); letter-spacing: .3em; text-transform: uppercase;
+      color: rgba(168,131,46,.5); display: block; margin-bottom: 2px;
+    }
+    .tl-event-desc {
+      font-family: 'Courier Prime', monospace;
+      font-size: clamp(9px,1.1vw,11px); color: var(--paper-dim); line-height: 1.55;
+    }
+    .tl-event.tl-flagged .tl-event-desc { color: rgba(220,180,160,.8); }
+    .tl-event-delete {
+      font-size: 10px; background: none; border: none; color: rgba(196,48,48,.35);
+      cursor: pointer; padding: 0 0 0 8px; transition: color .2s; align-self: flex-start; margin-top: 2px;
+    }
+    .tl-event-delete:hover { color: #c43030; }
+
+    /* ════════════════════════════════════════════
+       INTERROGATION PANELS — shared
+    ════════════════════════════════════════════ */
+    .interr-select-label {
+      font-family: 'Courier Prime', monospace;
+      font-size: clamp(7px,.85vw,9px); letter-spacing: .3em; text-transform: uppercase;
+      color: rgba(168,131,46,.5); display: block; margin-bottom: 6px;
+    }
+    #ld-subject-select, #ss-subject-select {
+      font-family: 'Courier Prime', monospace;
+      font-size: clamp(9px,1.1vw,11px); letter-spacing: .06em;
+      background: rgba(168,131,46,.06); border: 1px solid rgba(168,131,46,.2);
+      color: var(--paper); padding: 7px 12px;
+      width: 100%; max-width: 400px;
+      margin-bottom: clamp(14px,2.5vh,22px);
+    }
+    #ld-subject-select:focus, #ss-subject-select:focus {
+      outline: none; border-color: rgba(168,131,46,.45);
+    }
+
+    /* LIE DETECTOR chart */
+    #ld-chart-wrap { width: 100%; overflow-x: auto; }
+    .ld-chart {
+      width: 100%; min-width: 420px;
+      display: flex; flex-direction: column; gap: 0;
+    }
+    .ld-row {
+      display: flex; align-items: stretch; gap: 0;
+      border-bottom: 1px solid rgba(168,131,46,.07);
+    }
+    .ld-row:last-child { border-bottom: none; }
+    .ld-row-label {
+      font-family: 'Courier Prime', monospace;
+      font-size: clamp(7px,.82vw,9px); letter-spacing: .1em;
+      color: rgba(168,131,46,.45); text-transform: uppercase;
+      width: clamp(50px,7vw,70px); flex-shrink: 0;
+      display: flex; align-items: center; padding: 4px 8px 4px 0;
+      border-right: 1px solid rgba(168,131,46,.12); margin-right: 10px;
+    }
+    .ld-row-track {
+      flex: 1; position: relative; height: clamp(32px,4.5vh,46px);
+      display: flex; align-items: center;
+    }
+    .ld-baseline {
+      position: absolute; left: 0; right: 0; top: 50%;
+      height: 1px; background: rgba(168,131,46,.15);
+    }
+    .ld-wave {
+      position: absolute; left: 0; top: 0; right: 0; bottom: 0;
+    }
+    .ld-spike {
+      position: absolute; bottom: 50%; width: clamp(2px,0.4vw,3px);
+      border-radius: 2px 2px 0 0; transform: translateX(-50%);
+      transition: opacity .2s;
+    }
+    .ld-spike.normal { background: rgba(168,131,46,.5); }
+    .ld-spike.flagged { background: #c43030; box-shadow: 0 0 4px rgba(196,48,48,.5); }
+    .ld-legend {
+      display: flex; gap: 16px; margin-top: clamp(10px,1.8vh,16px);
+      font-family: 'Courier Prime', monospace;
+      font-size: clamp(7px,.85vw,9px); letter-spacing: .2em; text-transform: uppercase;
+    }
+    .ld-legend-item { display: flex; align-items: center; gap: 5px; }
+    .ld-legend-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+    .ld-legend-label { color: rgba(168,131,46,.5); }
+    .ld-annotation-note {
+      margin-top: clamp(10px,1.8vh,16px);
+      font-family: 'Courier Prime', monospace;
+      font-size: clamp(9px,1.1vw,11px); color: rgba(200,175,130,.6);
+      line-height: 1.6;
+    }
+    .ld-annotation-note textarea {
+      width: 100%; margin-top: 6px;
+      background: rgba(168,131,46,.05); border: 1px solid rgba(168,131,46,.18);
+      color: var(--paper); font-family: 'Courier Prime', monospace;
+      font-size: clamp(9px,1.1vw,11px); line-height: 1.6;
+      padding: 8px 10px; resize: vertical; min-height: 60px;
+    }
+    .ld-annotation-note textarea:focus { outline: none; border-color: rgba(168,131,46,.4); }
+    .interr-save-btn {
+      margin-top: 8px;
+      font-family: 'Courier Prime', monospace;
+      font-size: clamp(7px,.85vw,9px); letter-spacing: .2em; text-transform: uppercase;
+      background: rgba(168,131,46,.1); border: 1px solid rgba(168,131,46,.25);
+      color: var(--amber); padding: 5px 12px; cursor: pointer; transition: all .2s;
+    }
+    .interr-save-btn:hover { background: rgba(168,131,46,.18); border-color: var(--amber); }
+
+    /* STRESS SPIKES chart */
+    #ss-chart-wrap { width: 100%; overflow-x: auto; }
+    .ss-chart {
+      width: 100%; min-width: 380px;
+      display: flex; flex-direction: column; gap: clamp(8px,1.5vh,12px);
+    }
+    .ss-row {
+      display: flex; align-items: flex-end; gap: 4px;
+    }
+    .ss-row-label {
+      font-family: 'Courier Prime', monospace;
+      font-size: clamp(7px,.82vw,9px); letter-spacing: .08em; text-transform: uppercase;
+      color: rgba(168,131,46,.45); width: clamp(50px,7vw,70px); flex-shrink: 0;
+      text-align: right; padding-right: 8px; padding-bottom: 2px;
+    }
+    .ss-bars { flex: 1; display: flex; align-items: flex-end; gap: 3px; height: clamp(60px,10vh,90px); }
+    .ss-bar {
+      flex: 1; border-radius: 2px 2px 0 0; min-width: 3px;
+      transition: opacity .2s;
+      cursor: default;
+    }
+    .ss-bar.det { background: rgba(64,128,192,.55); }
+    .ss-bar.sub-normal { background: rgba(168,131,46,.45); }
+    .ss-bar.sub-flagged { background: rgba(196,48,48,.8); }
+    .ss-annotation-note {
+      margin-top: clamp(10px,1.8vh,16px);
+      font-family: 'Courier Prime', monospace; font-size: clamp(9px,1.1vw,11px);
+      color: rgba(200,175,130,.6); line-height: 1.6;
+    }
+    .ss-annotation-note textarea {
+      width: 100%; margin-top: 6px;
+      background: rgba(168,131,46,.05); border: 1px solid rgba(168,131,46,.18);
+      color: var(--paper); font-family: 'Courier Prime', monospace;
+      font-size: clamp(9px,1.1vw,11px); padding: 8px 10px;
+      resize: vertical; min-height: 60px;
+    }
+    .ss-annotation-note textarea:focus { outline: none; border-color: rgba(168,131,46,.4); }
+
+    /* CONTRADICTIONS */
+    .contra-card {
+      border: 1px solid rgba(196,48,48,.25);
+      background: rgba(196,48,48,.04);
+      padding: clamp(10px,1.8vw,16px);
+      margin-bottom: clamp(10px,1.8vh,16px);
+      animation: ctrIn .3s ease both;
+    }
+    @keyframes ctrIn { from { opacity:0; transform:translateX(-4px); } to { opacity:1; transform:none; } }
+    .contra-header {
+      display: flex; justify-content: space-between; align-items: baseline;
+      margin-bottom: 8px; gap: 10px; flex-wrap: wrap;
+    }
+    .contra-subject {
+      font-family: 'Courier Prime', monospace;
+      font-size: clamp(8px,1vw,10px); letter-spacing: .25em; text-transform: uppercase;
+      color: #c43030;
+    }
+    .contra-badge {
+      font-family: 'Courier Prime', monospace;
+      font-size: clamp(7px,.82vw,9px); letter-spacing: .2em; text-transform: uppercase;
+      color: rgba(196,48,48,.6); border: 1px solid rgba(196,48,48,.25); padding: 2px 6px;
+    }
+    .contra-said {
+      font-family: 'Courier Prime', monospace;
+      font-size: clamp(9px,1.1vw,11px); color: var(--paper-dim);
+      line-height: 1.6; margin-bottom: 6px;
+      border-left: 2px solid rgba(196,48,48,.3); padding-left: 8px;
+    }
+    .contra-conflict {
+      font-family: 'Courier Prime', monospace;
+      font-size: clamp(8px,1vw,10px); color: rgba(196,48,48,.7);
+      line-height: 1.5;
+    }
+    .contra-annotation {
+      margin-top: 8px;
+    }
+    .contra-annotation textarea {
+      width: 100%;
+      background: rgba(168,131,46,.04); border: 1px solid rgba(168,131,46,.15);
+      color: var(--paper); font-family: 'Courier Prime', monospace;
+      font-size: clamp(9px,1.1vw,11px); padding: 7px 9px;
+      resize: vertical; min-height: 48px;
+    }
+    .contra-annotation textarea:focus { outline: none; border-color: rgba(168,131,46,.35); }
+
+    /* PERSONALITY NOTES */
+    #pn-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(clamp(220px,30vw,300px), 1fr));
+      gap: clamp(12px,2vw,18px);
+    }
+    .pn-card {
+      background: rgba(168,131,46,.03);
+      border: 1px solid rgba(168,131,46,.18);
+      padding: clamp(12px,2vw,18px);
+      display: flex; flex-direction: column; gap: 8px;
+      animation: pnIn .3s ease both;
+    }
+    @keyframes pnIn { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:none; } }
+    .pn-card-header {
+      display: flex; align-items: center; gap: 10px;
+      border-bottom: 1px solid rgba(168,131,46,.12); padding-bottom: 8px;
+    }
+    .pn-avatar {
+      width: clamp(36px,5vw,44px); height: clamp(36px,5vw,44px);
+      border-radius: 50%; background: rgba(168,131,46,.08);
+      border: 1px solid rgba(168,131,46,.2);
+      display: flex; align-items: center; justify-content: center;
+      font-size: clamp(14px,2vw,18px); flex-shrink: 0;
+    }
+    .pn-name {
+      font-family: 'Courier Prime', monospace;
+      font-size: clamp(9px,1.1vw,11px); letter-spacing: .1em; text-transform: uppercase;
+      color: var(--paper); display: block;
+    }
+    .pn-role {
+      font-family: 'Courier Prime', monospace;
+      font-size: clamp(7px,.85vw,9px); letter-spacing: .2em; text-transform: uppercase;
+      color: rgba(168,131,46,.5);
+    }
+    .pn-trait-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 5px;
+    }
+    .pn-trait {
+      font-family: 'Courier Prime', monospace;
+      font-size: clamp(7px,.82vw,9px); letter-spacing: .1em; text-transform: uppercase;
+      padding: 3px 6px;
+      border-left: 2px solid rgba(168,131,46,.25);
+      color: rgba(200,175,130,.65);
+    }
+    .pn-trait.pn-red { border-color: rgba(196,48,48,.5); color: rgba(220,120,120,.7); }
+    .pn-trait.pn-green { border-color: rgba(58,154,90,.5); color: rgba(100,190,120,.7); }
+    .pn-trait.pn-blue { border-color: rgba(64,128,192,.5); color: rgba(100,160,210,.7); }
+    .pn-assessment {
+      font-family: 'Courier Prime', monospace;
+      font-size: clamp(9px,1.1vw,11px); color: rgba(200,175,130,.6);
+      line-height: 1.6; border-top: 1px solid rgba(168,131,46,.1); padding-top: 8px;
+    }
+    .pn-cond-badge {
+      font-family: 'Courier Prime', monospace;
+      font-size: clamp(7px,.82vw,9px); letter-spacing: .15em; text-transform: uppercase;
+      padding: 2px 8px; border: 1px solid; display: inline-block; margin-bottom: 4px;
+    }
+    .pn-annotation {
+      margin-top: 4px;
+    }
+    .pn-annotation textarea {
+      width: 100%;
+      background: rgba(168,131,46,.04); border: 1px solid rgba(168,131,46,.13);
+      color: var(--paper); font-family: 'Courier Prime', monospace;
+      font-size: clamp(9px,1.1vw,11px); padding: 6px 8px;
+      resize: vertical; min-height: 52px;
+    }
+    .pn-annotation textarea:focus { outline: none; border-color: rgba(168,131,46,.35); }
+
   </style>
 </head>
 <body>
@@ -1588,23 +1913,7 @@
           </div>
         </div>
 
-        <!-- Lab -->
-        <div class="nav-section">
-          <div class="nav-item" onclick="showPanel('panel-lab','The Lab',this)">
-            <span class="nav-icon">🔬</span>
-            <span class="nav-label">The Lab</span>
-            <span class="nav-arrow">›</span>
-          </div>
-        </div>
 
-        <!-- Theory Builder -->
-        <div class="nav-section">
-          <div class="nav-item" onclick="showPanel('panel-theory','Theory Builder',this)">
-            <span class="nav-icon">💡</span>
-            <span class="nav-label">Theory Builder</span>
-            <span class="nav-arrow">›</span>
-          </div>
-        </div>
 
         <!-- Case Summary -->
         <div class="nav-section">
@@ -1916,35 +2225,27 @@
         <!-- ══ TIMELINE RECONSTRUCTION ══ -->
         <div class="panel" id="panel-timeline">
           <div class="panel-head">
-            <div><span class="panel-title">Timeline Reconstruction</span><span class="panel-sub">Sequence of events · Case COL-001-A</span></div>
-            <span class="wip-badge">Drag &amp; drop — coming soon</span>
+            <div><span class="panel-title">Timeline Reconstruction</span><span class="panel-sub">Auto-populated from logged evidence &amp; transcripts · COL-001-A</span></div>
+            <span class="wip-badge" id="tl-event-count">0 events</span>
           </div>
           <div class="panel-rule"></div>
-          <div id="timeline-track">
-            <div class="timeline-axis"></div>
-            <span class="timeline-label">Event Timeline — drag evidence here to place events</span>
-            <div class="timeline-empty">
-              <span class="timeline-empty-icon">⏱</span>
-              No events placed yet — collect evidence to begin reconstruction
-            </div>
+
+          <!-- Detective annotation input -->
+          <div id="tl-annotation-bar">
+            <input id="tl-annotation-time" type="text" placeholder="HH:MM (e.g. 21:35)" maxlength="5" />
+            <input id="tl-annotation-text" type="text" placeholder="Add a note or observation…" />
+            <button id="tl-annotation-add" onclick="addTimelineAnnotation()">+ Add</button>
           </div>
-          <div class="tl-features">
-            <div class="tl-feat">
-              <span class="tl-feat-icon">📌</span>
-              <div><span class="tl-feat-title">Drag Evidence</span><span class="tl-feat-desc">Drag collected evidence cards onto the timeline to anchor events to specific times.</span></div>
-            </div>
-            <div class="tl-feat">
-              <span class="tl-feat-icon">🕐</span>
-              <div><span class="tl-feat-title">Match Timestamps</span><span class="tl-feat-desc">Align CCTV timestamps with audio recordings to establish an accurate sequence.</span></div>
-            </div>
-            <div class="tl-feat">
-              <span class="tl-feat-icon">📷</span>
-              <div><span class="tl-feat-title">CCTV vs Audio</span><span class="tl-feat-desc">Cross-reference visual evidence with audio clues to identify discrepancies.</span></div>
-            </div>
-            <div class="tl-feat">
-              <span class="tl-feat-icon">⚠</span>
-              <div><span class="tl-feat-title">Spot Inconsistencies</span><span class="tl-feat-desc">The system will flag alibi gaps and impossible timeline overlaps automatically.</span></div>
-            </div>
+
+          <!-- Timeline track -->
+          <div id="tl-track">
+            <div id="tl-axis-line"></div>
+            <div id="tl-events-wrap"></div>
+          </div>
+
+          <div id="tl-empty" class="evidence-empty" style="display:none">
+            <span class="evidence-empty-icon">⏱</span>
+            <span class="evidence-empty-text">No timestamped events available yet — log evidence and complete interviews to populate the timeline</span>
           </div>
         </div>
 
@@ -1991,166 +2292,77 @@
           </div>
         </div>
 
-        <!-- Interrogation sub-panels (empty states) -->
+        <!-- ══ LIE DETECTOR ══ -->
         <div class="panel" id="panel-lie-detector">
-          <div class="panel-head"><div><span class="panel-title">Lie Detector Output</span><span class="panel-sub">Polygraph readouts · Case COL-001-A</span></div><span class="wip-badge">After interrogation</span></div>
+          <div class="panel-head">
+            <div><span class="panel-title">Lie Detector Output</span><span class="panel-sub">Auto-generated polygraph from transcript flagged lines · COL-001-A</span></div>
+            <span class="wip-badge" id="ld-subject-count">0 subjects</span>
+          </div>
           <div class="panel-rule"></div>
-          <div class="evidence-empty"><span class="evidence-empty-icon">📈</span><span class="evidence-empty-text">No polygraph data available yet</span></div>
+          <div id="ld-subject-select-wrap">
+            <label class="interr-select-label">Select Subject</label>
+            <select id="ld-subject-select" onchange="buildLieDetector()">
+              <option value="">— Select an interrogated subject —</option>
+            </select>
+          </div>
+          <div id="ld-chart-wrap"></div>
+          <div id="ld-empty" class="evidence-empty">
+            <span class="evidence-empty-icon">📈</span>
+            <span class="evidence-empty-text">No interrogation transcripts on file — conduct interviews to generate polygraph data</span>
+          </div>
         </div>
+
+        <!-- ══ STRESS SPIKES ══ -->
         <div class="panel" id="panel-stress">
-          <div class="panel-head"><div><span class="panel-title">Stress Spikes</span><span class="panel-sub">Voice stress analysis · Case COL-001-A</span></div><span class="wip-badge">After interrogation</span></div>
+          <div class="panel-head">
+            <div><span class="panel-title">Stress Spikes</span><span class="panel-sub">Voice stress mapped per exchange · COL-001-A</span></div>
+            <span class="wip-badge" id="ss-subject-count">0 subjects</span>
+          </div>
           <div class="panel-rule"></div>
-          <div class="evidence-empty"><span class="evidence-empty-icon">⚡</span><span class="evidence-empty-text">No stress analysis data yet</span></div>
+          <div id="ss-subject-select-wrap">
+            <label class="interr-select-label">Select Subject</label>
+            <select id="ss-subject-select" onchange="buildStressSpikes()">
+              <option value="">— Select an interrogated subject —</option>
+            </select>
+          </div>
+          <div id="ss-chart-wrap"></div>
+          <div id="ss-empty" class="evidence-empty">
+            <span class="evidence-empty-icon">⚡</span>
+            <span class="evidence-empty-text">No transcripts on file — complete interrogations to generate stress data</span>
+          </div>
         </div>
+
+        <!-- ══ CONTRADICTIONS ══ -->
         <div class="panel" id="panel-contradictions">
-          <div class="panel-head"><div><span class="panel-title">Contradictory Statements</span><span class="panel-sub">Flagged inconsistencies · Case COL-001-A</span></div><span class="wip-badge">After interrogation</span></div>
+          <div class="panel-head">
+            <div><span class="panel-title">Contradictory Statements</span><span class="panel-sub">Auto-detected conflicts between testimony and logged evidence · COL-001-A</span></div>
+            <span class="wip-badge" id="contra-count-badge">0 conflicts</span>
+          </div>
           <div class="panel-rule"></div>
-          <div class="evidence-empty"><span class="evidence-empty-icon">⚔</span><span class="evidence-empty-text">No contradictions flagged yet</span></div>
+          <div id="contra-list"></div>
+          <div id="contra-empty" class="evidence-empty">
+            <span class="evidence-empty-icon">⚔</span>
+            <span class="evidence-empty-text">No contradictions detected — complete interrogations to generate conflict analysis</span>
+          </div>
         </div>
+
+        <!-- ══ PERSONALITY NOTES ══ -->
         <div class="panel" id="panel-personality">
-          <div class="panel-head"><div><span class="panel-title">Personality Notes</span><span class="panel-sub">Behavioural assessments · Case COL-001-A</span></div><span class="wip-badge">After interrogation</span></div>
-          <div class="panel-rule"></div>
-          <div class="evidence-empty"><span class="evidence-empty-icon">🧠</span><span class="evidence-empty-text">No personality assessments on file</span></div>
-        </div>
-
-        <!-- ══ THE LAB ══ -->
-        <div class="panel" id="panel-lab">
           <div class="panel-head">
-            <div><span class="panel-title">The Lab</span><span class="panel-sub">Scientific analysis division · Case COL-001-A</span></div>
+            <div><span class="panel-title">Personality Notes</span><span class="panel-sub">Behavioural profiles auto-generated from interview data · COL-001-A</span></div>
+            <span class="wip-badge" id="pn-count-badge">0 profiles</span>
           </div>
           <div class="panel-rule"></div>
-          <div class="lab-grid">
-
-            <div class="lab-card forensics" onclick="goTo('forensics.html')">
-              <div class="lab-header">
-                <span class="lab-icon">🔬</span>
-                <div><span class="lab-name">Forensics Lab</span><span class="lab-name-sub">Physical Evidence Analysis</span></div>
-              </div>
-              <p class="lab-desc">Analyse physical evidence collected from crime scenes. Submit items for specialist lab analysis — DNA, toxicology, trace evidence, ballistics, digital forensics and more.</p>
-              <div class="lab-capabilities">
-                <span class="lab-cap">DNA &amp; biological sample analysis</span>
-                <span class="lab-cap">Trace evidence &amp; latent prints</span>
-                <span class="lab-cap">Ballistics &amp; digital forensics</span>
-                <span class="lab-cap">Document &amp; toxicology analysis</span>
-                <span class="lab-cap">11 specialist lab divisions</span>
-              </div>
-              <button class="lab-btn">Enter Forensics Lab →</button>
-            </div>
-
-            <div class="lab-card audio" onclick="goTo('audiolab.html')">
-              <div class="lab-header">
-                <span class="lab-icon">🎛</span>
-                <div><span class="lab-name">Audio Lab</span><span class="lab-name-sub">Signal &amp; Voice Analysis</span></div>
-              </div>
-              <p class="lab-desc">Process audio evidence — enhance recordings, generate spectrograms, run voice stress analysis, and cross-reference audio timestamps with CCTV footage.</p>
-              <div class="audio-wave" id="lab-wave"></div>
-              <div class="lab-capabilities">
-                <span class="lab-cap">Audio enhancement &amp; noise removal</span>
-                <span class="lab-cap">Spectrogram generation</span>
-                <span class="lab-cap">Voice stress &amp; deception analysis</span>
-                <span class="lab-cap">Timestamp synchronisation</span>
-                <span class="lab-cap">Speaker identification</span>
-              </div>
-              <button class="lab-btn">Enter Audio Lab →</button>
-            </div>
-
+          <div id="pn-grid"></div>
+          <div id="pn-empty" class="evidence-empty">
+            <span class="evidence-empty-icon">🧠</span>
+            <span class="evidence-empty-text">No personality profiles on file — conduct interviews to build behavioural assessments</span>
           </div>
         </div>
 
-        <!-- ══ THEORY BUILDER ══ -->
-        <div class="panel" id="panel-theory">
-          <div class="panel-head">
-            <div><span class="panel-title">Theory Builder</span><span class="panel-sub">Construct your case · Forms basis of Final Report</span></div>
-          </div>
-          <div class="panel-rule"></div>
-
-          <div class="theory-steps">
-            <div class="theory-step">
-              <span class="step-num">1</span>
-              <span class="step-icon">👤</span>
-              <span class="step-label">Step 1</span>
-              <span class="step-title">Select Suspect</span>
-              <select class="step-select" id="theory-suspect" onchange="saveTheory()">
-                <option value="">— No suspect selected —</option>
-                <option value="victor-marre">Victor Marre</option>
-                <option value="elara-voss">Elara Voss</option>
-                <option value="unknown">Unknown — still investigating</option>
-              </select>
-            </div>
-            <div class="theory-step">
-              <span class="step-num">2</span>
-              <span class="step-icon">💰</span>
-              <span class="step-label">Step 2</span>
-              <span class="step-title">Choose Motive</span>
-              <select class="step-select" id="theory-motive" onchange="saveTheory()">
-                <option value="">— No motive selected —</option>
-                <option value="financial">Financial gain</option>
-                <option value="revenge">Personal revenge</option>
-                <option value="silencing">Silencing a witness</option>
-                <option value="power">Power / control</option>
-                <option value="unknown">Motive unclear</option>
-              </select>
-            </div>
-            <div class="theory-step">
-              <span class="step-num">3</span>
-              <span class="step-icon">🗡</span>
-              <span class="step-label">Step 3</span>
-              <span class="step-title">Choose Method</span>
-              <select class="step-select" id="theory-method" onchange="saveTheory()">
-                <option value="">— No method selected —</option>
-                <option value="direct">Direct physical act</option>
-                <option value="hired">Hired third party</option>
-                <option value="poisoning">Poisoning</option>
-                <option value="staged">Staged accident</option>
-                <option value="unknown">Method unclear</option>
-              </select>
-            </div>
-            <div class="theory-step">
-              <span class="step-num">4</span>
-              <span class="step-icon">🕐</span>
-              <span class="step-label">Step 4</span>
-              <span class="step-title">Choose Timeline</span>
-              <select class="step-select" id="theory-timeline" onchange="saveTheory()">
-                <option value="">— No timeline selected —</option>
-                <option value="mar04-night">Mar 04 · Late evening (21:00–23:00)</option>
-                <option value="mar04-midnight">Mar 04–05 · After midnight</option>
-                <option value="mar05-early">Mar 05 · Early morning</option>
-                <option value="unknown">Timeline unclear</option>
-              </select>
-            </div>
-            <div class="theory-step">
-              <span class="step-num">5</span>
-              <span class="step-icon">📎</span>
-              <span class="step-label">Step 5</span>
-              <span class="step-title">Attach Evidence</span>
-              <select class="step-select" id="theory-evidence" onchange="saveTheory()" multiple style="height:64px;padding-right:8px;">
-                <option value="e01">COL-001-A-E01 — Cigarette Case</option>
-                <option value="e02">COL-001-A-E02 — Threatening Letter</option>
-                <option value="e03">COL-001-A-E03 — Burner Phone</option>
-                <option value="e04">COL-001-A-E04 — Bloodstained Cloth</option>
-                <option value="e05">COL-001-A-E05 — Ledger</option>
-                <option value="e06">COL-001-A-E06 — CCTV USB Drive</option>
-              </select>
-            </div>
-          </div>
-
-          <div class="theory-evidence-drop">
-            <span class="drop-prompt">Drag evidence cards here to attach them to your theory</span>
-          </div>
-
-          <div class="theory-actions">
-            <button class="theory-btn primary" onclick="testTheory()">Test Theory</button>
-            <button class="theory-btn secondary" onclick="clearTheory()">Clear</button>
-            <button class="theory-btn secondary" onclick="goTo('report.html')">Send to Final Report →</button>
-          </div>
-
-          <div class="theory-result" id="theory-result">
-            <span class="result-label">Theory Assessment</span>
-            <span class="result-text" id="result-text"></span>
-          </div>
-        </div>
 
         <!-- ══ CASE SUMMARY ══ -->
+
         <div class="panel" id="panel-summary">
           <div class="panel-head">
             <div><span class="panel-title">Case Summary</span><span class="panel-sub">Quick-access overview · COL-001-A</span></div>
@@ -2441,6 +2653,23 @@
         buildTranscriptPanel();
       }
 
+      // Build new panels on open
+      if (id === 'panel-timeline') {
+        buildTimeline();
+      }
+      if (id === 'panel-lie-detector') {
+        populateInterrSelects(); buildLieDetector();
+      }
+      if (id === 'panel-stress') {
+        populateInterrSelects(); buildStressSpikes();
+      }
+      if (id === 'panel-contradictions') {
+        buildContradictions();
+      }
+      if (id === 'panel-personality') {
+        buildPersonalityNotes();
+      }
+
       // Close sidebar on mobile after selecting
       if (window.innerWidth <= 640) closeSidebar();
     }
@@ -2493,71 +2722,6 @@
     /* ════════════════════════════
        THEORY BUILDER
     ════════════════════════════ */
-    function saveTheory() {
-      const theory = {
-        suspect:  document.getElementById('theory-suspect').value,
-        motive:   document.getElementById('theory-motive').value,
-        method:   document.getElementById('theory-method').value,
-        timeline: document.getElementById('theory-timeline').value,
-        evidence: Array.from(document.getElementById('theory-evidence').selectedOptions).map(o => o.value),
-      };
-      localStorage.setItem('col_theory', JSON.stringify(theory));
-    }
-
-    function loadTheory() {
-      try {
-        const t = JSON.parse(localStorage.getItem('col_theory') || '{}');
-        if (t.suspect)  document.getElementById('theory-suspect').value  = t.suspect;
-        if (t.motive)   document.getElementById('theory-motive').value   = t.motive;
-        if (t.method)   document.getElementById('theory-method').value   = t.method;
-        if (t.timeline) document.getElementById('theory-timeline').value = t.timeline;
-        if (t.evidence) {
-          const sel = document.getElementById('theory-evidence');
-          t.evidence.forEach(v => {
-            Array.from(sel.options).forEach(o => { if (o.value === v) o.selected = true; });
-          });
-        }
-      } catch(e) {}
-    }
-    loadTheory();
-
-    function testTheory() {
-      const suspect  = document.getElementById('theory-suspect').value;
-      const motive   = document.getElementById('theory-motive').value;
-      const method   = document.getElementById('theory-method').value;
-      const timeline = document.getElementById('theory-timeline').value;
-      const evidence = Array.from(document.getElementById('theory-evidence').selectedOptions);
-
-      const result   = document.getElementById('theory-result');
-      const resultTxt = document.getElementById('result-text');
-
-      const filled = [suspect, motive, method, timeline].filter(Boolean).length;
-      const evCount = evidence.length;
-
-      let msg = '';
-      if (filled < 2) {
-        msg = 'Theory is too incomplete to assess. Select at least a suspect and a motive before testing.';
-      } else if (filled === 2 && evCount === 0) {
-        msg = 'You have a suspect and a motive, but no supporting evidence attached. The theory will not hold up in a Final Report.';
-      } else if (filled >= 3 && evCount >= 2) {
-        msg = `Theory appears viable. Suspect: ${document.getElementById('theory-suspect').options[document.getElementById('theory-suspect').selectedIndex].text}. ${evCount} evidence item(s) attached. Consider completing all five steps before filing your Final Report.`;
-      } else {
-        msg = `Partial theory — ${filled}/4 steps complete, ${evCount} evidence item(s) attached. Continue building before submitting.`;
-      }
-
-      resultTxt.textContent = msg;
-      result.classList.add('show');
-    }
-
-    function clearTheory() {
-      ['theory-suspect','theory-motive','theory-method','theory-timeline'].forEach(id => {
-        document.getElementById(id).value = '';
-      });
-      Array.from(document.getElementById('theory-evidence').options).forEach(o => o.selected = false);
-      document.getElementById('theory-result').classList.remove('show');
-      localStorage.removeItem('col_theory');
-    }
-
     /* ════════════════════════════
        DETECTIVE NOTES
     ════════════════════════════ */
@@ -3930,6 +4094,486 @@
 
 
     /* ════════════════════════════════════════════════
+       TIMELINE PANEL
+       Auto-builds from: METADATA timestamps, col_transcripts
+       Plus player annotations stored in col_timeline_notes
+    ════════════════════════════════════════════════ */
+
+    // Hard-coded known events (always visible)
+    const TL_FIXED_EVENTS = [
+      { ts: '2026-03-04 20:55:00', time: '20:55', source: 'CCTV-003', desc: 'Unidentified figure enters Floor 6 hallway of 14B Creston Apartments.', flagged: false },
+      { ts: '2026-03-04 20:57:44', time: '20:57', source: 'META-009', desc: 'Unregistered RFID fob used at building entry — not assigned to any tenant.', flagged: true },
+      { ts: '2026-03-04 21:09:47', time: '21:09', source: 'META-002', desc: 'Burner phone (E03) pings tower COL-CELL-0447 — 200m from Harlow Street.', flagged: true },
+      { ts: '2026-03-04 21:12:04', time: '21:12', source: 'META-004', desc: 'Photograph taken on burner phone in Harlow Street area — GPS stripped.', flagged: true },
+      { ts: '2026-03-04 21:22:05', time: '21:22', source: 'CCTV-002', desc: 'Kessler Warehouse carpark footage begins. No movement detected during window.', flagged: false },
+      { ts: '2026-03-04 21:28:31', time: '21:28', source: 'META-003', desc: 'Burner phone handoffs to Bay 7 harbour tower — stationary 23+ minutes.', flagged: true },
+      { ts: '2026-03-04 21:30:00', time: '21:30', source: 'CORONER', desc: 'Estimated start of incident window per coroner report (21:30–22:15).', flagged: true },
+      { ts: '2026-03-04 21:45:00', time: '21:45', source: 'CCTV-001', desc: 'CCTV-001 activates — Harlow Street alley. Subject visible at 21:48:22.', flagged: false },
+      { ts: '2026-03-04 21:48:22', time: '21:48', source: 'CCTV-004', desc: 'Bay 7: figure identified — does NOT match Ashford. Profile consistent with Det. Okafor (Internal Affairs).', flagged: true },
+      { ts: '2026-03-04 21:51:43', time: '21:51', source: 'META-003', desc: 'Burner phone returns to Harlow Street tower — device back at primary scene.', flagged: true },
+      { ts: '2026-03-04 22:15:00', time: '22:15', source: 'CORONER', desc: 'Estimated end of incident window. Time of death: 21:30–22:15.', flagged: true },
+    ];
+
+    // Events unlocked by specific logged evidence
+    const TL_EVIDENCE_EVENTS = {
+      'COL-001-A-E03': { ts:'2026-03-04 21:09:00', time:'21:09', source:'E03 — Burner Phone', desc:'Burner phone recovered from canal drain — last active near Harlow Street.', flagged:true },
+      'COL-001-A-E05': { ts:'2026-03-04 00:00:00', time:'Pre-incident', source:'E05 — Ledger', desc:'Ledger entries spanning ~6 months confirmed authentic — records financial transactions linking R.C./Fvr to Marre Import Co.', flagged:true },
+      'COL-001-A-E06': { ts:'2026-03-04 21:45:00', time:'21:45', source:'E06 — CCTV USB', desc:'CCTV USB recovered — contains Bay 7 footage with a 3-minute deleted segment prior to 21:48.', flagged:true },
+      'COL-001-A-E15': { ts:'2026-03-04 21:12:00', time:'21:12', source:'E15 — Photo Fragment', desc:'Photo fragment recovered from burner phone — Harlow Street area, 21:12. GPS disabled.', flagged:false },
+      'COL-001-A-E21': { ts:'2026-03-04 21:48:22', time:'21:48', source:'E21 — Enhanced CCTV Still', desc:'Enhanced Bay 7 still confirms figure is not Ashford — consistent with Det. Sylvia Okafor, Internal Affairs.', flagged:true },
+    };
+
+    function buildTimeline() {
+      const wrap   = document.getElementById('tl-events-wrap');
+      const empty  = document.getElementById('tl-empty');
+      const badge  = document.getElementById('tl-event-count');
+      if (!wrap) return;
+
+      const status = (() => { try { return JSON.parse(localStorage.getItem('col_evidence_status') || '{}'); } catch { return {}; } })();
+      const transcripts = (() => { try { return JSON.parse(localStorage.getItem('col_transcripts') || '[]'); } catch { return []; } })();
+      const annotations = (() => { try { return JSON.parse(localStorage.getItem('col_timeline_notes') || '[]'); } catch { return []; } })();
+
+      // Gather all events
+      let events = [...TL_FIXED_EVENTS];
+
+      // Add evidence-gated events
+      Object.entries(TL_EVIDENCE_EVENTS).forEach(([id, ev]) => {
+        if (status[id] === 'logged') events.push(ev);
+      });
+
+      // Add transcript events
+      transcripts.forEach(t => {
+        events.push({
+          ts: '2026-03-05 00:00:00', // interviews happen after initial investigation
+          time: t.date,
+          source: 'INTERVIEW — ' + t.charName,
+          desc: t.sessionLabel + ' conducted. Condition: ' + t.condition + '.',
+          flagged: t.conditionClass === 'cond-hostile' || t.conditionClass === 'cond-stonewalling',
+        });
+      });
+
+      // Sort by timestamp
+      events.sort((a, b) => a.ts.localeCompare(b.ts));
+
+      // Add annotations (keep in insertion order, slot by time)
+      const allEntries = [
+        ...events.map(e => ({ ...e, isAnnotation: false })),
+        ...annotations.map(a => ({ ts: '2026-03-04 ' + (a.time || '00:00') + ':00', time: a.time, source: 'Detective Note', desc: a.text, flagged: false, isAnnotation: true, id: a.id })),
+      ].sort((a, b) => a.ts.localeCompare(b.ts));
+
+      wrap.innerHTML = '';
+      if (allEntries.length === 0) {
+        empty.style.display = 'flex'; badge.textContent = '0 events'; return;
+      }
+      empty.style.display = 'none';
+      badge.textContent = allEntries.length + ' event' + (allEntries.length !== 1 ? 's' : '');
+
+      allEntries.forEach((ev, i) => {
+        const div = document.createElement('div');
+        div.className = 'tl-event' + (ev.flagged ? ' tl-flagged' : '') + (ev.isAnnotation ? ' tl-annotation' : '');
+        div.style.animationDelay = (i * 0.04) + 's';
+        div.innerHTML = `
+          <span class="tl-event-time">${ev.time}</span>
+          <div class="tl-event-dot"></div>
+          <div class="tl-event-body">
+            <span class="tl-event-source">${ev.source}</span>
+            <span class="tl-event-desc">${ev.desc}</span>
+          </div>
+          ${ev.isAnnotation ? `<button class="tl-event-delete" onclick="deleteTimelineAnnotation('${ev.id}')" title="Remove note">✕</button>` : ''}
+        `;
+        wrap.appendChild(div);
+      });
+    }
+
+    function addTimelineAnnotation() {
+      const timeEl = document.getElementById('tl-annotation-time');
+      const textEl = document.getElementById('tl-annotation-text');
+      const time = timeEl.value.trim();
+      const text = textEl.value.trim();
+      if (!text) return;
+      const notes = (() => { try { return JSON.parse(localStorage.getItem('col_timeline_notes') || '[]'); } catch { return []; } })();
+      notes.push({ id: 'tln-' + Date.now(), time: time || '—', text });
+      localStorage.setItem('col_timeline_notes', JSON.stringify(notes));
+      timeEl.value = ''; textEl.value = '';
+      buildTimeline();
+    }
+
+    function deleteTimelineAnnotation(id) {
+      let notes = (() => { try { return JSON.parse(localStorage.getItem('col_timeline_notes') || '[]'); } catch { return []; } })();
+      notes = notes.filter(n => n.id !== id);
+      localStorage.setItem('col_timeline_notes', JSON.stringify(notes));
+      buildTimeline();
+    }
+
+
+    /* ════════════════════════════════════════════════
+       LIE DETECTOR
+    ════════════════════════════════════════════════ */
+    function populateInterrSelects() {
+      const transcripts = (() => { try { return JSON.parse(localStorage.getItem('col_transcripts') || '[]'); } catch { return []; } })();
+      ['ld-subject-select','ss-subject-select'].forEach(id => {
+        const sel = document.getElementById(id);
+        if (!sel) return;
+        // Keep first placeholder option
+        while (sel.options.length > 1) sel.remove(1);
+        transcripts.forEach(t => {
+          const opt = document.createElement('option');
+          opt.value = t.charId;
+          opt.textContent = t.charName + ' — ' + (TRANSCRIPT_ROLE_LABELS[t.charRole] || t.charRole);
+          sel.appendChild(opt);
+        });
+      });
+      const count = transcripts.length;
+      const ldBadge = document.getElementById('ld-subject-count');
+      const ssBadge = document.getElementById('ss-subject-count');
+      if (ldBadge) ldBadge.textContent = count + ' subject' + (count !== 1 ? 's' : '');
+      if (ssBadge) ssBadge.textContent = count + ' subject' + (count !== 1 ? 's' : '');
+      if (count > 0) {
+        ['ld-empty','ss-empty'].forEach(id => { const e = document.getElementById(id); if (e) e.style.display='none'; });
+      }
+    }
+
+    function buildLieDetector() {
+      const sel   = document.getElementById('ld-subject-select');
+      const wrap  = document.getElementById('ld-chart-wrap');
+      const empty = document.getElementById('ld-empty');
+      if (!sel || !wrap) return;
+      const charId = sel.value;
+      wrap.innerHTML = '';
+      if (!charId) return;
+      const transcripts = (() => { try { return JSON.parse(localStorage.getItem('col_transcripts') || '[]'); } catch { return []; } })();
+      const t = transcripts.find(x => x.charId === charId);
+      if (!t) return;
+      empty.style.display = 'none';
+
+      const detLines = t.lines.filter(l => l.cls === 'detective');
+      const subLines = t.lines.filter(l => l.cls === 'subject');
+      const savedNote = (() => { try { return JSON.parse(localStorage.getItem('col_ld_notes') || '{}'); } catch { return {}; } })()[charId] || '';
+
+      const chart = document.createElement('div');
+      chart.className = 'ld-chart';
+
+      const renderTrack = (lines, label) => {
+        const row = document.createElement('div');
+        row.className = 'ld-row';
+        const lbl = document.createElement('div');
+        lbl.className = 'ld-row-label'; lbl.textContent = label;
+        const track = document.createElement('div');
+        track.className = 'ld-row-track';
+        const baseline = document.createElement('div');
+        baseline.className = 'ld-baseline';
+        track.appendChild(baseline);
+
+        const wave = document.createElement('div');
+        wave.className = 'ld-wave';
+        lines.forEach((line, i) => {
+          const x = ((i + 0.5) / lines.length) * 100;
+          // Height: flagged lines get tall spike, others get random-looking but seeded height
+          const isFlagged = !!line.flagged;
+          const seed = (line.text.length * 3 + i * 7) % 60;
+          const heightPx = isFlagged ? (28 + (i % 3) * 8) : (8 + seed % 18);
+          const spike = document.createElement('div');
+          spike.className = 'ld-spike ' + (isFlagged ? 'flagged' : 'normal');
+          spike.style.left = x + '%';
+          spike.style.height = heightPx + 'px';
+          spike.title = line.text.substring(0, 80) + (line.text.length > 80 ? '…' : '');
+          wave.appendChild(spike);
+        });
+        track.appendChild(wave);
+        row.appendChild(lbl); row.appendChild(track);
+        return row;
+      };
+
+      chart.appendChild(renderTrack(detLines, 'Det.'));
+      chart.appendChild(renderTrack(subLines, 'Subject'));
+
+      // Legend
+      const legend = document.createElement('div');
+      legend.className = 'ld-legend';
+      legend.innerHTML = `
+        <div class="ld-legend-item"><div class="ld-legend-dot" style="background:rgba(168,131,46,.5)"></div><span class="ld-legend-label">Normal response</span></div>
+        <div class="ld-legend-item"><div class="ld-legend-dot" style="background:#c43030"></div><span class="ld-legend-label">Flagged — anomaly detected</span></div>
+      `;
+      chart.appendChild(legend);
+
+      // Annotation
+      const noteWrap = document.createElement('div');
+      noteWrap.className = 'ld-annotation-note';
+      noteWrap.innerHTML = `<span style="font-size:clamp(7px,.85vw,9px);letter-spacing:.3em;text-transform:uppercase;color:rgba(168,131,46,.5);">Analyst Notes</span>
+        <textarea id="ld-note-${charId}" placeholder="Add polygraph observations…">${savedNote}</textarea>
+        <button class="interr-save-btn" onclick="saveLDNote('${charId}')">Save Notes</button>`;
+      chart.appendChild(noteWrap);
+
+      wrap.appendChild(chart);
+    }
+
+    function saveLDNote(charId) {
+      const val = document.getElementById('ld-note-' + charId)?.value || '';
+      const notes = (() => { try { return JSON.parse(localStorage.getItem('col_ld_notes') || '{}'); } catch { return {}; } })();
+      notes[charId] = val;
+      localStorage.setItem('col_ld_notes', JSON.stringify(notes));
+    }
+
+
+    /* ════════════════════════════════════════════════
+       STRESS SPIKES
+    ════════════════════════════════════════════════ */
+    function buildStressSpikes() {
+      const sel   = document.getElementById('ss-subject-select');
+      const wrap  = document.getElementById('ss-chart-wrap');
+      const empty = document.getElementById('ss-empty');
+      if (!sel || !wrap) return;
+      const charId = sel.value;
+      wrap.innerHTML = '';
+      if (!charId) return;
+      const transcripts = (() => { try { return JSON.parse(localStorage.getItem('col_transcripts') || '[]'); } catch { return []; } })();
+      const t = transcripts.find(x => x.charId === charId);
+      if (!t) return;
+      empty.style.display = 'none';
+
+      const savedNote = (() => { try { return JSON.parse(localStorage.getItem('col_ss_notes') || '{}'); } catch { return {}; } })()[charId] || '';
+      const chart = document.createElement('div');
+      chart.className = 'ss-chart';
+
+      // Group lines into exchange pairs (det → sub)
+      const exchanges = [];
+      let pending = null;
+      t.lines.forEach(line => {
+        if (line.cls === 'detective') { pending = line; }
+        else if (line.cls === 'subject' && pending) {
+          exchanges.push({ det: pending, sub: line });
+          pending = null;
+        }
+      });
+
+      const maxBars = Math.max(exchanges.length, 1);
+      exchanges.forEach((ex, i) => {
+        const row = document.createElement('div');
+        row.className = 'ss-row';
+        const lbl = document.createElement('div');
+        lbl.className = 'ss-row-label';
+        lbl.textContent = 'Q' + (i + 1);
+        const bars = document.createElement('div');
+        bars.className = 'ss-bars';
+
+        // Detective bar — calm baseline
+        const dSeed = (ex.det.text.length + i) % 30;
+        const dBar = document.createElement('div');
+        dBar.className = 'ss-bar det';
+        dBar.style.height = (25 + dSeed) + '%';
+        dBar.title = 'Det. Langley: ' + ex.det.text.substring(0, 60);
+        bars.appendChild(dBar);
+
+        // Subject bar — spikes on flagged lines
+        const sFlagged = !!ex.sub.flagged;
+        const sSeed = (ex.sub.text.length * 2 + i * 5) % 40;
+        const sBar = document.createElement('div');
+        sBar.className = 'ss-bar ' + (sFlagged ? 'sub-flagged' : 'sub-normal');
+        sBar.style.height = (sFlagged ? (65 + sSeed % 25) : (20 + sSeed)) + '%';
+        sBar.title = (sFlagged ? '⚡ Elevated stress — ' : '') + ex.sub.text.substring(0, 60);
+        bars.appendChild(sBar);
+
+        row.appendChild(lbl);
+        row.appendChild(bars);
+        chart.appendChild(row);
+      });
+
+      // Legend
+      const legend = document.createElement('div');
+      legend.className = 'ld-legend';
+      legend.innerHTML = `
+        <div class="ld-legend-item"><div class="ld-legend-dot" style="background:rgba(64,128,192,.55)"></div><span class="ld-legend-label">Det. Langley (baseline)</span></div>
+        <div class="ld-legend-item"><div class="ld-legend-dot" style="background:rgba(168,131,46,.45)"></div><span class="ld-legend-label">Subject — normal</span></div>
+        <div class="ld-legend-item"><div class="ld-legend-dot" style="background:rgba(196,48,48,.8)"></div><span class="ld-legend-label">Subject — elevated stress</span></div>
+      `;
+      chart.appendChild(legend);
+
+      const noteWrap = document.createElement('div');
+      noteWrap.className = 'ss-annotation-note';
+      noteWrap.innerHTML = `<span style="font-size:clamp(7px,.85vw,9px);letter-spacing:.3em;text-transform:uppercase;color:rgba(168,131,46,.5);">Analyst Notes</span>
+        <textarea id="ss-note-${charId}" placeholder="Add voice stress observations…">${savedNote}</textarea>
+        <button class="interr-save-btn" onclick="saveSSNote('${charId}')">Save Notes</button>`;
+      chart.appendChild(noteWrap);
+
+      wrap.appendChild(chart);
+    }
+
+    function saveSSNote(charId) {
+      const val = document.getElementById('ss-note-' + charId)?.value || '';
+      const notes = (() => { try { return JSON.parse(localStorage.getItem('col_ss_notes') || '{}'); } catch { return {}; } })();
+      notes[charId] = val;
+      localStorage.setItem('col_ss_notes', JSON.stringify(notes));
+    }
+
+
+    /* ════════════════════════════════════════════════
+       CONTRADICTIONS
+       Cross-reference flagged testimony lines against
+       known logged evidence to surface conflicts.
+    ════════════════════════════════════════════════ */
+    const CONTRADICTION_RULES = [
+      // { evidenceId, charId, triggerText (substring in flagged line), conflict description }
+      { evidenceId:'COL-001-A-E05', charId:'city-councilman',
+        trigger:'consulting fees', conflict:'Ledger entries (E05) show payments coded R.C./Fvr — not recorded as consulting fees in any declared register.' },
+      { evidenceId:'COL-001-A-E05', charId:'city-councilman',
+        trigger:'entirely above board', conflict:'Ink dating (E19) confirms ledger entries were contemporaneous — not backdated fabrications, which undermines the claim they are routine.' },
+      { evidenceId:'COL-001-A-E06', charId:'security-guard',
+        trigger:'credential', conflict:'CCTV USB (E06) shows Ashford\'s credentials were used to delete 3 minutes of Bay 7 footage — directly contradicts any denial of system access.' },
+      { evidenceId:'COL-001-A-E21', charId:'security-guard',
+        trigger:'Bay 7', conflict:'Enhanced CCTV still (E21) places a figure at Bay 7 at 21:48 whose profile does not match Ashford — raising questions about who was actually present.' },
+      { evidenceId:'COL-001-A-E03', charId:'street-level-informant-2',
+        trigger:'phone', conflict:'Burner phone (E03) IMEI traced to the same Canal Street Electronics batch as a handset connected to the Harlow Street area on the night in question.' },
+      { evidenceId:'COL-001-A-E15', charId:'female-undercover-detective',
+        trigger:'photograph', conflict:'Recovered photo fragment (E15) was taken on a device matching the burner phone — EXIF timestamp 21:12, placing the photographer near Harlow Street.' },
+      { evidenceId:'COL-001-A-E05', charId:'offixe-worker-2',
+        trigger:'ledger', conflict:'Multi-author fingerprint analysis (E20) confirms the ledger was handled by at least two people other than Marre — consistent with regular access by a financial administrator.' },
+      { evidenceId:'COL-001-A-E17', charId:'female-social-worker',
+        trigger:'contact', conflict:'Secondary DNA profile on bloodstained cloth (E17) establishes physical contact between an unidentified individual and the exhibit — not yet eliminated.' },
+    ];
+
+    function buildContradictions() {
+      const list   = document.getElementById('contra-list');
+      const empty  = document.getElementById('contra-empty');
+      const badge  = document.getElementById('contra-count-badge');
+      if (!list) return;
+
+      const status = (() => { try { return JSON.parse(localStorage.getItem('col_evidence_status') || '{}'); } catch { return {}; } })();
+      const transcripts = (() => { try { return JSON.parse(localStorage.getItem('col_transcripts') || '[]'); } catch { return []; } })();
+      const savedNotes = (() => { try { return JSON.parse(localStorage.getItem('col_contra_notes') || '{}'); } catch { return {}; } })();
+
+      const found = [];
+
+      transcripts.forEach(t => {
+        const flaggedLines = t.lines.filter(l => l.flagged && l.cls === 'subject');
+        flaggedLines.forEach(line => {
+          CONTRADICTION_RULES.forEach(rule => {
+            if (rule.charId !== t.charId) return;
+            if (status[rule.evidenceId] !== 'logged') return;
+            if (!line.text.toLowerCase().includes(rule.trigger.toLowerCase())) return;
+            found.push({ charId: t.charId, charName: t.charName, charRole: t.charRole,
+              said: line.text, conflict: rule.conflict, key: t.charId + ':' + rule.evidenceId });
+          });
+        });
+      });
+
+      list.innerHTML = '';
+      badge.textContent = found.length + ' conflict' + (found.length !== 1 ? 's' : '');
+
+      if (found.length === 0) {
+        empty.style.display = 'flex'; return;
+      }
+      empty.style.display = 'none';
+
+      found.forEach((f, i) => {
+        const roleLabel = TRANSCRIPT_ROLE_LABELS[f.charRole] || f.charRole;
+        const savedNote = savedNotes[f.key] || '';
+        const card = document.createElement('div');
+        card.className = 'contra-card';
+        card.style.animationDelay = (i * 0.06) + 's';
+        card.innerHTML = `
+          <div class="contra-header">
+            <span class="contra-subject">${f.charName}</span>
+            <span class="contra-badge">${roleLabel}</span>
+          </div>
+          <div class="contra-said">"${f.said}"</div>
+          <div class="contra-conflict">⚡ ${f.conflict}</div>
+          <div class="contra-annotation">
+            <textarea id="cnote-${f.key.replace(':','-')}" placeholder="Add investigator note…">${savedNote}</textarea>
+            <button class="interr-save-btn" onclick="saveContraNote('${f.key}')">Save Note</button>
+          </div>
+        `;
+        list.appendChild(card);
+      });
+    }
+
+    function saveContraNote(key) {
+      const safeKey = key.replace(':','-');
+      const val = document.getElementById('cnote-' + safeKey)?.value || '';
+      const notes = (() => { try { return JSON.parse(localStorage.getItem('col_contra_notes') || '{}'); } catch { return {}; } })();
+      notes[key] = val;
+      localStorage.setItem('col_contra_notes', JSON.stringify(notes));
+    }
+
+
+    /* ════════════════════════════════════════════════
+       PERSONALITY NOTES
+       Generates a behavioural profile card for each
+       interviewed character based on condition class.
+    ════════════════════════════════════════════════ */
+    const PERSONALITY_PROFILES = {
+      'cond-cooperative':   { traits:[['Candid','pn-green'],['Detail-oriented','pn-green'],['Low defensiveness','pn-green'],['Civic-minded','pn-green']], assessment:'Subject presented cooperatively with minimal prompting. Responses were detailed and largely unsolicited. Low deception indicators. High credibility weighting recommended.' },
+      'cond-forthcoming':   { traits:[['Forthcoming','pn-green'],['Trusts process','pn-green'],['Reliable recall','pn-green'],['Engaged','pn-blue']], assessment:'Subject volunteered information beyond the scope of questions asked. Consistent narrative with no significant gaps. Treat as a reliable source — verify key claims against physical evidence.' },
+      'cond-cautious':      { traits:[['Guarded','pn-amber'],['Risk-aware','pn-amber'],['Selective recall','pn-amber'],['Cooperative surface','pn-blue']], assessment:'Subject cooperated on a surface level but demonstrated selective disclosure. Pauses and hedging language observed at key points. Information provided is likely accurate but incomplete.' },
+      'cond-guarded':       { traits:[['Defensive posture','pn-amber'],['Minimal disclosure','pn-amber'],['Fear-motivated','pn-amber'],['Non-confrontational','pn-blue']], assessment:'Subject showed clear reluctance without overt hostility. Body language and phrasing consistent with fear of consequences rather than deception. May be withholding for personal safety reasons.' },
+      'cond-cracked':       { traits:[['Under pressure','pn-amber'],['Partial disclosure','pn-amber'],['Rationalising','pn-red'],['High stress markers','pn-red']], assessment:'Subject showed signs of strain under questioning — partial admissions wrapped in justification language. The information volunteered was likely true but framed to minimise personal culpability.' },
+      'cond-engaged':       { traits:[['Controlled','pn-blue'],['Articulate','pn-blue'],['Measured responses','pn-blue'],['Agenda present','pn-amber']], assessment:'Subject engaged confidently. Responses were well-structured and deliberate — suggesting preparation or legal briefing. Treat with caution; engagement does not equal candour.' },
+      'cond-hostile':       { traits:[['Adversarial','pn-red'],['Deflecting','pn-red'],['High anxiety','pn-red'],['Uncooperative','pn-red']], assessment:'Subject was openly resistant and showed elevated stress indicators. Defensive and deflecting behaviour may indicate direct involvement or strong motivation to conceal. Prioritise for follow-up.' },
+      'cond-stonewalling':  { traits:[['Stonewalling','pn-red'],['Legal-coached','pn-red'],['Non-disclosure','pn-red'],['Controlled affect','pn-amber']], assessment:'Subject refused substantive engagement and invoked legal protection repeatedly. Lack of affect may indicate coaching. The decision to stonewall under these circumstances is itself informative.' },
+      'cond-silent':        { traits:[['Fearful','pn-red'],['Non-verbal','pn-red'],['Threat-aware','pn-red'],['Distressed','pn-amber']], assessment:'Subject declined to engage verbally. Behavioural cues suggest acute fear rather than calculated silence. May be under external pressure. Consider approaching through a trusted intermediary.' },
+      'cond-dismissive':    { traits:[['Contemptuous','pn-red'],['Status-conscious','pn-amber'],['Minimising','pn-amber'],['Power-asserting','pn-red']], assessment:'Subject dismissed the investigation as beneath their concern. Contemptuous affect and power-distancing language observed. High likelihood of active concealment masked as indifference.' },
+    };
+
+    function buildPersonalityNotes() {
+      const grid  = document.getElementById('pn-grid');
+      const empty = document.getElementById('pn-empty');
+      const badge = document.getElementById('pn-count-badge');
+      if (!grid) return;
+
+      const transcripts = (() => { try { return JSON.parse(localStorage.getItem('col_transcripts') || '[]'); } catch { return []; } })();
+      const savedNotes  = (() => { try { return JSON.parse(localStorage.getItem('col_pn_notes') || '{}'); } catch { return {}; } })();
+
+      grid.innerHTML = '';
+      badge.textContent = transcripts.length + ' profile' + (transcripts.length !== 1 ? 's' : '');
+
+      if (transcripts.length === 0) { empty.style.display = 'flex'; return; }
+      empty.style.display = 'none';
+
+      transcripts.forEach((t, i) => {
+        const profile = PERSONALITY_PROFILES[t.conditionClass] || PERSONALITY_PROFILES['cond-cautious'];
+        const condColor = TRANSCRIPT_COND_COLORS[t.conditionClass] || '#c47c1a';
+        const roleLabel = TRANSCRIPT_ROLE_LABELS[t.charRole] || 'Person of Interest';
+        const savedNote = savedNotes[t.charId] || '';
+
+        const traitsHtml = profile.traits.map(([label, cls]) =>
+          `<div class="pn-trait ${cls}">${label}</div>`
+        ).join('');
+
+        const card = document.createElement('div');
+        card.className = 'pn-card';
+        card.style.animationDelay = (i * 0.07) + 's';
+        card.innerHTML = `
+          <div class="pn-card-header">
+            <div class="pn-avatar">👤</div>
+            <div>
+              <span class="pn-name">${t.charName}</span>
+              <span class="pn-role">${roleLabel}</span>
+            </div>
+          </div>
+          <span class="pn-cond-badge" style="color:${condColor};border-color:${condColor}40">${t.condition}</span>
+          <div class="pn-trait-grid">${traitsHtml}</div>
+          <div class="pn-assessment">${profile.assessment}</div>
+          <div class="pn-annotation">
+            <textarea id="pn-note-${t.charId}" placeholder="Add behavioural observations…">${savedNote}</textarea>
+            <button class="interr-save-btn" onclick="savePNNote('${t.charId}')">Save Note</button>
+          </div>
+        `;
+        grid.appendChild(card);
+      });
+    }
+
+    function savePNNote(charId) {
+      const val = document.getElementById('pn-note-' + charId)?.value || '';
+      const notes = (() => { try { return JSON.parse(localStorage.getItem('col_pn_notes') || '{}'); } catch { return {}; } })();
+      notes[charId] = val;
+      localStorage.setItem('col_pn_notes', JSON.stringify(notes));
+    }
+
+
+    /* ════════════════════════════════════════════════
+       HOOK INTO showPanel — rebuild panels on open
+    ════════════════════════════════════════════════ */
+
+        /* ════════════════════════════════════════════════
        TRANSCRIPT PANEL SYSTEM
        Reads col_transcripts from localStorage (saved
        by portraits.html when an interview is completed)
@@ -4113,6 +4757,9 @@
 
     // Build immediately and when panel opens
     buildTranscriptPanel();
+    buildContradictions();
+    buildPersonalityNotes();
+    populateInterrSelects();
 
     async function updateCommitHash() {
       try {
