@@ -765,105 +765,6 @@
 
       .detail-grid { grid-template-columns: 1fr 1fr; }
     }
-
-    /* ── UNREAD DOT ── */
-    .unread-dot {
-      position: absolute; top: 50%; right: 10px;
-      transform: translateY(-50%);
-      width: 8px; height: 8px; border-radius: 50%;
-      background: var(--amber);
-      box-shadow: 0 0 0 0 rgba(196,124,26,.7);
-      animation: unreadPulse 2s ease-in-out infinite;
-      pointer-events: none; flex-shrink: 0;
-    }
-    @keyframes unreadPulse {
-      0%,100% { box-shadow: 0 0 0 0 rgba(196,124,26,.6); }
-      50%      { box-shadow: 0 0 0 5px rgba(196,124,26,0); }
-    }
-    .ev-row { position: relative; }
-
-    /* ── LAB RETURN MODAL ── */
-    #lab-return-overlay {
-      position: fixed; inset: 0; z-index: 900;
-      background: rgba(4,2,1,.88); backdrop-filter: blur(8px);
-      display: flex; align-items: center; justify-content: center;
-      opacity: 0; pointer-events: none;
-      transition: opacity .3s ease;
-    }
-    #lab-return-overlay.open { opacity: 1; pointer-events: all; }
-    #lab-return-modal {
-      background: #0e0a05;
-      border: 1px solid rgba(168,131,46,.35);
-      max-width: 520px; width: 92vw;
-      box-shadow: 0 0 0 1px rgba(168,131,46,.1), 0 24px 64px rgba(0,0,0,.8);
-      transform: translateY(12px) scale(.97);
-      transition: transform .3s ease;
-    }
-    #lab-return-overlay.open #lab-return-modal { transform: translateY(0) scale(1); }
-    #lrm-header {
-      background: rgba(168,131,46,.07);
-      border-bottom: 1px solid rgba(168,131,46,.2);
-      padding: clamp(12px,2vw,18px) clamp(16px,3vw,24px);
-      display: flex; align-items: center; gap: 12px;
-    }
-    #lrm-icon { font-size: 22px; flex-shrink: 0; }
-    #lrm-eyebrow {
-      display: block; font-family: 'Courier Prime', monospace;
-      font-size: clamp(7px,.85vw,9px); letter-spacing: .35em;
-      text-transform: uppercase; color: rgba(168,131,46,.6); margin-bottom: 2px;
-    }
-    #lrm-title {
-      display: block; font-family: 'Courier Prime', monospace;
-      font-size: clamp(10px,1.3vw,13px); letter-spacing: .12em;
-      text-transform: uppercase; color: var(--paper);
-    }
-    #lrm-body { padding: clamp(14px,2.5vw,22px) clamp(16px,3vw,24px); }
-    #lrm-id {
-      font-family: 'Courier Prime', monospace; font-size: clamp(8px,1vw,10px);
-      letter-spacing: .25em; color: rgba(168,131,46,.55); text-transform: uppercase;
-      display: block; margin-bottom: 6px;
-    }
-    #lrm-name {
-      font-family: 'Courier Prime', monospace; font-size: clamp(12px,1.6vw,16px);
-      letter-spacing: .06em; color: var(--paper); display: block; margin-bottom: 12px;
-    }
-    .lrm-meta-row {
-      display: flex; gap: 10px; align-items: baseline; margin-bottom: 8px;
-    }
-    .lrm-meta-label {
-      font-family: 'Courier Prime', monospace; font-size: clamp(7px,.85vw,9px);
-      letter-spacing: .3em; text-transform: uppercase; color: rgba(168,131,46,.5);
-      flex-shrink: 0; min-width: 3.5em;
-    }
-    .lrm-meta-val {
-      font-family: 'Courier Prime', monospace; font-size: clamp(9px,1.1vw,11px);
-      color: rgba(200,175,130,.8);
-    }
-    #lrm-summary {
-      font-family: 'Courier Prime', monospace; font-size: clamp(9px,1.1vw,11px);
-      line-height: 1.7; color: rgba(200,175,130,.65);
-      border-left: 2px solid rgba(168,131,46,.25); padding-left: 10px;
-      margin-top: 10px;
-    }
-    #lrm-footer {
-      border-top: 1px solid rgba(168,131,46,.15);
-      padding: clamp(10px,1.8vw,16px) clamp(16px,3vw,24px);
-      display: flex; gap: 10px; justify-content: flex-end; flex-wrap: wrap;
-    }
-    #lrm-dismiss {
-      font-family: 'Courier Prime', monospace; font-size: clamp(8px,1vw,10px);
-      letter-spacing: .2em; text-transform: uppercase; background: none;
-      border: 1px solid rgba(168,131,46,.25); color: rgba(168,131,46,.6);
-      padding: 8px 18px; cursor: pointer; transition: all .2s;
-    }
-    #lrm-dismiss:hover { border-color: rgba(168,131,46,.5); color: var(--amber); }
-    #lrm-review {
-      font-family: 'Courier Prime', monospace; font-size: clamp(8px,1vw,10px);
-      letter-spacing: .2em; text-transform: uppercase;
-      background: rgba(168,131,46,.12); border: 1px solid rgba(168,131,46,.4);
-      color: var(--amber); padding: 8px 18px; cursor: pointer; transition: all .2s;
-    }
-    #lrm-review:hover { background: rgba(168,131,46,.2); border-color: var(--amber); }
   </style>
 </head>
 <body>
@@ -1099,6 +1000,14 @@
         owner:    'Unknown',
         why:      'Size 11 boot print taken in plaster. Distinctive tread pattern consistent with military-issue footwear. Checking against suspect profiles.',
       },
+      {
+        id: `${CURRENT_CASE}-E27`, wave: 4,
+        name:     'Post-Mortem Biological Sample — Elias Voss',
+        location: 'Merrehope City Mortuary — collected during post-mortem by Dr. C. Fairweather',
+        date:     'Mar 05 2026 · 09:15',
+        owner:    'Deceased — Elias Voss',
+        why:      'Comprehensive biological sample set collected at autopsy: blood, vitreous humour, bile, and gastric contents. Held pending targeted toxicological analysis following the zopiclone residue finding in E24. The coroner\'s report specifically recommends a full targeted panel. Submit to the Forensic Toxicology Laboratory.',
+      },
     ];
 
     // Wave release delays (ms after first page visit)
@@ -1107,6 +1016,7 @@
       1: 2 * 60 * 1000,  // 2 minutes
       2: 4 * 60 * 1000,  // 4 minutes
       3: 6 * 60 * 1000,  // 6 minutes
+      4: 9 * 60 * 1000,  // 9 minutes — post-mortem sample (requires E24 zopiclone result)
     };
 
     // Working evidence array — populated by wave system
@@ -1172,13 +1082,6 @@
             </button>
           </div>
         `;
-        // Inject unread dot if applicable
-        if (isUnread('ev:' + item.id)) {
-          const dot = document.createElement('span');
-          dot.className = 'unread-dot';
-          dot.title = 'New — not yet reviewed';
-          row.appendChild(dot);
-        }
         list.appendChild(row);
       });
 
@@ -1342,10 +1245,6 @@
     function openDetail(item, row) {
       document.querySelectorAll('.ev-row').forEach(r => r.classList.remove('selected'));
       row.classList.add('selected');
-      // Mark this evidence item as read and remove the unread dot
-      markRead('ev:' + item.id);
-      const dot = row.querySelector('.unread-dot');
-      if (dot) dot.remove();
 
       document.getElementById('dp-id').textContent       = item.id;
       document.getElementById('dp-name').textContent     = item.name;
@@ -1615,6 +1514,19 @@
           date:  'Lab result — Mar 2026',
           owner: 'Elara Voss (prescribee)',
           why:   'Residue analysis of the bottle interior identified the prescribed compound plus an unexpected trace of a second substance — a sedative not present on the label. The quantity is sub-therapeutic but its presence in the bottle is unexplained and warrants further investigation.',
+          status:'logged'
+        },
+      },
+
+      /* ── E27: Post-Mortem Biological Sample ── */
+      [`${CURRENT_CASE}-E27`]: {
+        tox: {
+          id:    `${CURRENT_CASE}-E28`,
+          name:  'Toxicology Full Panel — Elias Voss (Post-Mortem)',
+          location: 'Recovered during Toxicology analysis of E27',
+          date:  'Lab result — Mar 2026',
+          owner: 'Deceased — Elias Voss',
+          why:   'Full targeted toxicological panel on post-mortem samples. Results are arc-dependent — see lab report for findings.',
           status:'logged'
         },
       },
@@ -2005,6 +1917,82 @@
     };
 
     /* IDs of all lab-generated evidence items */
+    /* ── E28: Toxicology Full Panel — arc-dependent result ── */
+    (function addE28Report() {
+      const arc = localStorage.getItem('col_arc') || 'A';
+      const id  = `${CURRENT_CASE}-E28`;
+
+      const REPORTS_BY_ARC = {
+        // ARC A — poisoning: zopiclone confirmed at sedation/fatal level
+        A: {
+          lab:      'Forensic Toxicology Laboratory',
+          division: 'Post-Mortem Toxicology Unit',
+          analyst:  'Prof. J. Osei-Bonsu',
+          exhibit:  `${CURRENT_CASE}-E27 — Post-Mortem Biological Sample (Elias Voss)`,
+          reportId: 'TOX-COL-001-A-002',
+          name:     'Toxicology Full Panel — Zopiclone: Sedation-Level Positive',
+          methodology: 'Blood, vitreous humour, bile, and gastric contents were analysed using LC-MS/MS with deuterated internal standards. Targeted panel included benzodiazepines, Z-drugs, opiates, barbiturates, alcohol, and common volatiles. Quantitative analysis was performed on all positive findings. Results cross-referenced with the zopiclone residue identified in exhibit E24.',
+          findings: [
+            'Zopiclone confirmed in femoral blood at 0.28 mg/L — within the sedation-effective range (0.10–0.40 mg/L). This concentration is consistent with deliberate administration of a therapeutic or supra-therapeutic dose.',
+            'Vitreous humour concentration of 0.31 mg/L corroborates ante-mortem ingestion — vitreous levels lag blood by 1–3 hours, confirming the drug was circulating well before death.',
+            'Gastric content analysis identified partially dissolved zopiclone residue — consistent with ingestion within 45–90 minutes before death. No intact tablet fragments recovered.',
+            'No alcohol, opiates, barbiturates, or other controlled substances detected.',
+            'The zopiclone concentration and distribution across matrices is inconsistent with the victim\'s own prior prescription history — the prescribed dosage and interval do not account for this level.',
+            'Cross-referencing with E24: zopiclone residue in the medicine bottle prescribed to Elara Voss is chemically consistent with the compound identified in the victim\'s samples.',
+          ],
+          conclusion: 'Zopiclone was present in Elias Voss\'s system at a sedation-effective concentration at the time of death. The distribution across blood and vitreous humour establishes ante-mortem ingestion approximately 45–90 minutes before the fatal injury. The concentration is above any residual ambient exposure level and is consistent with deliberate administration. Combined with the blunt force cause of death, this indicates the victim was pharmacologically incapacitated before or during the fatal assault. Zopiclone administration constitutes a significant contributing factor to the circumstances of death. This finding materially alters the character of the offence.',
+          analystTitle: 'Head of Forensic Toxicology',
+          reviewedBy:   'Dr. C. Fairweather, Chief Medical Examiner',
+        },
+
+        // ARC B — direct physical act: trace only, victim self-administered
+        B: {
+          lab:      'Forensic Toxicology Laboratory',
+          division: 'Post-Mortem Toxicology Unit',
+          analyst:  'Prof. J. Osei-Bonsu',
+          exhibit:  `${CURRENT_CASE}-E27 — Post-Mortem Biological Sample (Elias Voss)`,
+          reportId: 'TOX-COL-001-A-002',
+          name:     'Toxicology Full Panel — Zopiclone: Sub-Therapeutic Trace Only',
+          methodology: 'Blood, vitreous humour, bile, and gastric contents were analysed using LC-MS/MS with deuterated internal standards. Targeted panel included benzodiazepines, Z-drugs, opiates, barbiturates, alcohol, and common volatiles. Quantitative analysis was performed on all positive findings. Results cross-referenced with the zopiclone residue identified in exhibit E24.',
+          findings: [
+            'Zopiclone detected in femoral blood at 0.04 mg/L — well below the sedation-effective threshold of 0.10 mg/L. This concentration is consistent with partial metabolism of a single standard-dose tablet (7.5 mg) taken several hours before death.',
+            'Vitreous humour concentration of 0.02 mg/L — lower than blood, indicating the drug was in late-stage clearance at the time of death.',
+            'No intact zopiclone or residue fragments recovered from gastric contents — consistent with ingestion more than 3–4 hours prior.',
+            'No alcohol, opiates, barbiturates, or other controlled substances detected.',
+            'The distribution profile is consistent with voluntary self-administration for sleep purposes — not consistent with targeted sedation or administration by a third party.',
+            'At this concentration, zopiclone would produce minimal psychomotor impairment and would not have materially affected the victim\'s capacity to resist or respond.',
+          ],
+          conclusion: 'Zopiclone was present at a sub-therapeutic residual level consistent with prior self-administration for routine sleep purposes. The concentration and metabolic distribution are not consistent with deliberate incapacitation. The compound had no material bearing on the victim\'s capacity at the time of the fatal assault. The cause of death remains blunt force trauma as established in the post-mortem report. This finding does not alter the forensic assessment of the incident.',
+          analystTitle: 'Head of Forensic Toxicology',
+          reviewedBy:   'Dr. C. Fairweather, Chief Medical Examiner',
+        },
+
+        // ARC C — hired third party: sedated first, then struck — coercion/hired overlap
+        C: {
+          lab:      'Forensic Toxicology Laboratory',
+          division: 'Post-Mortem Toxicology Unit',
+          analyst:  'Prof. J. Osei-Bonsu',
+          exhibit:  `${CURRENT_CASE}-E27 — Post-Mortem Biological Sample (Elias Voss)`,
+          reportId: 'TOX-COL-001-A-002',
+          name:     'Toxicology Full Panel — Zopiclone: Sedation Confirmed, Not Cause of Death',
+          methodology: 'Blood, vitreous humour, bile, and gastric contents were analysed using LC-MS/MS with deuterated internal standards. Targeted panel included benzodiazepines, Z-drugs, opiates, barbiturates, alcohol, and common volatiles. Quantitative analysis was performed on all positive findings. Results cross-referenced with the zopiclone residue identified in exhibit E24.',
+          findings: [
+            'Zopiclone confirmed in femoral blood at 0.19 mg/L — within the lower sedation-effective range (0.10–0.40 mg/L). At this level the victim would have experienced significant drowsiness, impaired coordination, and reduced reaction capacity.',
+            'Vitreous humour concentration of 0.22 mg/L — marginally higher than blood, indicating active distribution at time of death. The compound had been ingested within approximately 60–90 minutes before the fatal blow.',
+            'Gastric content residue identified — partially metabolised. Ingestion timing is consistent with the estimated incident window (21:30–22:15).',
+            'The perimortem restraint abrasion noted in the coroner\'s report (posterior wrists) is now corroborated: at 0.19 mg/L, the victim would have been ambulatory but significantly impaired — capable of limited resistance but unable to mount a sustained defence.',
+            'No alcohol, opiates, or other controlled substances detected.',
+            'The zopiclone concentration is inconsistent with voluntary sleep-dose self-administration and is more consistent with covert administration in a beverage or food.',
+          ],
+          conclusion: 'Zopiclone was present at a sedation-effective level consistent with deliberate administration within 60–90 minutes of the fatal assault. The victim was pharmacologically compromised at the time of the attack but not incapacitated — the restraint evidence and defensive injuries confirm a partial struggle occurred. The zopiclone did not cause death but materially reduced the victim\'s capacity to resist. This finding is consistent with a premeditated assault requiring the victim to be subdued before a third party could deliver the fatal blow. The nature of the administration — likely covert — suggests planning and implies an intermediary phase between the person who sedated the victim and the person who delivered the fatal injury.',
+          analystTitle: 'Head of Forensic Toxicology',
+          reviewedBy:   'Dr. C. Fairweather, Chief Medical Examiner',
+        },
+      };
+
+      LAB_REPORTS[id] = REPORTS_BY_ARC[arc] || REPORTS_BY_ARC['A'];
+    })();
+
     const LAB_RESULT_IDS = new Set(Object.keys(LAB_REPORTS));
 
     /* ── Initialise wave staging and load all persisted data ── */
@@ -2127,7 +2115,6 @@
 
             // Toast notification
             showNewEvidenceToast('New Evidence Logged: ' + def.name);
-            markUnread('ev:' + def.id);
             changed = true;
           }
         });
@@ -2150,8 +2137,6 @@
           delete labTimers[itemId];
           changed = true;
           tryUnlockNewEvidence(itemId, labKey);
-          markUnread('ev:' + itemId);
-          showLabReturnModal(itemId);
         }
       });
 
@@ -2181,7 +2166,6 @@
       extraItems.push(newItem);
       localStorage.setItem('col_evidence_extra', JSON.stringify(extraItems));
 
-      markUnread('ev:' + newItem.id);
       showNewEvidenceToast(newItem.name);
     }
 
@@ -2207,71 +2191,6 @@
       toast.textContent = `✓ New Evidence Unlocked: ${name}`;
       toast.style.opacity = '1';
       setTimeout(() => { toast.style.opacity = '0'; }, 5000);
-    }
-
-    /* ════════════════════════════════════════
-       UNREAD TRACKING HELPERS
-       Key: col_unread  Value: { [key]: timestamp }
-       Keys used in evidence.html: ev:ITEM_ID
-    ════════════════════════════════════════ */
-    function getUnreadMap() {
-      try { return JSON.parse(localStorage.getItem('col_unread') || '{}'); }
-      catch { return {}; }
-    }
-    function saveUnreadMap(map) {
-      try { localStorage.setItem('col_unread', JSON.stringify(map)); }
-      catch(e) {}
-    }
-    function markUnread(key) {
-      const map = getUnreadMap();
-      map[key] = Date.now();
-      saveUnreadMap(map);
-    }
-    function markRead(key) {
-      const map = getUnreadMap();
-      if (key in map) { delete map[key]; saveUnreadMap(map); }
-    }
-    function isUnread(key) {
-      return key in getUnreadMap();
-    }
-
-    /* ── Lab return modal ── */
-    let _labReturnPending = null;  // queue only one at a time
-
-    function showLabReturnModal(itemId) {
-      const item = EVIDENCE.find(e => e.id === itemId);
-      if (!item) return;
-      // Get lab report info if available
-      const report = (typeof LAB_REPORTS !== 'undefined') ? LAB_REPORTS[itemId] : null;
-      document.getElementById('lrm-id').textContent   = item.id;
-      document.getElementById('lrm-name').textContent = item.name;
-      document.getElementById('lrm-lab').textContent  = report ? report.lab : item.lab || 'Forensic Services Division';
-      document.getElementById('lrm-analyst').textContent = report ? report.analyst : 'Forensic Analyst';
-      // Pick first finding as summary, or fallback
-      const summary = report && report.findings && report.findings.length
-        ? report.findings[0]
-        : 'Analysis complete. Item logged. Access via Evidence Locker.';
-      document.getElementById('lrm-summary').textContent = summary;
-      _labReturnPending = itemId;
-      document.getElementById('lab-return-overlay').classList.add('open');
-    }
-
-    function closeLabReturnModal() {
-      document.getElementById('lab-return-overlay').classList.remove('open');
-      _labReturnPending = null;
-    }
-
-    function reviewLabResult() {
-      closeLabReturnModal();
-      // Re-render to scroll to the item
-      renderList(activeFilter);
-      if (_labReturnPending) {
-        setTimeout(() => {
-          const row = document.querySelector(`.ev-row[data-id="${_labReturnPending}"]`);
-          if (row) { row.scrollIntoView({ behavior: 'smooth', block: 'center' }); }
-          _labReturnPending = null;
-        }, 80);
-      }
     }
 
     /* Start the tick interval */
@@ -2337,36 +2256,6 @@
     }
     updateCommitHash();
   </script>
-  <!-- ── LAB RETURN MODAL ── -->
-  <div id="lab-return-overlay">
-    <div id="lab-return-modal">
-      <div id="lrm-header">
-        <span id="lrm-icon">🔬</span>
-        <div>
-          <span id="lrm-eyebrow">Merrehope Police Department — Forensic Services</span>
-          <span id="lrm-title">Laboratory Result Received</span>
-        </div>
-      </div>
-      <div id="lrm-body">
-        <span id="lrm-id"></span>
-        <span id="lrm-name"></span>
-        <div class="lrm-meta-row">
-          <span class="lrm-meta-label">Lab</span>
-          <span class="lrm-meta-val" id="lrm-lab"></span>
-        </div>
-        <div class="lrm-meta-row">
-          <span class="lrm-meta-label">Analyst</span>
-          <span class="lrm-meta-val" id="lrm-analyst"></span>
-        </div>
-        <div id="lrm-summary"></div>
-      </div>
-      <div id="lrm-footer">
-        <button id="lrm-dismiss" onclick="closeLabReturnModal()">Dismiss</button>
-        <button id="lrm-review" onclick="reviewLabResult()">Review Evidence →</button>
-      </div>
-    </div>
-  </div>
-
   <script src="faction-events.js"></script>
 </body>
 </html>
