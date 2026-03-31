@@ -3377,7 +3377,7 @@
         motive:      'Silencing a witness — Elias Voss had evidence of the ledger payments',
         method:      'Poisoning — zopiclone administered covertly, blunt force applied while incapacitated',
         timeline:    'After 22:30 on Mar 04 2026',
-        location:    'The Velvet Anchor — private booth',
+        location:    'The Velvet Anchor — Back Office',
         keyEvidence: ['COL-001-A-E02 — Threatening Letter', 'COL-001-A-E05 — Ledger', 'COL-001-A-E24 — Zopiclone Residue', 'COL-001-A-E28 — Toxicology Full Panel'],
       },
       B: {
@@ -3916,6 +3916,73 @@
       },
     ];
 
+    /* Arc-specific metadata snippets — injected based on active arc */
+    (function injectFARCMetadata() {
+      const arc = localStorage.getItem('col_arc') || 'A';
+      const FARC_META = {
+        A: [
+          {
+            id: 'META-015', category:'access', source:'FARC-A02 — Velvet Anchor Access Log',
+            unlockedBy: 'COL-001-A-FARC-A01',
+            type:'Building Access Record', timestamp:'2026-03-04 22:34:08',
+            value:'Back office entry — R. Cross / City Council · 22:34:08', flag:'critical',
+            fields:[
+              { label:'System',         val:'The Velvet Anchor — Key Fob Management System' },
+              { label:'Account Holder', val:'R. Cross / City Council — VIP Account', cls:'critical' },
+              { label:'Event',          val:'Back Office — ENTRY', cls:'highlight' },
+              { label:'Timestamp',      val:'2026-03-04 22:34:08', cls:'highlight' },
+              { label:'Duration',       val:'47 minutes (no exit scan)' },
+              { label:'Bar CCTV',       val:'Unavailable — camera "under maintenance"', cls:'critical' },
+              { label:'Correlation',    val:'Voss bar receipt FARC-A01 places him at same venue at 22:07' },
+            ],
+            hex: '41 43 43 45 53 53 3A 20 52 2E 43 52 4F 53 53 00  ACCESS: R.CROSS.\n56 49 50 2D 41 43 43 54 00 54 53 3A 32 32 33 34  VIP-ACCT.TS:2234\n42 41 43 4B 2D 4F 46 46 49 43 45 00 44 55 52 3A  BACK-OFFICE.DUR:',
+            note:'Cross accessed the Velvet Anchor back office at 22:34 — twenty-seven minutes after Voss was recorded at the bar. The back office is a private, sound-isolated room used for discreet meetings. Combined with the bar receipt, this places both men at the same location within the same evening.',
+          },
+        ],
+        B: [
+          {
+            id: 'META-015', category:'access', source:'FARC-B01 — Whitmore Estate Visitor Log',
+            unlockedBy: 'COL-001-A-FARC-B01',
+            type:'Estate Visitor Record', timestamp:'2026-03-04 21:05:00',
+            value:'Whitmore Estate entry — Elias Voss · 21:05 · No exit recorded', flag:'critical',
+            fields:[
+              { label:'System',         val:'Whitmore Estate — Security Gatehouse Log' },
+              { label:'Visitor',        val:'Elias Voss', cls:'critical' },
+              { label:'Host',           val:'Diana Whitmore', cls:'highlight' },
+              { label:'Entry Time',     val:'2026-03-04 21:05:00', cls:'highlight' },
+              { label:'Exit Time',      val:'NOT RECORDED', cls:'critical' },
+              { label:'Service Exit',   val:'Unmonitored — no log coverage', cls:'critical' },
+              { label:'Correlation',    val:'Ashford vehicle on harbour CCTV at 22:10 — route from estate service road' },
+            ],
+            hex: '56 49 53 49 54 4F 52 3A 20 45 2E 56 4F 53 53 00  VISITOR: E.VOSS.\n45 4E 54 52 59 3A 20 32 31 30 35 30 30 00 45 58  ENTRY: 210500.EX\n49 54 3A 20 4E 55 4C 4C 00 53 56 43 2D 45 58 49  IT: NULL.SVC-EXI',
+            note:'Voss entered Whitmore Estate at 21:05 and was never logged departing through the main gate. The estate\'s unmonitored service exit provides a route by which a body could be removed without a record. This is the last confirmed sighting of Voss alive.',
+          },
+        ],
+        C: [
+          {
+            id: 'META-015', category:'witness', source:'FARC-C01 — Anonymous Tip Log',
+            unlockedBy: null,
+            type:'Duty Desk Log Entry', timestamp:'2026-03-05 02:17:00',
+            value:'Anonymous tip — two figures, Harlow Street Alley · 02:17', flag:'critical',
+            fields:[
+              { label:'Call Time',      val:'2026-03-05 02:17:00', cls:'highlight' },
+              { label:'Caller',         val:'Anonymous — withheld' },
+              { label:'Location',       val:'Harlow Street Alley', cls:'highlight' },
+              { label:'Time of Event',  val:'Approx. 23:30–00:00 on Mar 04', cls:'highlight' },
+              { label:'Figure 1',       val:'Male, large build, dark clothing', cls:'critical' },
+              { label:'Figure 2',       val:'Male, unresponsive — feet dragging', cls:'critical' },
+              { label:'Vehicle',        val:'Dark saloon, engine running, alley entrance', cls:'highlight' },
+              { label:'Action Taken',   val:'Logged as low-priority welfare — no patrol sent', cls:'critical' },
+            ],
+            hex: '54 49 50 3A 20 30 32 31 37 30 30 00 4C 4F 43 3A  TIP: 021700.LOC:\n48 41 52 4C 4F 57 2D 53 54 00 46 49 47 2D 31 3A  HARLOW-ST.FIG-1:\n4D 41 4C 45 2D 4C 52 47 00 46 49 47 2D 32 3A 49  MALE-LRG.FIG-2:I',
+            note:'An anonymous caller reported two figures in Harlow Street Alley between 23:30 and midnight — one apparently dragging an unresponsive second. The dark saloon matches descriptions from Agnes Whittle and Deko Brannigan. The call was not actioned. The timeline confirms Voss was brought to the alley after being incapacitated elsewhere.',
+          },
+        ],
+      };
+      const items = FARC_META[arc] || [];
+      items.forEach(item => METADATA.push(item));
+    })();
+
     let activeMetaCategory = 'all';
     let activeMetaRow = null;
 
@@ -4403,6 +4470,96 @@
         conclusion:'A physical profile has been established: male, tall (187–192cm), 88–98kg, with a left-side gait asymmetry consistent with a prior lower-leg injury. This profile can be used to exclude suspects who do not conform to these parameters.',
         analystTitle:'Forensic Anthropologist', reviewedBy:'Prof. L. Ashworth, Human Identification Unit' },
     };
+
+    /* ── FARC: Arc-specific location evidence — mirrors evidence.html ── */
+    (function addFARCBoardReports() {
+      const arc = localStorage.getItem('col_arc') || 'A';
+      const FARC_REPORTS = {
+        A: {
+          'COL-001-A-FARC-A01': {
+            lab:'Merrehope Police Department — Property & Exhibits Unit', division:'Personal Effects Recovery',
+            analyst:'Dr. C. Fairweather, M.D.', analystTitle:'Chief Medical Examiner',
+            reviewedBy:'DS Forensic Coordination, MPD', reportId:'PER-COL-001-A-001',
+            exhibit:'COL-001-A-FARC-A01 — Bar Receipt, The Velvet Anchor',
+            name:'Personal Effects Recovery — Bar Receipt (Velvet Anchor)',
+            methodology:'Personal effects recovered from the deceased during post-mortem examination were catalogued, photographed, and submitted for forensic assessment under standard chain of custody protocol.',
+            findings:[
+              'Bar receipt recovered from victim\'s inside left jacket pocket. Date/time stamp: 04 Mar 2026 · 22:07, The Velvet Anchor.',
+              'Two drinks charged to corporate tab: "MARRE/IMPORT — CORP ACCT 0077".',
+              'Handwritten notation on reverse: "22:15 — V.A. back" — consistent with a reminder for a private meeting at the back office.',
+              'Receipt format and tax codes are authentic. No evidence of fabrication.',
+            ],
+            conclusion:'The receipt places Voss at The Velvet Anchor at 22:07 on the night of the incident, with a tab on a Marre Import corporate account. The notation "V.A. back" is consistent with a scheduled back-office meeting. This contradicts the assumption that Harlow Street Alley was the primary scene.',
+          },
+          'COL-001-A-FARC-A02': {
+            lab:'Merrehope Police Department — Digital Forensics Unit', division:'Premises Access Record Analysis',
+            analyst:'Analyst T. Vasquez', analystTitle:'Digital Forensics Analyst',
+            reviewedBy:'DS Forensic Coordination, MPD', reportId:'DIG-COL-001-A-003',
+            exhibit:'COL-001-A-FARC-A02 — Velvet Anchor Access Log (subpoena)',
+            name:'Access Log Analysis — Velvet Anchor Back Office (Mar 04)',
+            methodology:'Electronic access records obtained from The Velvet Anchor under court subpoena. Data extracted from the premises key-fob management system and cross-referenced against CCTV timestamps.',
+            findings:[
+              'Back office access at 22:34:08 — key fob registered to "R. Cross / City Council — VIP Account". Duration: 47 minutes.',
+              'No exit scan recorded. Bar floor CCTV was unavailable — management confirmed camera was under maintenance.',
+              'Cross-reference with FARC-A01: Voss was at the bar at 22:07 — twenty-seven minutes before Cross\'s fob accessed the back office.',
+            ],
+            conclusion:'The access log places Cross in the private back office at 22:34. Combined with the bar receipt placing Voss at the same venue, the Velvet Anchor back office is established as the primary scene. Harlow Street Alley is consistent with a post-mortem disposal location.',
+          },
+        },
+        B: {
+          'COL-001-A-FARC-B01': {
+            lab:'Merrehope Police Department — Document Services Unit', division:'Subpoenaed Records Analysis',
+            analyst:'Examiner C. Brewster', analystTitle:'Document Services Examiner',
+            reviewedBy:'DS Forensic Coordination, MPD', reportId:'DOC-COL-001-A-003',
+            exhibit:'COL-001-A-FARC-B01 — Whitmore Estate Visitor Log (subpoena)',
+            name:'Visitor Log Analysis — Whitmore Estate (Mar 04 2026)',
+            methodology:'Visitor log records obtained from Whitmore Estate security under court subpoena. Physical log examined and digitised. Entry times and signatures cross-referenced against known movements.',
+            findings:[
+              'Entry: Elias Voss, 21:05 Mar 04 2026. Signed in as guest of Diana Whitmore. Purpose: "private meeting — financial review".',
+              'No exit entry recorded for Voss. All other visitors recorded departure times.',
+              'Service exit on eastern perimeter not monitored by gatehouse — a vehicle could depart without a log entry.',
+              'Ashford\'s personal vehicle captured on harbour approach CCTV at 22:10 — route consistent with departure from the estate service road.',
+            ],
+            conclusion:'Voss arrived at Whitmore Estate at 21:05 and was never logged as departing. Ashford\'s vehicle on harbour CCTV at 22:10 is consistent with departure from the estate service road. Whitmore Estate — the study specifically — is now the primary scene candidate.',
+          },
+          'COL-001-A-FARC-B02': {
+            lab:'Trace Evidence Laboratory', division:'Chemistry & Materials Analysis Unit',
+            analyst:'Examiner S. Vandermeer', analystTitle:'Trace Evidence Examiner',
+            reviewedBy:'Sr. Scientist P. Okafor', reportId:'TRC-COL-001-A-003',
+            exhibit:'COL-001-A-FARC-B02 — Brass Particulate, Wound Site',
+            name:'Trace Metal Analysis — Brass Particulate (Wound Margins)',
+            methodology:'Particulate from wound margins analysed by micro-XRF spectrometry and SEM-EDX. Elemental profiles compared against reference alloy databases.',
+            findings:[
+              'Composition: copper 62%, zinc 34%, trace lead 2% — standard cast brass consistent with decorative desk objects manufactured pre-1980.',
+              'Particle morphology consistent with single high-impact event, not prolonged friction.',
+              'No equivalent brass objects recovered from the Harlow Street scene or immediate vicinity.',
+              'Composition consistent with vintage cast brass desk accessories — paperweights, letter openers, or bookends.',
+            ],
+            conclusion:'The impact weapon was a cast brass object not recovered at the disposal site. Absence of brass at Harlow Street and the vintage desk-brass profile strongly indicate the assault occurred at a location containing such objects. A formal search of the Whitmore Estate study is required.',
+          },
+        },
+        C: {
+          'COL-001-A-FARC-C01': {
+            lab:'Merrehope Police Department — Duty Desk Records', division:'Non-Emergency Call Log',
+            analyst:'Duty Sergeant F. Omondi', analystTitle:'Duty Desk Sergeant',
+            reviewedBy:'DS Forensic Coordination, MPD', reportId:'LOG-COL-001-A-001',
+            exhibit:'COL-001-A-FARC-C01 — Anonymous Tip, Mar 05 02:17',
+            name:'Duty Log Transcript — Anonymous Tip (Two Figures, Harlow Street)',
+            methodology:'Call received at MPD duty desk at 02:17 on Mar 05. Recorded under standard non-emergency protocol. Transcribed and preserved as investigative material.',
+            findings:[
+              'Caller (anonymous, adult male, local accent) reported two figures in Harlow Street Alley between 23:30 and midnight on Mar 04.',
+              'First figure: male, large build, dark clothing, moving purposefully — appeared to be guiding or carrying the second.',
+              'Second figure: male, appeared unresponsive — feet dragging, head forward. Caller assumed intoxication.',
+              'A dark saloon car was parked at the alley entrance, engine running. First figure loaded second into the rear seat and drove away.',
+              'Call logged as "low-priority welfare concern". No patrol despatched.',
+            ],
+            conclusion:'The tip corroborates a two-person operation in Harlow Street Alley between 23:30 and midnight. The unresponsive second figure is consistent with a victim incapacitated elsewhere and transported to the alley. The dark saloon is consistent with descriptions from Agnes Whittle and Deko Brannigan. Harlow Street Alley is the disposal site — consistent with the hired assailant bringing an already-incapacitated victim.',
+          },
+        },
+      };
+      const reports = FARC_REPORTS[arc] || {};
+      Object.entries(reports).forEach(([id, r]) => { BOARD_LAB_REPORTS[id] = r; });
+    })();
 
     /* ── E28: Toxicology Full Panel — arc-dependent, mirrors evidence.html ── */
     (function addE28BoardReport() {
